@@ -8,6 +8,8 @@ import org.drools.guvnor.decisiontable.client.widget.DecisionTableControlsWidget
 import org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget;
 import org.drools.guvnor.decisiontable.client.widget.DynamicData;
 import org.drools.guvnor.decisiontable.client.widget.VerticalDecisionTableWidget;
+import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
+import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -21,24 +23,30 @@ public class DecisionTable implements EntryPoint {
 
 	final DecisionTableWidget dtable = new VerticalDecisionTableWidget();
 
-	// TODO This should be hidden within the DecisionTable. CellValue wraps
-	// an "actual" value adding numerous additional properties to support
-	// merging in the Decision Table. When completed DynamicData and
-	// CellValue's accessors can be changed to package-private
-	DynamicData data = new DynamicData();
-	List<CellValue> row1 = new ArrayList<CellValue>();
-	row1.add(new CellValue("R1", 0, 0));
-	data.add(row1);
-	List<CellValue> row2 = new ArrayList<CellValue>();
-	row2.add(new CellValue("R2", 1, 0));
-	data.add(row2);
+	// Guvnor's data model for Decision Tables
+	GuidedDecisionTable guidedModel = getModel();
 
-	dtable.setData(data);
+	// Pass data to Widget
+	dtable.setData(guidedModel);
 	dtable.setHeight("300px");
 	dtable.setWidth("800px");
 
 	RootPanel.get("table").add(dtable);
 	RootPanel.get("buttons").add(new DecisionTableControlsWidget(dtable));
 
+    }
+
+    // Construct a model as used by Guvnor
+    private GuidedDecisionTable getModel() {
+	GuidedDecisionTable guidedModel = new GuidedDecisionTable();
+	List<MetadataCol> metadataCols = new ArrayList<MetadataCol>();
+	MetadataCol metaCol = new MetadataCol();
+	metaCol.attr = "salience";
+	metadataCols.add(metaCol);
+
+	String[][] guidedData = { { "1" }, { "1" } };
+	guidedModel.setData(guidedData);
+	guidedModel.setMetadataCols(metadataCols);
+	return guidedModel;
     }
 }

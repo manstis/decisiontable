@@ -1,9 +1,13 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import com.google.gwt.rpc.server.CastableTypeData;
+import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
+import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
+import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
+
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.HasKeyboardPagingPolicy.KeyboardPagingPolicy;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
@@ -25,6 +29,7 @@ public abstract class DecisionTableWidget extends Composite {
 
     // Decision Table data
     protected DynamicData data;
+    protected GuidedDecisionTable model;
 
     // This handles interaction between the user and constraints on how the
     // table should be rendered
@@ -51,24 +56,41 @@ public abstract class DecisionTableWidget extends Composite {
      * 
      * @param data
      */
-    public void setData(DynamicData data) {
-	this.data = data;
+    public void setData(GuidedDecisionTable model) {
+	this.model = model;
 
-	final int dataSize = data.size();
+	final int dataSize = model.getData().length;
 
-	// Initialise CellTable's columns
 	if (dataSize > 0) {
-	    List<CellValue> row = data.get(0);
+
+	    // Clear existing columns
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		table.removeColumn(iCol);
 	    }
 	    columns.clear();
 	    Header<String> header = getHeader();
-	    for (int iCol = 0; iCol < row.size(); iCol++) {
+
+	    // Initialise CellTable's columns
+	    int iCol = 0;
+	    DTColumnConfig col = null;
+	    for (Iterator<MetadataCol> itr = model.getMetadataCols().iterator(); itr
+		    .hasNext(); col = itr.next()) {
 		DynamicEditColumn column = new DynamicEditColumn(
 			new EditableCell(this.manager), iCol);
 		table.addColumn(column, header);
 		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Setup data
+	    this.data = new DynamicData();
+	    for (int iRow = 0; iRow < dataSize; iRow++) {
+		String[] row = model.getData()[iRow];
+		ArrayList<CellValue> cellRow = new ArrayList<CellValue>();
+		for (iCol = 0; iCol < row.length; iCol++) {
+		    cellRow.add(new CellValue(row[iCol], iRow, iCol));
+		}
+		this.data.add(cellRow);
 	    }
 	    ((HeaderCell) header.getCell()).setColumnCount(columns.size());
 	}

@@ -2,7 +2,6 @@ package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.List;
 
-
 import com.google.gwt.user.cellview.client.Column;
 
 /**
