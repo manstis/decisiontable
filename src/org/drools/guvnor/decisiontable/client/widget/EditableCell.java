@@ -24,6 +24,9 @@ public class EditableCell extends
     interface Template extends SafeHtmlTemplates {
 	@Template("<input style=\"width:40px\" type=\"text\" value=\"{0}\" tabindex=\"-1\"></input>")
 	SafeHtml input(String value);
+
+	@Template("<div>{0}</div>")
+	SafeHtml text(String value);
     }
 
     static class ViewData {
@@ -127,7 +130,7 @@ public class EditableCell extends
     public void onBrowserEvent(Element parent, CellValue selectedCell,
 	    Object key, NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
 
-	//Lookup physical cell
+	// Lookup physical cell
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
 	key = physicalCoordinate;
 	ViewData viewData = getViewData(key);
@@ -176,15 +179,14 @@ public class EditableCell extends
 		sb.append(template
 			.input(viewData.getOriginalValue().toString()));
 	    } else {
-		SafeHtml html = renderer.render(viewData.getOriginalValue()
-			.toString());
-		sb.append(html);
+		// SafeHtml html = renderer.render());
+		sb.append(template.text(viewData.getOriginalValue().toString()));
 		clearViewData(key);
 		viewData = null;
 	    }
 	} else if (selectedCell != null) {
-	    SafeHtml html = renderer.render(selectedCell.getValue().toString());
-	    sb.append(html);
+	    // SafeHtml html = renderer.render();
+	    sb.append(template.text(selectedCell.getValue().toString()));
 	}
     }
 

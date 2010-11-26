@@ -5,8 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
-
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.cellview.client.Header;
 
 /**
  * Vertical implementation of a Decision Table where rules are represented as
@@ -18,8 +18,25 @@ import com.google.gwt.dom.client.Style.Unit;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
+    private static Header<String> header=null;
+
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
+    }
+
+    @Override
+    protected Header<String> getHeader() {
+	if (header == null) {
+	    header = new Header<String>(new HeaderCell()) {
+
+		@Override
+		public String getValue() {
+		    return "hello";
+		}
+		
+	    };
+	    }
+	return header;
     }
 
     /**
@@ -138,17 +155,18 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		table.removeColumn(0);
 	    }
-	    DynamicEditColumn column = new DynamicEditColumn(
-		    new EditableCell(this), index);
+	    DynamicEditColumn column = new DynamicEditColumn(new EditableCell(
+		    this), index);
 	    columns.add(index, column);
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);
 		col.setColumnIndex(iCol);
-		table.addColumn(col, "new");
+		table.addColumn(col, getHeader());
 	    }
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
+	    ((HeaderCell) header.getCell()).setColumnCount(columns.size());
 	    table.setRowCount(data.size());
 	    table.setRowData(0, data);
 	    assertMerging();

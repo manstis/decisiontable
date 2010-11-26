@@ -14,6 +14,45 @@ h1 {
 	width: 70%;
 }
 
-.selectable {
-	cursor: pointer;
+.GL0PBETBKC {
+	padding:0px !important; 
+	text-align:center;
+	width:100px;
+}
+
+.GL0PBETBEC {
+	padding:0px !important; 
+	text-align:center;
+	width:100px;
+}
+
+.GL0PBETBED {
+	padding:0px !important; 
+	text-align:center;
+	width:100px;
+}
+
+.GL0PBETBDC {
+	padding:0px !important; 
+	text-align:center;
+	width:100px;
+}
+
+.GL0PBETBID {
+	table-layout:fixed !important;
+}		
+
+.headerTable {
+	table-layout:fixed;
+	padding:0px;
+	margin:0px;
+	width:100%;
+}
+
+.headerCell {
+	height:48px;
+	width:100px;
+	padding:0px;
+	margin:0px;
+	text-align:center;
 }
