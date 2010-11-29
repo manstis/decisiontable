@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
+import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.user.cellview.client.Header;
+import com.google.gwt.event.dom.client.ScrollEvent;
+import com.google.gwt.event.dom.client.ScrollHandler;
+import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
  * Vertical implementation of a Decision Table where rules are represented as
@@ -20,25 +24,125 @@ import com.google.gwt.user.cellview.client.Header;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
-    private static Header<String> header = null;
-
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
     }
 
+    /* (non-Javadoc)
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#getMainPanel()
+     */
     @Override
-    protected Header<String> getHeader() {
-	if (header == null) {
-	    header = new Header<String>(new HeaderCell(this.columns)) {
-
-		@Override
-		public String getValue() {
-		    return "hello";
-		}
-
-	    };
+    protected Panel getMainPanel() {
+	if (this.mainPanel == null) {
+	    this.mainPanel = new VerticalPanel();
 	}
-	return header;
+	return this.mainPanel;
+    }
+
+    /* (non-Javadoc)
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#getHeaderWidget()
+     */
+    @Override
+    protected DecisionTableHeaderWidget getHeaderWidget() {
+	if (this.headerWidget == null) {
+	    this.headerWidget = new VerticalDecisionTableHeaderWidget(this);
+	}
+	return this.headerWidget;
+    }
+
+    /* (non-Javadoc)
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#getScrollHandler()
+     */
+    @Override
+    protected ScrollHandler getScrollHandler() {
+	return new ScrollHandler() {
+
+	    @Override
+	    public void onScroll(ScrollEvent event) {
+		headerWidget.setScrollPosition(scrollPanel
+			.getHorizontalScrollPosition());
+	    }
+	};
+    }
+
+    /**
+     * Set the Decision Table's data. This removes all existing columns from the
+     * Decision Table and re-creates them based upon the provided data.
+     * 
+     * @param data
+     */
+    @Override
+    public void setData(GuidedDecisionTable model) {
+	this.model = model;
+
+	final int dataSize = model.getData().length;
+
+	if (dataSize > 0) {
+
+	    // Clear existing columns
+	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+		table.removeColumn(iCol);
+	    }
+	    columns.clear();
+
+	    // Initialise CellTable's Metadata columns
+	    int iCol = 0;
+	    for (DTColumnConfig col : model.getMetadataCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Initialise CellTable's Attribute columns
+	    for (DTColumnConfig col : model.getAttributeCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Initialise CellTable's Condition columns
+	    for (DTColumnConfig col : model.getConditionCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Initialise CellTable's Action columns
+	    for (DTColumnConfig col : model.getActionCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Setup data
+	    this.data = new DynamicData();
+	    for (int iRow = 0; iRow < dataSize; iRow++) {
+		String[] row = model.getData()[iRow];
+		ArrayList<CellValue> cellRow = new ArrayList<CellValue>();
+		for (iCol = 0; iCol < row.length; iCol++) {
+		    cellRow.add(new CellValue(row[iCol], iRow, iCol));
+		}
+		this.data.add(cellRow);
+	    }
+	}
+	table.setPageSize(dataSize);
+	table.setRowCount(dataSize);
+	table.setRowData(0, data);
+
+	// Calls to CellTable.setRowData() causes the rows to revert to their
+	// default heights
+	manager.assertRowHeights();
+	
+	//Draw the header
+	headerWidget.redraw();
     }
 
     /**
@@ -163,11 +267,12 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);
 		col.setColumnIndex(iCol);
-		table.addColumn(col, getHeader());
+		table.addColumn(col);
 	    }
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
+	    headerWidget.redraw();
 	    table.setRowCount(data.size());
 	    table.setRowData(0, data);
 	    assertMerging();

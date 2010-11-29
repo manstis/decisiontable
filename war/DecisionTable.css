@@ -14,33 +14,99 @@ h1 {
 	width: 70%;
 }
 
-.GL0PBETBKC {
+.GL0PBETBID {
 	padding:0px !important; 
-	text-align:center;
-	width:100px;
-}
+	margin:0px !important;
+	text-align:center !important;
+	border:0px none !important;
+	}	
 
-.GL0PBETBEC {
+.GL0BETBEC {
 	padding:0px !important; 
-	text-align:center;
-	width:100px;
-}
-
+	margin:0px !important;
+	text-align:center !important;
+	border:0px none !important;
+	}
+		
 .GL0PBETBED {
 	padding:0px !important; 
-	text-align:center;
-	width:100px;
-}
+	margin:0px !important;
+	text-align:center !important;
+	border:0px none !important;
+	}	
 
 .GL0PBETBDC {
 	padding:0px !important; 
-	text-align:center;
-	width:100px;
-}
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+	border:0px none !important;
+	}
+		
+.GL0PBETBFC {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+	border:0px none !important;
+	}
+		
+.GL0PBETBGC {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+	border:0px none !important;
+	}
+		
+.GL0PBETBMC {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+	border:0px none !important;
+	}
+		
+.GL0PBETBAD {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+	border:0px none !important;
+	}
 
-.GL0PBETBID {
-	table-layout:fixed !important;
-}		
+/* -- Header -- */
+.GL0PBETBKC {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+/*	border:0px none !important;*/
+	}	
+
+.GL0PBETBIC {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+/*	border:0px none !important;*/
+	}	
+
+.GL0PBETBCD {
+	padding:0px !important; 
+	margin:0px !important;
+	text-align:center !important;
+	width:100px !important;
+	min-width: 100px !important;
+/*	border:0px none !important;*/
+	}	
 
 .headerTable {
 	table-layout:fixed;
