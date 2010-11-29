@@ -1,5 +1,8 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
+import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
+
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyPressEvent;
@@ -31,7 +34,7 @@ public class DecisionTableControlsWidget extends Composite {
 	    @Override
 	    public void onClick(ClickEvent event) {
 		dtable.clearSelection();
-		dtable.addColumn();
+		dtable.addColumn(getNewColumn());
 	    }
 	});
 
@@ -42,7 +45,8 @@ public class DecisionTableControlsWidget extends Composite {
 
 	    @Override
 	    public void execute() {
-		dtable.insertColumnBefore(columnNumberWidget.getValue());
+		dtable.insertColumnBefore(getNewColumn(),
+			columnNumberWidget.getValue());
 	    }
 
 	});
@@ -86,6 +90,12 @@ public class DecisionTableControlsWidget extends Composite {
 	panel.add(btnToggleMerging);
 	initWidget(panel);
 
+    }
+
+    private DTColumnConfig getNewColumn() {
+	MetadataCol column = new MetadataCol();
+	column.attr = "salience";
+	return column;
     }
 
     /**

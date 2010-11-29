@@ -3,11 +3,12 @@ package org.drools.guvnor.decisiontable.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.drools.guvnor.decisiontable.client.widget.CellValue;
 import org.drools.guvnor.decisiontable.client.widget.DecisionTableControlsWidget;
 import org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget;
-import org.drools.guvnor.decisiontable.client.widget.DynamicData;
 import org.drools.guvnor.decisiontable.client.widget.VerticalDecisionTableWidget;
+import org.drools.ide.common.client.modeldriven.dt.ActionCol;
+import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
+import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
@@ -40,13 +41,32 @@ public class DecisionTable implements EntryPoint {
     private GuidedDecisionTable getModel() {
 	GuidedDecisionTable guidedModel = new GuidedDecisionTable();
 	List<MetadataCol> metadataCols = new ArrayList<MetadataCol>();
+	List<AttributeCol> attributeCols = new ArrayList<AttributeCol>();
+	List<ConditionCol> conditionCols = new ArrayList<ConditionCol>();
+	List<ActionCol> actionCols = new ArrayList<ActionCol>();
 	MetadataCol metaCol = new MetadataCol();
 	metaCol.attr = "salience";
 	metadataCols.add(metaCol);
 
-	String[][] guidedData = { { "1" }, { "1" } };
+	AttributeCol attributeCol = new AttributeCol();
+	attributeCol.attr = "attribute";
+	attributeCols.add(attributeCol);
+
+	ConditionCol conditionCol = new ConditionCol();
+	conditionCol.setFactType("FactType");
+	conditionCol.setFactField("FactField");
+	conditionCols.add(conditionCol);
+
+	ActionCol actionCol = new ActionCol();
+	actionCol.setHeader("Action");
+	actionCols.add(actionCol);
+
+	String[][] guidedData = { { "Metadata1","Attribute1","FactType1","Action1" }, { "Metadata2","Attribute2","FactType2","Action2" } };
 	guidedModel.setData(guidedData);
 	guidedModel.setMetadataCols(metadataCols);
+	guidedModel.setAttributeCols(attributeCols);
+	guidedModel.setConditionCols(conditionCols);
+	guidedModel.setActionCols(actionCols);
 	return guidedModel;
     }
 }

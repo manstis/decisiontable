@@ -70,12 +70,37 @@ public abstract class DecisionTableWidget extends Composite {
 	    columns.clear();
 	    Header<String> header = getHeader();
 
-	    // Initialise CellTable's columns
+	    // Initialise CellTable's Metadata columns
 	    int iCol = 0;
-	    DTColumnConfig col = null;
-	    for (Iterator<MetadataCol> itr = model.getMetadataCols().iterator(); itr
-		    .hasNext(); col = itr.next()) {
-		DynamicEditColumn column = new DynamicEditColumn(
+	    for (DTColumnConfig col : model.getMetadataCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column, header);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Initialise CellTable's Attribute columns
+	    for (DTColumnConfig col : model.getAttributeCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column, header);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Initialise CellTable's Condition columns
+	    for (DTColumnConfig col : model.getConditionCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
+			new EditableCell(this.manager), iCol);
+		table.addColumn(column, header);
+		columns.add(iCol, column);
+		iCol++;
+	    }
+
+	    // Initialise CellTable's Action columns
+	    for (DTColumnConfig col : model.getActionCols()) {
+		DynamicEditColumn column = new DynamicEditColumn(col,
 			new EditableCell(this.manager), iCol);
 		table.addColumn(column, header);
 		columns.add(iCol, column);
@@ -92,7 +117,6 @@ public abstract class DecisionTableWidget extends Composite {
 		}
 		this.data.add(cellRow);
 	    }
-	    ((HeaderCell) header.getCell()).setColumnCount(columns.size());
 	}
 	table.setPageSize(dataSize);
 	table.setRowCount(dataSize);
@@ -127,14 +151,12 @@ public abstract class DecisionTableWidget extends Composite {
 	manager.insertRowBefore(index);
     }
 
-    protected void addColumn() {
-	// TODO Columns can have "type" (meta, action, condition)
-	manager.addColumn("new");
+    protected void addColumn(DTColumnConfig modelColumn) {
+	manager.addColumn(modelColumn);
     }
 
-    protected void insertColumnBefore(int index) {
-	// TODO Columns can have "type" (meta, action, condition)
-	manager.insertColumnBefore("new", index);
+    protected void insertColumnBefore(DTColumnConfig modelColumn, int index) {
+	manager.insertColumnBefore(modelColumn, index);
     }
 
     protected void toggleMerging() {

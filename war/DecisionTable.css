@@ -49,10 +49,15 @@ h1 {
 	width:100%;
 }
 
-.headerCell {
-	height:48px;
-	width:100px;
+.generalHeaderCell {
 	padding:0px;
 	margin:0px;
 	text-align:center;
+}
+
+.factTypeHeaderCell {
+	padding:0px;
+	margin:0px;
+	text-align:center;
+	border-bottom: 1px solid;
 }

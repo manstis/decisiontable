@@ -1,5 +1,7 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
+
 
 /**
  * SelectionManagers act as the Mediator between user-interactions and a
@@ -19,9 +21,9 @@ public interface SelectionManager {
 
     public abstract void setSelectionValue(Object value);
 
-    public abstract void addColumn(String title);
+    public abstract void addColumn(DTColumnConfig modelColumn);
 
-    public abstract void insertColumnBefore(String title, int index);
+    public abstract void insertColumnBefore(DTColumnConfig modelColumn, int index);
 
     public abstract void addRow();
 

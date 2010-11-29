@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
+
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.cellview.client.Header;
 
@@ -18,7 +20,7 @@ import com.google.gwt.user.cellview.client.Header;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
-    private static Header<String> header=null;
+    private static Header<String> header = null;
 
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
@@ -27,15 +29,15 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
     @Override
     protected Header<String> getHeader() {
 	if (header == null) {
-	    header = new Header<String>(new HeaderCell()) {
+	    header = new Header<String>(new HeaderCell(this.columns)) {
 
 		@Override
 		public String getValue() {
 		    return "hello";
 		}
-		
+
 	    };
-	    }
+	}
 	return header;
     }
 
@@ -126,8 +128,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	 *            A title for the column
 	 */
 	@Override
-	public void addColumn(String title) {
-	    insertColumnBefore(title, columns.size());
+	public void addColumn(DTColumnConfig modelColumn) {
+	    insertColumnBefore(modelColumn, columns.size());
 	}
 
 	/**
@@ -140,7 +142,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	 *            The (zero-based) index of the column
 	 */
 	@Override
-	public void insertColumnBefore(String title, int index) {
+	public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
 		CellValue cell = new CellValue("(R" + iRow + ",C"
@@ -155,8 +157,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		table.removeColumn(0);
 	    }
-	    DynamicEditColumn column = new DynamicEditColumn(new EditableCell(
-		    this), index);
+	    DynamicEditColumn column = new DynamicEditColumn(modelColumn,
+		    new EditableCell(this), index);
 	    columns.add(index, column);
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);
@@ -166,7 +168,6 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
-	    ((HeaderCell) header.getCell()).setColumnCount(columns.size());
 	    table.setRowCount(data.size());
 	    table.setRowData(0, data);
 	    assertMerging();
