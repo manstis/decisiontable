@@ -3,6 +3,8 @@ package org.drools.guvnor.decisiontable.client.widget;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.drools.guvnor.decisiontable.client.guvnor.SortDirection;
+import org.drools.guvnor.decisiontable.client.guvnor.TableImageResources;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
 import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
@@ -11,17 +13,20 @@ import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates.Template;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 
 public class HeaderCell extends AbstractCell<String> {
 
     private static final int ROW_HEIGHT = 32;
 
     protected List<DynamicEditColumn> columns = new ArrayList<DynamicEditColumn>();
+    protected List<SortDirection> sortDirections = new ArrayList<SortDirection>();
 
     private static Template template;
 
@@ -40,6 +45,23 @@ public class HeaderCell extends AbstractCell<String> {
 
 	@Template("<td rowspan=\"2\" class=\"generalHeaderCell\" style=\"height:{0}px\">{1}</td>")
 	SafeHtml actionColumnHeader(int height, String value);
+    }
+
+    private static final TableImageResources TABLE_IMAGE_RESOURCES = GWT
+	    .create(TableImageResources.class);
+    private static final String DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	    .downArrow());
+    private static final String SMALL_DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	    .smallDownArrow());
+    private static final String UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	    .upArrow());
+    private static final String SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	    .smallUpArrow());
+
+    private static String makeImage(ImageResource resource) {
+	AbstractImagePrototype prototype = AbstractImagePrototype
+		.create(resource);
+	return prototype.getHTML();
     }
 
     public HeaderCell(List<DynamicEditColumn> columns) {

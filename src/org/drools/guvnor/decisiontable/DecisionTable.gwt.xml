@@ -7,8 +7,4 @@
 
   <entry-point class='org.drools.guvnor.decisiontable.client.DecisionTable'/>
 
-<!-- 
-  <source path='client'/>
-  <source path='shared'/>
- -->
 </module>
