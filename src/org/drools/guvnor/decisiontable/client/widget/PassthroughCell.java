@@ -212,13 +212,13 @@ public class PassthroughCell extends
 	    }
 
 	} else if ("blur".equals(type)) {
-	    EventTarget eventTarget = event.getEventTarget();
-	    if (Element.is(eventTarget)) {
-		Element target = Element.as(eventTarget);
-		if ("input".equals(target.getTagName().toLowerCase())) {
+//	    EventTarget eventTarget = event.getEventTarget();
+//	    if (Element.is(eventTarget)) {
+//		Element target = Element.as(eventTarget);
+//		if ("input".equals(target.getTagName().toLowerCase())) {
 		    commit(parent, key, viewData);
-		}
-	    }
+//		}
+//	    }
 	}
     }
 

@@ -142,7 +142,7 @@ public class DecisionTableControlsWidget extends Composite {
 
     private DTColumnConfig getNewAttributeColumn() {
 	AttributeCol column = new AttributeCol();
-	column.attr = "attribute";
+	column.attr = "enabled";
 	return column;
     }
 
