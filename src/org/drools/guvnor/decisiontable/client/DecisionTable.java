@@ -45,7 +45,7 @@ public class DecisionTable implements EntryPoint {
 	List<ConditionCol> conditionCols = new ArrayList<ConditionCol>();
 	List<ActionCol> actionCols = new ArrayList<ActionCol>();
 	MetadataCol metaCol = new MetadataCol();
-	metaCol.attr = "salience";
+	metaCol.attr = "metadata";
 	metadataCols.add(metaCol);
 
 	AttributeCol attributeCol = new AttributeCol();
@@ -61,7 +61,7 @@ public class DecisionTable implements EntryPoint {
 	actionCol.setHeader("Action");
 	actionCols.add(actionCol);
 
-	String[][] guidedData = { { "Metadata1","Attribute1","FactType1","Action1" }, { "Metadata2","Attribute2","FactType2","Action2" } };
+	String[][] guidedData = { { "","","","" }, { "","","","" } };
 	guidedModel.setData(guidedData);
 	guidedModel.setMetadataCols(metadataCols);
 	guidedModel.setAttributeCols(attributeCols);

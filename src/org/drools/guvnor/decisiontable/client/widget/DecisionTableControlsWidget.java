@@ -1,5 +1,8 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import org.drools.ide.common.client.modeldriven.dt.ActionCol;
+import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
+import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
@@ -28,16 +31,46 @@ public class DecisionTableControlsWidget extends Composite {
 
     public DecisionTableControlsWidget(final DecisionTableWidget dtable) {
 
-	// Add column button
-	Button btnAddColumn = new Button("Add Column", new ClickHandler() {
+	// Add Metadata column button
+	Button btnAddMetadataColumn = new Button("Add Metadata Column", new ClickHandler() {
 
 	    @Override
 	    public void onClick(ClickEvent event) {
 		dtable.clearSelection();
-		dtable.addColumn(getNewColumn());
+		dtable.addColumn(getNewMetadataColumn());
 	    }
 	});
 
+	// Add Attribute column button
+	Button btnAddAttributeColumn = new Button("Add Attribute Column", new ClickHandler() {
+
+	    @Override
+	    public void onClick(ClickEvent event) {
+		dtable.clearSelection();
+		dtable.addColumn(getNewAttributeColumn());
+	    }
+	});
+
+	// Add Condition column button
+	Button btnAddConditionColumn = new Button("Add Condition Column", new ClickHandler() {
+
+	    @Override
+	    public void onClick(ClickEvent event) {
+		dtable.clearSelection();
+		dtable.addColumn(getNewConditionColumn());
+	    }
+	});
+
+	// Add Action column button
+	Button btnAddActionColumn = new Button("Add Action Column", new ClickHandler() {
+
+	    @Override
+	    public void onClick(ClickEvent event) {
+		dtable.clearSelection();
+		dtable.addColumn(getNewActionColumn());
+	    }
+	});
+	
 	// Insert Row control
 	final NumberRequestor columnNumberWidget = new NumberRequestor(
 		"Insert column before:");
@@ -45,7 +78,7 @@ public class DecisionTableControlsWidget extends Composite {
 
 	    @Override
 	    public void execute() {
-		dtable.insertColumnBefore(getNewColumn(),
+		dtable.insertColumnBefore(getNewMetadataColumn(),
 			columnNumberWidget.getValue());
 	    }
 
@@ -83,21 +116,49 @@ public class DecisionTableControlsWidget extends Composite {
 		    }
 		});
 
-	panel.add(btnAddColumn);
-	panel.add(columnNumberWidget);
+	VerticalPanel vp1 = new VerticalPanel();
+	vp1.add(btnAddMetadataColumn);
+	vp1.add(btnAddAttributeColumn);
+	vp1.add(btnAddConditionColumn);
+	vp1.add(btnAddActionColumn);
+	panel.add(vp1);
+	
+	VerticalPanel vp2 = new VerticalPanel();
+	vp2.add(columnNumberWidget);
+	vp2.add(rowNumberWidget);
+	panel.add(vp2);
+	
 	panel.add(btnAddRow);
-	panel.add(rowNumberWidget);
 	panel.add(btnToggleMerging);
 	initWidget(panel);
 
     }
 
-    private DTColumnConfig getNewColumn() {
+    private DTColumnConfig getNewMetadataColumn() {
 	MetadataCol column = new MetadataCol();
-	column.attr = "salience";
+	column.attr = "metadata";
 	return column;
     }
 
+    private DTColumnConfig getNewAttributeColumn() {
+	AttributeCol column = new AttributeCol();
+	column.attr = "attribute";
+	return column;
+    }
+
+    private DTColumnConfig getNewConditionColumn() {
+	ConditionCol column = new ConditionCol();
+	column.setFactType("fact-type");
+	column.setFactField("fact-field");
+	return column;
+    }
+
+    private DTColumnConfig getNewActionColumn() {
+	ActionCol column = new ActionCol();
+	column.setHeader("action");
+	return column;
+    }
+    
     /**
      * Control allowing entry of numerical value and button to invoke specified
      * Command.

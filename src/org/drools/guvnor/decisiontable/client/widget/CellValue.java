@@ -50,7 +50,7 @@ public class CellValue {
     }
 
     boolean isEmpty() {
-	return this.value == null;
+	return this.value == null || this.value.equals("");
     }
 
     void setRowSpan(int rowSpan) {

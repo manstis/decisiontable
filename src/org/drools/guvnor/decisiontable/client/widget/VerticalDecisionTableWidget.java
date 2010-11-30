@@ -5,10 +5,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.drools.ide.common.client.modeldriven.dt.ActionCol;
+import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
+import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
+import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
@@ -242,7 +245,65 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	 */
 	@Override
 	public void addColumn(DTColumnConfig modelColumn) {
-	    insertColumnBefore(modelColumn, columns.size());
+	    int index = 0;
+	    if (modelColumn instanceof MetadataCol) {
+		index = findMetadataColumnIndex();
+	    } else if (modelColumn instanceof AttributeCol) {
+		index = findAttributeColumnIndex();
+	    } else if (modelColumn instanceof ConditionCol) {
+		index = findConditionColumnIndex();
+	    } else if (modelColumn instanceof ActionCol) {
+		index = findActionColumnIndex();
+	    }
+	    insertColumnBefore(modelColumn, index);
+	}
+
+	//Find the right-most index for a Metadata column 
+	private int findMetadataColumnIndex() {
+	    int index = 0;
+	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+		DTColumnConfig column = columns.get(iCol).getModelColumn();
+		if (column instanceof MetadataCol) {
+		    index = iCol;
+		}
+	    }
+	    return index + 1;
+	}
+
+	//Find the right-most index for a Attribute column 
+	private int findAttributeColumnIndex() {
+	    int index = 0;
+	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+		DTColumnConfig column = columns.get(iCol).getModelColumn();
+		if (column instanceof MetadataCol) {
+		    index = iCol;
+		} else if (column instanceof AttributeCol) {
+		    index = iCol;
+		}
+	    }
+	    return index + 1;
+	}
+
+	//Find the right-most index for a Condition column 
+	private int findConditionColumnIndex() {
+	    int index = 0;
+	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+		DTColumnConfig column = columns.get(iCol).getModelColumn();
+		if (column instanceof MetadataCol) {
+		    index = iCol;
+		} else if (column instanceof AttributeCol) {
+		    index = iCol;
+		} else if (column instanceof ConditionCol) {
+		    index = iCol;
+		}
+	    }
+	    return index + 1;
+	}
+
+	//Find the right-most index for an Action column 
+	private int findActionColumnIndex() {
+	    int index = columns.size();
+	    return index;
 	}
 
 	/**
@@ -286,9 +347,10 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    assertMerging();
 	    assertIndexes();
 	    assertRowHeights();
-	    
-	    //Header needs to be narrowed when the vertical scrollbar appears
-	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()+"px");
+
+	    // Header needs to be narrowed when the vertical scrollbar appears
+	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()
+		    + "px");
 	    headerWidget.redraw();
 	}
 
@@ -335,8 +397,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    assertIndexes();
 	    assertRowHeights();
 
-	    //Header needs to be narrowed when the vertical scrollbar appears
-	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()+"px");
+	    // Header needs to be narrowed when the vertical scrollbar appears
+	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()
+		    + "px");
 	    headerWidget.redraw();
 	}
 
