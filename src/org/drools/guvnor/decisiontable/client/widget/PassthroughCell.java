@@ -2,46 +2,51 @@ package org.drools.guvnor.decisiontable.client.widget;
 
 import com.google.gwt.cell.client.AbstractEditableCell;
 import com.google.gwt.cell.client.ValueUpdater;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
-import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.safehtml.client.SafeHtmlTemplates;
-import com.google.gwt.safehtml.client.SafeHtmlTemplates.Template;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.text.shared.SafeHtmlRenderer;
-import com.google.gwt.text.shared.SimpleSafeHtmlRenderer;
 
 /**
- * An editable text cell. Click to edit, escape to cancel, return to commit.
+ * A generic cell that handles events and state maintenance. Click to edit,
+ * escape to cancel, return or blur to commit. The cell's content, depending
+ * upon "edit" or "non-edit" state, is rendered by Cell Renderers looked up from
+ * a Cell Renderer Factory based upon the coordinate of the cell being rendered.
+ * Whilst this appears daft (as GWT handles assigning Cells to Columns for
+ * rendering of the column) when a Horizontal Decision table is implemented each
+ * column represents a row and therefore will have the need to render each cell
+ * in the column differently.
  */
-public class EditableCell extends
-	AbstractEditableCell<CellValue, EditableCell.ViewData> {
+public class PassthroughCell extends
+	AbstractEditableCell<CellValue, PassthroughCell.ViewData> {
 
-    interface Template extends SafeHtmlTemplates {
-	@Template("<input style=\"width:40px\" type=\"text\" value=\"{0}\" tabindex=\"-1\"></input>")
-	SafeHtml input(String value);
-
-	@Template("<div>{0}</div>")
-	SafeHtml text(String value);
-    }
-
+    /**
+     * The state of the cell. Most cells don't require a state however when a
+     * cell is being edited it's old value and Cell Renderer (for rendering the
+     * "editor") are required.
+     * 
+     * @author manstis
+     * 
+     */
     static class ViewData {
 
 	private boolean isEditing;
-
 	private CellValue originalValue;
+	private AbstractCellRenderer renderer;
 
-	public ViewData(CellValue originalValue) {
+	public ViewData(CellValue originalValue, AbstractCellRenderer renderer) {
 	    this.originalValue = originalValue;
+	    this.renderer = renderer;
 	    this.isEditing = true;
 	}
 
 	public CellValue getOriginalValue() {
 	    return originalValue;
+	}
+
+	public AbstractCellRenderer getRenderer() {
+	    return this.renderer;
 	}
 
 	@Override
@@ -51,13 +56,14 @@ public class EditableCell extends
 	    }
 	    ViewData vd = (ViewData) o;
 	    return equalsOrBothNull(originalValue, vd.originalValue)
+		    && equalsOrBothNull(renderer, vd.renderer)
 		    && isEditing == vd.isEditing;
 	}
 
 	@Override
 	public int hashCode() {
-	    return originalValue.hashCode() * 29
-		    + Boolean.valueOf(isEditing).hashCode();
+	    return originalValue.hashCode() * 29 + renderer.hashCode() * 29
+		    + +Boolean.valueOf(isEditing).hashCode();
 	}
 
 	public boolean isEditing() {
@@ -73,32 +79,23 @@ public class EditableCell extends
 	}
     }
 
-    private static Template template;
+    protected SelectionManager manager;
+    protected AbstractCellRendererFactory cellFactory;
 
-    private final SafeHtmlRenderer<String> renderer;
-
-    private final SelectionManager manager;
-
-    public EditableCell(SelectionManager manager) {
-	this(manager, SimpleSafeHtmlRenderer.getInstance());
-    }
-
-    public EditableCell(SelectionManager manager,
-	    SafeHtmlRenderer<String> renderer) {
+    public PassthroughCell(SelectionManager manager, AbstractCellRendererFactory cellFactory) {
 	super("click", "keyup", "keydown", "blur");
-	if (template == null) {
-	    template = GWT.create(Template.class);
+	if (manager == null) {
+	    throw new IllegalArgumentException("manager == null");
 	}
-	if (renderer == null) {
-	    throw new IllegalArgumentException("renderer == null");
+	if (cellFactory == null) {
+	    throw new IllegalArgumentException("cellFactory == null");
 	}
-	this.renderer = renderer;
+	this.cellFactory = cellFactory;
 	this.manager = manager;
     }
 
     @Override
-    public boolean isEditing(Element element, CellValue selectedCell,
-	    Object key) {
+    public boolean isEditing(Element element, CellValue selectedCell, Object key) {
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
 	key = physicalCoordinate;
 	ViewData viewData = getViewData(key);
@@ -129,8 +126,7 @@ public class EditableCell extends
      */
     @Override
     public void onBrowserEvent(Element parent, CellValue selectedCell,
-	    Object key, NativeEvent event,
-	    ValueUpdater<CellValue> valueUpdater) {
+	    Object key, NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
 
 	// Lookup physical cell
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
@@ -152,78 +148,49 @@ public class EditableCell extends
 		if (viewData == null) {
 		    CellValue physicalCell = manager
 			    .getPhysicalCell(physicalCoordinate);
-		    viewData = new ViewData(physicalCell);
+		    viewData = new ViewData(physicalCell,
+			    cellFactory.getCell(physicalCoordinate));
 		    setViewData(key, viewData);
 		} else {
 		    viewData.setEditing(true);
 		}
 		manager.startSelecting(physicalCoordinate);
-		edit(parent, selectedCell, key);
+		setValue(parent, selectedCell, key);
+		viewData.getRenderer().focus(parent);
 	    }
 	}
     }
 
-    protected void edit(Element parent, CellValue selectedCell, Object key) {
-	setValue(parent, selectedCell, key);
-	InputElement input = getInputElement(parent);
-	input.focus();
-	input.select();
-    }
-
+    /**
+     * Render the required cell using the Cell Renderer applicable to the
+     * physical coordinate of the cell.
+     */
     @Override
     public void render(CellValue selectedCell, Object key, SafeHtmlBuilder sb) {
 
 	key = selectedCell.getPhysicalCoordinate();
+	Coordinate physicalCoordinate = (Coordinate) key;
 	ViewData viewData = getViewData(key);
 
 	if (viewData != null) {
 	    if (viewData.isEditing()) {
-		sb.append(template
-			.input(viewData.getOriginalValue().getValue().toString()));
+		sb.append(viewData.getRenderer().getEditorCell(
+			viewData.getOriginalValue()));
 	    } else {
-		// SafeHtml html = renderer.render());
-		sb.append(template.text(viewData.getOriginalValue().getValue().toString()));
+		sb.append(viewData.getRenderer().getReadOnly(
+			viewData.getOriginalValue()));
 		clearViewData(key);
 		viewData = null;
 	    }
 	} else if (selectedCell != null) {
-	    // SafeHtml html = renderer.render();
-	    sb.append(template.text(selectedCell.getValue().toString()));
+	    sb.append(cellFactory.getCell(physicalCoordinate).getReadOnly(
+		    selectedCell));
 	}
     }
 
-    private void cancel(Element parent, CellValue selectedCell) {
-	clearInput(getInputElement(parent));
-	setValue(parent, selectedCell, null);
-    }
-
-    /**
-     * Clear selected from the input element. Both Firefox and IE fire spurious
-     * onblur events after the input is removed from the DOM if selection is not
-     * cleared.
-     * 
-     * @param input
-     *            the input element
-     */
-    private native void clearInput(Element input) /*-{
-        if (input.selectionEnd)
-        input.selectionEnd = input.selectionStart;
-        else if ($doc.selection)
-        $doc.selection.clear();
-    }-*/;
-
-    private void commit(Element parent) {
-	clearInput(getInputElement(parent));
-	InputElement ie = getInputElement(parent);
-	String text = ie.getValue();
-	CellValue cell = new CellValue(text, 0, 0);
-	setValue(parent, cell, null);
-	manager.update(cell);
-    }
-
-    private void editEvent(Element parent, CellValue selectedCell,
-	    Object key, NativeEvent event,
-	    ValueUpdater<CellValue> valueUpdater) {
+    // Handle events relating to the cell while being edited
+    private void editEvent(Element parent, CellValue selectedCell, Object key,
+	    NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
 
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
 	key = physicalCoordinate;
@@ -235,27 +202,33 @@ public class EditableCell extends
 	if (keyUp || keyDown) {
 	    int keyCode = event.getKeyCode();
 	    if (keyUp && keyCode == KeyCodes.KEY_ENTER) {
-		clearViewData(key);
-		commit(parent);
+		commit(parent, key, viewData);
+
 	    } else if (keyUp && keyCode == KeyCodes.KEY_ESCAPE) {
-		viewData.setEditing(false);
-		cancel(parent, selectedCell);
 		clearViewData(key);
+		viewData.setEditing(false);
+		viewData.getRenderer().cancel(parent);
+		setValue(parent, selectedCell, null);
 	    }
+
 	} else if ("blur".equals(type)) {
 	    EventTarget eventTarget = event.getEventTarget();
 	    if (Element.is(eventTarget)) {
 		Element target = Element.as(eventTarget);
 		if ("input".equals(target.getTagName().toLowerCase())) {
-		    clearViewData(key);
-		    commit(parent);
+		    commit(parent, key, viewData);
 		}
 	    }
 	}
     }
 
-    private InputElement getInputElement(Element parent) {
-	return parent.getFirstChild().<InputElement> cast();
+    //Commit the value of the Cell's editor to the underlying table
+    private void commit(Element parent, Object key, ViewData viewData) {
+	clearViewData(key);
+	CellValue newValue = viewData.getRenderer().commit(parent);
+	setValue(parent, newValue, null);
+	manager.update(newValue);
+
     }
 
 }

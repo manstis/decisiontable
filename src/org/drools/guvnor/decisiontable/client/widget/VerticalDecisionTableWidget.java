@@ -30,6 +30,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
+	this.cellFactory = new VerticalDecisionTableCellRendererFactory(this);
     }
 
     /*
@@ -102,7 +103,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    int iCol = 0;
 	    for (DTColumnConfig col : model.getMetadataCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new EditableCell(this.manager), iCol);
+			new PassthroughCell(this.manager, this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -111,7 +112,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Attribute columns
 	    for (DTColumnConfig col : model.getAttributeCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new EditableCell(this.manager), iCol);
+			new PassthroughCell(this.manager, this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -120,7 +121,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Condition columns
 	    for (DTColumnConfig col : model.getConditionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new EditableCell(this.manager), iCol);
+			new PassthroughCell(this.manager, this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -129,7 +130,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Action columns
 	    for (DTColumnConfig col : model.getActionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new EditableCell(this.manager), iCol);
+			new PassthroughCell(this.manager, this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -332,7 +333,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		table.removeColumn(0);
 	    }
 	    DynamicEditColumn column = new DynamicEditColumn(modelColumn,
-		    new EditableCell(this), index);
+		    new PassthroughCell(this, cellFactory), index);
 	    columns.add(index, column);
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);

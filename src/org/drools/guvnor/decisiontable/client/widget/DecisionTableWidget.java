@@ -25,6 +25,7 @@ public abstract class DecisionTableWidget extends Composite {
     protected Panel mainPanel;
     protected ScrollPanel scrollPanel;
     protected DecisionTableHeaderWidget headerWidget;
+    protected AbstractCellRendererFactory cellFactory;
     protected CellTable<List<CellValue>> table = new CellTable<List<CellValue>>();
 
     // Decision Table data
