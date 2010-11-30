@@ -2,6 +2,7 @@ package org.drools.guvnor.decisiontable.client.widget;
 
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 
+import com.google.gwt.cell.client.ValueUpdater;
 
 /**
  * SelectionManagers act as the Mediator between user-interactions and a
@@ -11,7 +12,7 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
  * @author manstis
  * 
  */
-public interface SelectionManager {
+public interface SelectionManager extends ValueUpdater<CellValue> {
 
     public abstract void startSelecting(Coordinate start);
 
@@ -19,11 +20,10 @@ public interface SelectionManager {
 
     public abstract void clearSelection();
 
-    public abstract void setSelectionValue(Object value);
-
     public abstract void addColumn(DTColumnConfig modelColumn);
 
-    public abstract void insertColumnBefore(DTColumnConfig modelColumn, int index);
+    public abstract void insertColumnBefore(DTColumnConfig modelColumn,
+	    int index);
 
     public abstract void addRow();
 

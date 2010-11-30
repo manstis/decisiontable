@@ -8,6 +8,7 @@ import java.util.TreeSet;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 
+import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
@@ -28,8 +29,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	this.manager = new VerticalSelectionManager();
     }
 
-    /* (non-Javadoc)
-     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#getMainPanel()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
+     * getMainPanel()
      */
     @Override
     protected Panel getMainPanel() {
@@ -39,8 +43,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	return this.mainPanel;
     }
 
-    /* (non-Javadoc)
-     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#getHeaderWidget()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
+     * getHeaderWidget()
      */
     @Override
     protected DecisionTableHeaderWidget getHeaderWidget() {
@@ -50,8 +57,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	return this.headerWidget;
     }
 
-    /* (non-Javadoc)
-     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#getScrollHandler()
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
+     * getScrollHandler()
      */
     @Override
     protected ScrollHandler getScrollHandler() {
@@ -140,8 +150,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	// Calls to CellTable.setRowData() causes the rows to revert to their
 	// default heights
 	manager.assertRowHeights();
-	
-	//Draw the header
+
+	// Draw the header
 	headerWidget.redraw();
     }
 
@@ -214,10 +224,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	 *            The value with which to update selected cells
 	 */
 	@Override
-	public void setSelectionValue(Object value) {
+	public void update(CellValue value) {
 	    for (Coordinate c : this.selections) {
-		CellValue cv = data.get(c);
-		cv.setValue(value);
+		data.set(c, value);
 	    }
 
 	    // A new value could cause other cells to become merged
@@ -272,12 +281,15 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
-	    headerWidget.redraw();
 	    table.setRowCount(data.size());
 	    table.setRowData(0, data);
 	    assertMerging();
 	    assertIndexes();
 	    assertRowHeights();
+	    
+	    //Header needs to be narrowed when the vertical scrollbar appears
+	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()+"px");
+	    headerWidget.redraw();
 	}
 
 	/**
@@ -322,6 +334,10 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    assertMerging();
 	    assertIndexes();
 	    assertRowHeights();
+
+	    //Header needs to be narrowed when the vertical scrollbar appears
+	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()+"px");
+	    headerWidget.redraw();
 	}
 
 	/**

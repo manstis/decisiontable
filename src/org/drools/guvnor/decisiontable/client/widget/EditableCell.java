@@ -33,14 +33,14 @@ public class EditableCell extends
 
 	private boolean isEditing;
 
-	private Object originalValue;
+	private CellValue originalValue;
 
-	public ViewData(Object originalValue) {
+	public ViewData(CellValue originalValue) {
 	    this.originalValue = originalValue;
 	    this.isEditing = true;
 	}
 
-	public Object getOriginalValue() {
+	public CellValue getOriginalValue() {
 	    return originalValue;
 	}
 
@@ -97,7 +97,8 @@ public class EditableCell extends
     }
 
     @Override
-    public boolean isEditing(Element element, CellValue selectedCell, Object key) {
+    public boolean isEditing(Element element, CellValue selectedCell,
+	    Object key) {
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
 	key = physicalCoordinate;
 	ViewData viewData = getViewData(key);
@@ -128,7 +129,8 @@ public class EditableCell extends
      */
     @Override
     public void onBrowserEvent(Element parent, CellValue selectedCell,
-	    Object key, NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
+	    Object key, NativeEvent event,
+	    ValueUpdater<CellValue> valueUpdater) {
 
 	// Lookup physical cell
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
@@ -150,7 +152,7 @@ public class EditableCell extends
 		if (viewData == null) {
 		    CellValue physicalCell = manager
 			    .getPhysicalCell(physicalCoordinate);
-		    viewData = new ViewData(physicalCell.getValue());
+		    viewData = new ViewData(physicalCell);
 		    setViewData(key, viewData);
 		} else {
 		    viewData.setEditing(true);
@@ -177,10 +179,10 @@ public class EditableCell extends
 	if (viewData != null) {
 	    if (viewData.isEditing()) {
 		sb.append(template
-			.input(viewData.getOriginalValue().toString()));
+			.input(viewData.getOriginalValue().getValue().toString()));
 	    } else {
 		// SafeHtml html = renderer.render());
-		sb.append(template.text(viewData.getOriginalValue().toString()));
+		sb.append(template.text(viewData.getOriginalValue().getValue().toString()));
 		clearViewData(key);
 		viewData = null;
 	    }
@@ -216,11 +218,12 @@ public class EditableCell extends
 	String text = ie.getValue();
 	CellValue cell = new CellValue(text, 0, 0);
 	setValue(parent, cell, null);
-	manager.setSelectionValue(text);
+	manager.update(cell);
     }
 
-    private void editEvent(Element parent, CellValue selectedCell, Object key,
-	    NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
+    private void editEvent(Element parent, CellValue selectedCell,
+	    Object key, NativeEvent event,
+	    ValueUpdater<CellValue> valueUpdater) {
 
 	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
 	key = physicalCoordinate;

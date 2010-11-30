@@ -7,7 +7,7 @@ import java.util.List;
  * A simple container for rows of data.
  * 
  * @author manstis
- *
+ * 
  */
 public class DynamicData extends ArrayList<List<CellValue>> {
 
@@ -15,6 +15,10 @@ public class DynamicData extends ArrayList<List<CellValue>> {
 
     public CellValue get(Coordinate c) {
 	return this.get(c.getRow()).get(c.getCol());
+    }
+
+    public void set(Coordinate c, CellValue value) {
+	this.get(c.getRow()).get(c.getCol()).setValue(value.getValue());
     }
 
 }

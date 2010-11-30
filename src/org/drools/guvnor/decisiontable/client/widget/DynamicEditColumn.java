@@ -35,7 +35,7 @@ public class DynamicEditColumn extends Column<List<CellValue>, CellValue> {
     public void setColumnIndex(int columnIndex) {
 	this.columnIndex = columnIndex;
     }
-    
+
     public DTColumnConfig getModelColumn() {
 	return this.modelColumn;
     }
