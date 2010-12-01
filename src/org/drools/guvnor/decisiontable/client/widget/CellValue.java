@@ -1,31 +1,29 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 /**
- * This is a wrapper around a value (generics yet to be implemented).
- * The wrapper provides additional information required to use the
- * vanilla value in a Decision Table with merge capabilities.
+ * This is a wrapper around a value (generics yet to be implemented). The
+ * wrapper provides additional information required to use the vanilla value in
+ * a Decision Table with merge capabilities.
  * 
- * One coordinate is maintained and two indexes to map to and from
- * HTML table coordinates. The indexes used to be maintained in
- * SelectionManager however it required two more N x N collections
- * of "mapping" objects in addition to that containing the actual
- * data.
+ * One coordinate is maintained and two indexes to map to and from HTML table
+ * coordinates. The indexes used to be maintained in SelectionManager however it
+ * required two more N x N collections of "mapping" objects in addition to that
+ * containing the actual data.
  * 
- * The coordinate represents the physical location of the cell on
- * an (R, C) grid. One index maps the physical coordinate of the cell
- * to the logical coordinate of the HTML table whilst the other
- * index maps from the logical coordinate to the physical cell.
+ * The coordinate represents the physical location of the cell on an (R, C)
+ * grid. One index maps the physical coordinate of the cell to the logical
+ * coordinate of the HTML table whilst the other index maps from the logical
+ * coordinate to the physical cell.
  * 
- * For example, given data (0,0), (0,1), (1,0) and (1,1) with cell
- * at (0,0) merged into (1,0) only the HTML coordinates (0,0), (0,1)
- * and (1,0) exist; with physical coordinates (0,0) and (1,0) relating
- * to HTML coordinate (0,0) which has a row span of 2. Therefore physical
- * cells (0,0) and (1,0) have a <code>mapDataToHtml</code> coordinate 
- * of (0,0) whilst physical cell (1,0) has a <code>mapHtmlToData</code>
- * coordinate of (1,1).
+ * For example, given data (0,0), (0,1), (1,0) and (1,1) with cell at (0,0)
+ * merged into (1,0) only the HTML coordinates (0,0), (0,1) and (1,0) exist;
+ * with physical coordinates (0,0) and (1,0) relating to HTML coordinate (0,0)
+ * which has a row span of 2. Therefore physical cells (0,0) and (1,0) have a
+ * <code>mapDataToHtml</code> coordinate of (0,0) whilst physical cell (1,0) has
+ * a <code>mapHtmlToData</code> coordinate of (1,1).
  * 
  * @author manstis
- *
+ * 
  */
 public class CellValue {
     private String value;
@@ -40,12 +38,12 @@ public class CellValue {
 	this.mapHtmlToData = new Coordinate(row, col);
 	this.mapDataToHtml = new Coordinate(row, col);
     }
-    
-    void setValue(String value) {
+
+    public void setValue(String value) {
 	this.value = value;
     }
 
-    String getValue() {
+    public String getValue() {
 	return this.value;
     }
 

@@ -1,6 +1,9 @@
-package org.drools.guvnor.decisiontable.client.widget;
+package org.drools.guvnor.decisiontable.client.widget.cell.renderers;
+
+import org.drools.guvnor.decisiontable.client.widget.CellValue;
 
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.safehtml.shared.SafeHtml;
 
 /**
@@ -13,7 +16,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
  * @author manstis
  * 
  */
-public interface AbstractCellRenderer {
+public abstract class AbstractCellRenderer {
 
     /**
      * Return HTML representing the "read-only" state of the cell.
@@ -67,4 +70,17 @@ public interface AbstractCellRenderer {
      */
     public abstract CellValue commit(Element parent);
 
+    /**
+     * 
+     * @param parent
+     *            The HTML element containing this control.
+     * @param event
+     * 
+     */
+    public void processEvent(Element parent, NativeEvent event) {
+	//Do nothing
+    }
+    
+    
+    
 }

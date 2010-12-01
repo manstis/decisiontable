@@ -3,6 +3,7 @@ package org.drools.guvnor.decisiontable.client.widget;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellRendererFactory;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 
@@ -55,6 +56,10 @@ public abstract class DecisionTableWidget extends Composite {
 	mainPanel.add(headerWidget);
 	mainPanel.add(scrollPanel);
 	initWidget(mainPanel);
+    }
+
+    public List<DynamicEditColumn> getColumns() {
+	return this.columns;
     }
 
     /**

@@ -15,6 +15,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -29,48 +30,61 @@ public class DecisionTableControlsWidget extends Composite {
 
     private Panel panel = new HorizontalPanel();
 
+    private static final String[] ATTRIBUTE_OPTIONS = { "salience", "enabled",
+	    "date-effective", "date-expires", "no-loop", "agenda-group",
+	    "activation-group", "duration", "auto-focus", "lock-on-active",
+	    "ruleflow-group", "dialect" };
+
     public DecisionTableControlsWidget(final DecisionTableWidget dtable) {
 
 	// Add Metadata column button
-	Button btnAddMetadataColumn = new Button("Add Metadata Column", new ClickHandler() {
+	Button btnAddMetadataColumn = new Button("Add Metadata Column",
+		new ClickHandler() {
 
-	    @Override
-	    public void onClick(ClickEvent event) {
-		dtable.clearSelection();
-		dtable.addColumn(getNewMetadataColumn());
-	    }
-	});
+		    @Override
+		    public void onClick(ClickEvent event) {
+			dtable.clearSelection();
+			dtable.addColumn(getNewMetadataColumn());
+		    }
+		});
 
 	// Add Attribute column button
-	Button btnAddAttributeColumn = new Button("Add Attribute Column", new ClickHandler() {
+	final ColumnPicker attributeColumnPicker = new ColumnPicker(
+		"Add Attribute Column");
+	attributeColumnPicker.setOptions(ATTRIBUTE_OPTIONS);
+	attributeColumnPicker.setCommand(new Command() {
 
 	    @Override
-	    public void onClick(ClickEvent event) {
+	    public void execute() {
 		dtable.clearSelection();
-		dtable.addColumn(getNewAttributeColumn());
+		dtable.addColumn(getNewAttributeColumn(attributeColumnPicker
+			.getValue()));
 	    }
+
 	});
 
 	// Add Condition column button
-	Button btnAddConditionColumn = new Button("Add Condition Column", new ClickHandler() {
+	Button btnAddConditionColumn = new Button("Add Condition Column",
+		new ClickHandler() {
 
-	    @Override
-	    public void onClick(ClickEvent event) {
-		dtable.clearSelection();
-		dtable.addColumn(getNewConditionColumn());
-	    }
-	});
+		    @Override
+		    public void onClick(ClickEvent event) {
+			dtable.clearSelection();
+			dtable.addColumn(getNewConditionColumn());
+		    }
+		});
 
 	// Add Action column button
-	Button btnAddActionColumn = new Button("Add Action Column", new ClickHandler() {
+	Button btnAddActionColumn = new Button("Add Action Column",
+		new ClickHandler() {
 
-	    @Override
-	    public void onClick(ClickEvent event) {
-		dtable.clearSelection();
-		dtable.addColumn(getNewActionColumn());
-	    }
-	});
-	
+		    @Override
+		    public void onClick(ClickEvent event) {
+			dtable.clearSelection();
+			dtable.addColumn(getNewActionColumn());
+		    }
+		});
+
 	// Insert Row control
 	final NumberRequestor columnNumberWidget = new NumberRequestor(
 		"Insert column before:");
@@ -117,17 +131,20 @@ public class DecisionTableControlsWidget extends Composite {
 		});
 
 	VerticalPanel vp1 = new VerticalPanel();
-	vp1.add(btnAddMetadataColumn);
-	vp1.add(btnAddAttributeColumn);
-	vp1.add(btnAddConditionColumn);
-	vp1.add(btnAddActionColumn);
+	vp1.add(attributeColumnPicker);
 	panel.add(vp1);
-	
+
 	VerticalPanel vp2 = new VerticalPanel();
-	vp2.add(columnNumberWidget);
-	vp2.add(rowNumberWidget);
+	vp2.add(btnAddMetadataColumn);
+	vp2.add(btnAddConditionColumn);
+	vp2.add(btnAddActionColumn);
 	panel.add(vp2);
-	
+
+	VerticalPanel vp3 = new VerticalPanel();
+	vp3.add(columnNumberWidget);
+	vp3.add(rowNumberWidget);
+	panel.add(vp3);
+
 	panel.add(btnAddRow);
 	panel.add(btnToggleMerging);
 	initWidget(panel);
@@ -140,9 +157,9 @@ public class DecisionTableControlsWidget extends Composite {
 	return column;
     }
 
-    private DTColumnConfig getNewAttributeColumn() {
+    private DTColumnConfig getNewAttributeColumn(String type) {
 	AttributeCol column = new AttributeCol();
-	column.attr = "enabled";
+	column.attr = type;
 	return column;
     }
 
@@ -158,7 +175,7 @@ public class DecisionTableControlsWidget extends Composite {
 	column.setHeader("action");
 	return column;
     }
-    
+
     /**
      * Control allowing entry of numerical value and button to invoke specified
      * Command.
@@ -172,7 +189,7 @@ public class DecisionTableControlsWidget extends Composite {
 	private Button btnEnter = new Button();
 	private TextBox txtNumber = new TextBox();
 
-	NumberRequestor(final String buttonLabel) {
+	private NumberRequestor(final String buttonLabel) {
 	    this.btnEnter.setText(buttonLabel);
 	    this.txtNumber.setText("0");
 	    this.txtNumber.setWidth("64px");
@@ -211,6 +228,51 @@ public class DecisionTableControlsWidget extends Composite {
 		return 0;
 	    }
 	    return Integer.parseInt(text);
+	}
+
+    }
+
+    /**
+     * Simple Widget allowing selection from a list and execution of a command
+     * 
+     * @author manstis
+     * 
+     */
+    private static class ColumnPicker extends Composite {
+
+	private Panel panel = new VerticalPanel();
+	private Button btnEnter = new Button();
+	private ListBox lstOptions = new ListBox(false);
+
+	private ColumnPicker(String buttonLabel) {
+	    this.btnEnter.setText(buttonLabel);
+	    this.lstOptions.setVisibleItemCount(1);
+	    panel.add(btnEnter);
+	    panel.add(lstOptions);
+	    initWidget(panel);
+	}
+
+	private void setOptions(String[] items) {
+	    for (String item : items) {
+		this.lstOptions.addItem(item);
+	    }
+	}
+
+	private void setCommand(final Command command) {
+	    this.btnEnter.addClickHandler(new ClickHandler() {
+
+		@Override
+		public void onClick(ClickEvent event) {
+		    command.execute();
+		}
+
+	    });
+	}
+
+	private String getValue() {
+	    String value = lstOptions
+		    .getItemText(lstOptions.getSelectedIndex());
+	    return value;
 	}
 
     }

@@ -64,7 +64,7 @@ public class VerticalDecisionTableHeaderWidget extends
 	// We don't need any data in the table; as everything is handled by the
 	// Header
 	this.header = new Header<String>(new HeaderCell(
-		this.decisionTable.columns)) {
+		this.decisionTable.getColumns())) {
 
 	    @Override
 	    public String getValue() {

@@ -4,9 +4,9 @@ package org.drools.guvnor.decisiontable.client.widget;
  * A coordinate
  * 
  * @author manstis
- *
+ * 
  */
-class Coordinate {
+public class Coordinate {
     private int row;
     private int col;
     private String displayString;
@@ -23,11 +23,11 @@ class Coordinate {
 	this.displayString = "(R" + c.row + ",C" + c.col + ")";
     }
 
-    int getRow() {
+    public int getRow() {
 	return this.row;
     }
 
-    int getCol() {
+    public int getCol() {
 	return this.col;
     }
 

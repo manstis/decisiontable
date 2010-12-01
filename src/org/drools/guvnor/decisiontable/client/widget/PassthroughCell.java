@@ -1,5 +1,8 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellRenderer;
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellRendererFactory;
+
 import com.google.gwt.cell.client.AbstractEditableCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Element;
@@ -82,7 +85,8 @@ public class PassthroughCell extends
     protected SelectionManager manager;
     protected AbstractCellRendererFactory cellFactory;
 
-    public PassthroughCell(SelectionManager manager, AbstractCellRendererFactory cellFactory) {
+    public PassthroughCell(SelectionManager manager,
+	    AbstractCellRendererFactory cellFactory) {
 	super("click", "keyup", "keydown", "blur");
 	if (manager == null) {
 	    throw new IllegalArgumentException("manager == null");
@@ -121,6 +125,8 @@ public class PassthroughCell extends
      * @param key
      *            Key of the view state data (GWT sets this to be an object of
      *            the row type)
+     * @param event
+     *            The native browser event
      * @param valueUpdater
      *            Callback mechanism to communicate updates
      */
@@ -133,13 +139,34 @@ public class PassthroughCell extends
 	key = physicalCoordinate;
 	ViewData viewData = getViewData(key);
 
-	if (viewData != null && viewData.isEditing()) {
-	    // If editing the cell pass events to the Editor
-	    editEvent(parent, selectedCell, key, event, valueUpdater);
+	String type = event.getType();
 
-	    // Otherwise check for events to initiate editing
+	if (viewData != null && viewData.isEditing()) {
+
+	    // Cell is in "editor" mode
+	    viewData.getRenderer().processEvent(parent, event);
+	    
+	    boolean keyUp = "keyup".equals(type);
+	    boolean keyDown = "keydown".equals(type);
+	    if (keyUp || keyDown) {
+		int keyCode = event.getKeyCode();
+		if (keyUp && keyCode == KeyCodes.KEY_ENTER) {
+		    commit(parent, key, viewData);
+
+		} else if (keyUp && keyCode == KeyCodes.KEY_ESCAPE) {
+		    clearViewData(key);
+		    viewData.setEditing(false);
+		    viewData.getRenderer().cancel(parent);
+		    setValue(parent, selectedCell, null);
+		}
+
+	    } else if ("blur".equals(type)) {
+		commit(parent, key, viewData);
+	    }
+
 	} else {
-	    String type = event.getType();
+
+	    // Cell is in "read-only" mode
 	    int keyCode = event.getKeyCode();
 	    boolean enterPressed = "keyup".equals(type)
 		    && keyCode == KeyCodes.KEY_ENTER;
@@ -149,7 +176,7 @@ public class PassthroughCell extends
 		    CellValue physicalCell = manager
 			    .getPhysicalCell(physicalCoordinate);
 		    viewData = new ViewData(physicalCell,
-			    cellFactory.getCell(physicalCoordinate));
+			    cellFactory.getCellRenderer(physicalCoordinate));
 		    setViewData(key, viewData);
 		} else {
 		    viewData.setEditing(true);
@@ -183,46 +210,12 @@ public class PassthroughCell extends
 		viewData = null;
 	    }
 	} else if (selectedCell != null) {
-	    sb.append(cellFactory.getCell(physicalCoordinate).getReadOnly(
-		    selectedCell));
+	    sb.append(cellFactory.getCellRenderer(physicalCoordinate)
+		    .getReadOnly(selectedCell));
 	}
     }
 
-    // Handle events relating to the cell while being edited
-    private void editEvent(Element parent, CellValue selectedCell, Object key,
-	    NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
-
-	Coordinate physicalCoordinate = selectedCell.getPhysicalCoordinate();
-	key = physicalCoordinate;
-	ViewData viewData = getViewData(key);
-
-	String type = event.getType();
-	boolean keyUp = "keyup".equals(type);
-	boolean keyDown = "keydown".equals(type);
-	if (keyUp || keyDown) {
-	    int keyCode = event.getKeyCode();
-	    if (keyUp && keyCode == KeyCodes.KEY_ENTER) {
-		commit(parent, key, viewData);
-
-	    } else if (keyUp && keyCode == KeyCodes.KEY_ESCAPE) {
-		clearViewData(key);
-		viewData.setEditing(false);
-		viewData.getRenderer().cancel(parent);
-		setValue(parent, selectedCell, null);
-	    }
-
-	} else if ("blur".equals(type)) {
-//	    EventTarget eventTarget = event.getEventTarget();
-//	    if (Element.is(eventTarget)) {
-//		Element target = Element.as(eventTarget);
-//		if ("input".equals(target.getTagName().toLowerCase())) {
-		    commit(parent, key, viewData);
-//		}
-//	    }
-	}
-    }
-
-    //Commit the value of the Cell's editor to the underlying table
+    // Commit the value of the Cell's editor to the underlying table
     private void commit(Element parent, Object key, ViewData viewData) {
 	clearViewData(key);
 	CellValue newValue = viewData.getRenderer().commit(parent);
