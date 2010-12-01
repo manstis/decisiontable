@@ -98,7 +98,7 @@ public class TextCellRenderer extends AbstractCellRenderer {
     }
 
     // Gets the first child of the container; which is the <INPUT> element
-    private InputElement getInputElement(Element parent) {
+    protected InputElement getInputElement(Element parent) {
 	return parent.getFirstChild().<InputElement> cast();
     }
 

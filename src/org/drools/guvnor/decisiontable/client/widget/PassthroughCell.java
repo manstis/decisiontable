@@ -6,7 +6,6 @@ import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCell
 import com.google.gwt.cell.client.AbstractEditableCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.EventTarget;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -87,7 +86,7 @@ public class PassthroughCell extends
 
     public PassthroughCell(SelectionManager manager,
 	    AbstractCellRendererFactory cellFactory) {
-	super("click", "keyup", "keydown", "blur");
+	super("click", "keyup", "keydown", "keypress", "blur");
 	if (manager == null) {
 	    throw new IllegalArgumentException("manager == null");
 	}
@@ -144,8 +143,6 @@ public class PassthroughCell extends
 	if (viewData != null && viewData.isEditing()) {
 
 	    // Cell is in "editor" mode
-	    viewData.getRenderer().processEvent(parent, event);
-	    
 	    boolean keyUp = "keyup".equals(type);
 	    boolean keyDown = "keydown".equals(type);
 	    if (keyUp || keyDown) {
@@ -163,6 +160,8 @@ public class PassthroughCell extends
 	    } else if ("blur".equals(type)) {
 		commit(parent, key, viewData);
 	    }
+	    // Let the CellRenderer handle events too
+	    viewData.getRenderer().processEvent(parent, event);
 
 	} else {
 

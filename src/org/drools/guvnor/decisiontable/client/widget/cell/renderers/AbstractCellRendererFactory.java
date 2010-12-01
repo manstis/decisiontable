@@ -22,10 +22,14 @@ public abstract class AbstractCellRendererFactory {
     {
 	rendererCache.put(MetadataCol.class.getName(), new TextCellRenderer());
 	rendererCache.put(AttributeCol.class.getName(), new TextCellRenderer());
+	rendererCache.put(AttributeCol.class.getName() + "#salience",
+		new NumericCellRenderer());
 	rendererCache.put(AttributeCol.class.getName() + "#enabled",
 		new BooleanCellRenderer());
 	rendererCache.put(AttributeCol.class.getName() + "#no-loop",
 		new BooleanCellRenderer());
+	rendererCache.put(AttributeCol.class.getName() + "#duration",
+		new NumericCellRenderer());
 	rendererCache.put(AttributeCol.class.getName() + "#auto-focus",
 		new BooleanCellRenderer());
 	rendererCache.put(AttributeCol.class.getName() + "#lock-on-active",
