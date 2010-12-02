@@ -1,7 +1,9 @@
 package org.drools.guvnor.decisiontable.client.widget.cell.renderers;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.drools.guvnor.decisiontable.client.widget.Coordinate;
@@ -15,6 +17,7 @@ import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
 import com.google.gwt.cell.client.DatePickerCell;
 import com.google.gwt.cell.client.EditTextCell;
+import com.google.gwt.cell.client.SelectionCell;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 
@@ -29,36 +32,37 @@ public abstract class AbstractCellFactory {
     // Setup the cache. GWT's Cells are wrapped with an adaptor which
     // casts the value of the CellValue to the type required for the GWT Cell
     {
-	cellCache.put(MetadataCol.class.getName(),
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	cellCache.put(AttributeCol.class.getName(),
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	cellCache.put(AttributeCol.class.getName() + "#salience",
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	cellCache.put(AttributeCol.class.getName() + "#enabled",
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	cellCache.put(AttributeCol.class.getName() + "#no-loop",
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	cellCache.put(AttributeCol.class.getName() + "#duration",
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
+	DecisionTableCellValueAdaptor<String> TEXT_CELL = new DecisionTableCellValueAdaptor<String>(
+		new EditTextCell());
+
+	DecisionTableCellValueAdaptor<Date> DATE_CELL = new DecisionTableCellValueAdaptor<Date>(
+		new DatePickerCell(
+			DateTimeFormat.getFormat(PredefinedFormat.DATE_SHORT)));
+
+	// Boolean list box
+	List<String> booleanOptions = new ArrayList<String>();
+	booleanOptions.add("true");
+	booleanOptions.add("false");
+	SelectionCell sc = new SelectionCell(booleanOptions);
+	DecisionTableCellValueAdaptor<String> BOOLEAN_CELL = new DecisionTableCellValueAdaptor<String>(
+		sc);
+
+	cellCache.put(MetadataCol.class.getName(), TEXT_CELL);
+	cellCache.put(AttributeCol.class.getName(), TEXT_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#salience", TEXT_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#enabled", BOOLEAN_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#no-loop", BOOLEAN_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#duration", TEXT_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#auto-focus",
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
+		BOOLEAN_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#lock-on-active",
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
+		BOOLEAN_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#date-effective",
+		DATE_CELL);
 	cellCache
-		.put(AttributeCol.class.getName() + "#date-effective",
-			new DecisionTableCellValueAdaptor<Date>(
-				new DatePickerCell(DateTimeFormat
-					.getFormat(PredefinedFormat.DATE_SHORT))));
-	cellCache
-		.put(AttributeCol.class.getName() + "#date-expires",
-			new DecisionTableCellValueAdaptor<Date>(
-				new DatePickerCell(DateTimeFormat
-					.getFormat(PredefinedFormat.DATE_SHORT))));
-	cellCache.put(ConditionCol.class.getName(),
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	cellCache.put(ActionCol.class.getName(),
-		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
+		.put(AttributeCol.class.getName() + "#date-expires", DATE_CELL);
+	cellCache.put(ConditionCol.class.getName(), TEXT_CELL);
+	cellCache.put(ActionCol.class.getName(), TEXT_CELL);
     }
 
     // Default cell should a specific one not be configured

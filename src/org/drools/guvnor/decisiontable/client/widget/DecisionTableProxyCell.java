@@ -28,7 +28,7 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 
     public DecisionTableProxyCell(SelectionManager manager,
 	    AbstractCellFactory cellFactory) {
-	super("click", "keydown", "keyup", "keypress", "blur");
+	super("click", "keydown", "keyup", "keypress", "change", "blur");
 	this.manager = manager;
 	this.cellFactory = cellFactory;
     }

@@ -148,7 +148,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		String[] row = model.getData()[iRow];
 		ArrayList<CellValue> cellRow = new ArrayList<CellValue>();
 		for (iCol = 0; iCol < row.length; iCol++) {
-		    cellRow.add(new CellValue(row[iCol], iRow, iCol));
+		    DTColumnConfig column = columns.get(iCol).getModelColumn();
+		    CellValue cv = CellValueFactory.getInstance()
+			    .makeCellValue(column, iRow, iCol);
+		    cv.setValue(row[iCol]);
+		    cellRow.add(cv);
 		}
 		this.data.add(cellRow);
 	    }
@@ -328,7 +332,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		CellValue cell = CellValueFactory.getInstance().makeCellValue(modelColumn, iRow, index);
+		CellValue cell = CellValueFactory.getInstance().makeCellValue(
+			modelColumn, iRow, index);
 		data.get(iRow).add(index, cell);
 	    }
 	    assertColumnCoordinates(index);
@@ -391,7 +396,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    List<CellValue> row = new ArrayList<CellValue>();
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DTColumnConfig column = columns.get(iCol).getModelColumn();
-		CellValue data = CellValueFactory.getInstance().makeCellValue(column, index, iCol);
+		CellValue data = CellValueFactory.getInstance().makeCellValue(
+			column, index, iCol);
 		row.add(data);
 	    }
 	    data.add(index, row);

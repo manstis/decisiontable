@@ -21,7 +21,7 @@ public class CellValueFactory {
 
     // Recognised data-types
     private enum DATA_TYPES {
-	STRING, DATE;
+	STRING, DATE, BOOLEAN;
     }
 
     // Setup the cache
@@ -31,15 +31,15 @@ public class CellValueFactory {
 	datatypeCache.put(AttributeCol.class.getName() + "#salience",
 		DATA_TYPES.STRING);
 	datatypeCache.put(AttributeCol.class.getName() + "#enabled",
-		DATA_TYPES.STRING);
+		DATA_TYPES.BOOLEAN);
 	datatypeCache.put(AttributeCol.class.getName() + "#no-loop",
-		DATA_TYPES.STRING);
+		DATA_TYPES.BOOLEAN);
 	datatypeCache.put(AttributeCol.class.getName() + "#duration",
 		DATA_TYPES.STRING);
 	datatypeCache.put(AttributeCol.class.getName() + "#auto-focus",
-		DATA_TYPES.STRING);
+		DATA_TYPES.BOOLEAN);
 	datatypeCache.put(AttributeCol.class.getName() + "#lock-on-active",
-		DATA_TYPES.STRING);
+		DATA_TYPES.BOOLEAN);
 	datatypeCache.put(AttributeCol.class.getName() + "#date-effective",
 		DATA_TYPES.DATE);
 	datatypeCache.put(AttributeCol.class.getName() + "#date-expires",
@@ -91,6 +91,9 @@ public class CellValueFactory {
 	    int date = d.getDate();
 	    Date nd = new Date(year, month, date);
 	    cv = new CellValue(nd, iRow, iCol);
+	    break;
+	case BOOLEAN:
+	    cv = new CellValue("true", iRow, iCol);
 	    break;
 	default:
 	    cv = new CellValue("", iRow, iCol);
