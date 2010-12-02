@@ -21,7 +21,53 @@ public class CellValueFactory {
 
     // Recognised data-types
     private enum DATA_TYPES {
-	STRING, DATE, BOOLEAN, CHECKBOX, NUMERIC;
+	STRING() {
+	    @Override
+	    public CellValue getNewCellValue(int iRow, int iCol) {
+		CellValue cv = new CellValue("", iRow, iCol);
+		return cv;
+	    }
+
+	},
+	NUMERIC() {
+	    @Override
+	    public CellValue getNewCellValue(int iRow, int iCol) {
+		CellValue cv = new CellValue("", iRow, iCol);
+		return cv;
+	    }
+
+	},
+	DATE() {
+	    @Override
+	    @SuppressWarnings("deprecation")
+	    public CellValue getNewCellValue(int iRow, int iCol) {
+		Date d = new Date();
+		int year = d.getYear();
+		int month = d.getMonth();
+		int date = d.getDate();
+		Date nd = new Date(year, month, date);
+		CellValue cv = new CellValue(nd, iRow, iCol);
+		return cv;
+	    }
+
+	},
+	BOOLEAN() {
+	    @Override
+	    public CellValue getNewCellValue(int iRow, int iCol) {
+		CellValue cv = new CellValue(Boolean.TRUE, iRow, iCol);
+		return cv;
+	    }
+
+	},
+	DIALECT() {
+	    @Override
+	    public CellValue getNewCellValue(int iRow, int iCol) {
+		CellValue cv = new CellValue("java", iRow, iCol);
+		return cv;
+	    }
+
+	};
+	public abstract CellValue getNewCellValue(int iRow, int iCol);
     }
 
     // Setup the cache
@@ -31,7 +77,7 @@ public class CellValueFactory {
 	datatypeCache.put(AttributeCol.class.getName() + "#salience",
 		DATA_TYPES.NUMERIC);
 	datatypeCache.put(AttributeCol.class.getName() + "#enabled",
-		DATA_TYPES.CHECKBOX);
+		DATA_TYPES.BOOLEAN);
 	datatypeCache.put(AttributeCol.class.getName() + "#no-loop",
 		DATA_TYPES.BOOLEAN);
 	datatypeCache.put(AttributeCol.class.getName() + "#duration",
@@ -44,6 +90,8 @@ public class CellValueFactory {
 		DATA_TYPES.DATE);
 	datatypeCache.put(AttributeCol.class.getName() + "#date-expires",
 		DATA_TYPES.DATE);
+	datatypeCache.put(AttributeCol.class.getName() + "#dialect",
+		DATA_TYPES.DIALECT);
 	datatypeCache.put(ConditionCol.class.getName(), DATA_TYPES.STRING);
 	datatypeCache.put(ActionCol.class.getName(), DATA_TYPES.STRING);
     }
@@ -76,36 +124,9 @@ public class CellValueFactory {
      *            Column coordinate for initialisation
      * @return A CellValue
      */
-    @SuppressWarnings("deprecation")
     public CellValue makeCellValue(DTColumnConfig column, int iRow, int iCol) {
 	DATA_TYPES dataType = getDataType(column);
-	CellValue cv = null;
-	switch (dataType) {
-	case STRING:
-	    cv = new CellValue("", iRow, iCol);
-	    break;
-	case DATE:
-	    Date d = new Date();
-	    int year = d.getYear();
-	    int month = d.getMonth();
-	    int date = d.getDate();
-	    Date nd = new Date(year, month, date);
-	    cv = new CellValue(nd, iRow, iCol);
-	    break;
-	case BOOLEAN:
-	    cv = new CellValue("true", iRow, iCol);
-	    break;
-	case CHECKBOX:
-	    cv = new CellValue(Boolean.TRUE, iRow, iCol);
-	    break;
-	case NUMERIC:
-	    cv = new CellValue("", iRow, iCol);
-	    break;
-	default:
-	    cv = new CellValue("", iRow, iCol);
-	}
-
-	return cv;
+	return dataType.getNewCellValue(iRow, iCol);
     }
 
     // DataTypes are cached at different levels of precedence; key[0]

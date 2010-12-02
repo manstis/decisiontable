@@ -35,33 +35,33 @@ public abstract class AbstractCellFactory {
     {
 	// Text editor
 	DecisionTableCellValueAdaptor<String> TEXT_CELL = new DecisionTableCellValueAdaptor<String>(
-		new EditTextCell());
+		new PopupTextEditCell());
+
+	// Numeric editor
+	DecisionTableCellValueAdaptor<String> NUMERIC_CELL = new DecisionTableCellValueAdaptor<String>(
+		new PopupNumericEditCell());
 
 	// Date editor
 	DecisionTableCellValueAdaptor<Date> DATE_CELL = new DecisionTableCellValueAdaptor<Date>(
 		new DatePickerCell(
 			DateTimeFormat.getFormat(PredefinedFormat.DATE_SHORT)));
 
-	// Boolean editor (list)
-	List<String> booleanOptions = new ArrayList<String>();
-	booleanOptions.add("true");
-	booleanOptions.add("false");
-	SelectionCell sc = new SelectionCell(booleanOptions);
-	DecisionTableCellValueAdaptor<String> BOOLEAN_CELL = new DecisionTableCellValueAdaptor<String>(
+	// Dialect editor
+	List<String> dialectOptions = new ArrayList<String>();
+	dialectOptions.add("java");
+	dialectOptions.add("mvel");
+	SelectionCell sc = new SelectionCell(dialectOptions);
+	DecisionTableCellValueAdaptor<String> DIALECT_CELL = new DecisionTableCellValueAdaptor<String>(
 		sc);
 
-	// Boolean (checkbox)
-	DecisionTableCellValueAdaptor<Boolean> CHECKBOX_CELL = new DecisionTableCellValueAdaptor<Boolean>(
+	// Boolean editor
+	DecisionTableCellValueAdaptor<Boolean> BOOLEAN_CELL = new DecisionTableCellValueAdaptor<Boolean>(
 		new CheckboxCell());
-
-	// Numeric editor
-	DecisionTableCellValueAdaptor<String> NUMERIC_CELL = new DecisionTableCellValueAdaptor<String>(
-		new EditNumberCell());
 
 	cellCache.put(MetadataCol.class.getName(), TEXT_CELL);
 	cellCache.put(AttributeCol.class.getName(), TEXT_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#salience", NUMERIC_CELL);
-	cellCache.put(AttributeCol.class.getName() + "#enabled", CHECKBOX_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#enabled", BOOLEAN_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#no-loop", BOOLEAN_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#duration", NUMERIC_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#auto-focus",
@@ -72,6 +72,7 @@ public abstract class AbstractCellFactory {
 		DATE_CELL);
 	cellCache
 		.put(AttributeCol.class.getName() + "#date-expires", DATE_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#dialect", DIALECT_CELL);
 	cellCache.put(ConditionCol.class.getName(), TEXT_CELL);
 	cellCache.put(ActionCol.class.getName(), TEXT_CELL);
     }
