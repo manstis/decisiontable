@@ -20,7 +20,7 @@ public class DynamicEditColumn extends Column<List<CellValue>, CellValue> {
     private int columnIndex = 0;
     private DTColumnConfig modelColumn;
 
-    public DynamicEditColumn(DTColumnConfig modelColumn, DecisionTableCellWrapper cell,
+    public DynamicEditColumn(DTColumnConfig modelColumn, DecisionTableProxyCell cell,
 	    int columnIndex) {
 	super(cell);
 	this.modelColumn = modelColumn;

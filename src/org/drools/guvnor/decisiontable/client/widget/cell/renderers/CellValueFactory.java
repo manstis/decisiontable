@@ -11,12 +11,20 @@ import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-public class CellFactory {
+/**
+ * A Factory to create CellValues applicable to given columns.
+ * 
+ * @author manstis
+ * 
+ */
+public class CellValueFactory {
 
+    // Recognised data-types
     private enum DATA_TYPES {
 	STRING, DATE;
     }
 
+    // Setup the cache
     {
 	datatypeCache.put(MetadataCol.class.getName(), DATA_TYPES.STRING);
 	datatypeCache.put(AttributeCol.class.getName(), DATA_TYPES.STRING);
@@ -40,22 +48,36 @@ public class CellFactory {
 	datatypeCache.put(ActionCol.class.getName(), DATA_TYPES.STRING);
     }
 
-    private static CellFactory instance;
-
+    // The cache
     private static Map<String, DATA_TYPES> datatypeCache = new HashMap<String, DATA_TYPES>();
 
-    public static synchronized CellFactory getInstance() {
+    // The Singleton
+    private static CellValueFactory instance;
+
+    // Singleton constructor
+    public static synchronized CellValueFactory getInstance() {
 	if (instance == null) {
-	    instance = new CellFactory();
+	    instance = new CellValueFactory();
 	}
 	return instance;
     }
 
-    private CellFactory() {
+    private CellValueFactory() {
     }
 
+    /**
+     * Make a CellValue applicable for the column
+     * 
+     * @param column
+     *            The model column
+     * @param iRow
+     *            Row coordinate for initialisation
+     * @param iCol
+     *            Column coordinate for initialisation
+     * @return A CellValue
+     */
     @SuppressWarnings("deprecation")
-    public CellValue makeCell(DTColumnConfig column, int iRow, int iCol) {
+    public CellValue makeCellValue(DTColumnConfig column, int iRow, int iCol) {
 	DATA_TYPES dataType = getDataType(column);
 	CellValue cv = null;
 	switch (dataType) {
@@ -77,6 +99,9 @@ public class CellFactory {
 	return cv;
     }
 
+    // DataTypes are cached at different levels of precedence; key[0]
+    // contains the most specific through to key[2] which contains
+    // the most generic. Should no match be found the default is provided
     private DATA_TYPES getDataType(DTColumnConfig column) {
 
 	String[] keys = new String[3];

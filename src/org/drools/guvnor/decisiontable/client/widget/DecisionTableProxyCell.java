@@ -1,6 +1,6 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellRendererFactory;
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellFactory;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -8,22 +8,39 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 
-public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
+/**
+ * All Decision Table cells are of this type. This class forwards all
+ * AbstractCell method invocations to the appropriate cell corresponding to the
+ * physical cell coordinate. For a Vertical Decision table this would be the
+ * same as the cell defined for the column however for a Horizontal Decision
+ * table the AbstractCell for the physical coordinate differs per row.
+ * 
+ * @author manstis
+ * 
+ */
+public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 
     protected SelectionManager manager;
-    protected AbstractCellRendererFactory cellFactory;
+    protected AbstractCellFactory cellFactory;
 
+    // The physical cell for the coordinate
     private AbstractCell<CellValue> cell;
 
-    public DecisionTableCellWrapper(SelectionManager manager,
-	    AbstractCellRendererFactory cellFactory) {
+    public DecisionTableProxyCell(SelectionManager manager,
+	    AbstractCellFactory cellFactory) {
 	super("click", "keydown", "keyup", "keypress", "blur");
 	this.manager = manager;
 	this.cellFactory = cellFactory;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.google.gwt.cell.client.AbstractCell#isEditing(com.google.gwt.dom.
+     * client.Element, java.lang.Object, java.lang.Object)
+     */
     @Override
-    @SuppressWarnings("unchecked")
     public boolean isEditing(Element parent, CellValue value, Object key) {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
@@ -31,8 +48,16 @@ public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
 	return cell.isEditing(parent, physical, c);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.google.gwt.cell.client.AbstractCell#onBrowserEvent(com.google.gwt
+     * .dom.client.Element, java.lang.Object, java.lang.Object,
+     * com.google.gwt.dom.client.NativeEvent,
+     * com.google.gwt.cell.client.ValueUpdater)
+     */
     @Override
-    @SuppressWarnings("unchecked")
     public void onBrowserEvent(Element parent, CellValue value, Object key,
 	    NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
 
@@ -41,6 +66,7 @@ public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
 
+	//Setup the selected range
 	if (type.equals("click")) {
 	    manager.startSelecting(c);
 	}
@@ -48,8 +74,13 @@ public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
 	cell.onBrowserEvent(parent, physical, c, event, valueUpdater);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.google.gwt.cell.client.AbstractCell#render(java.lang.Object,
+     * java.lang.Object, com.google.gwt.safehtml.shared.SafeHtmlBuilder)
+     */
     @Override
-    @SuppressWarnings("unchecked")
     public void render(CellValue value, Object key, SafeHtmlBuilder sb) {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
@@ -57,8 +88,14 @@ public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
 	cell.render(physical, c, sb);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.google.gwt.cell.client.AbstractCell#resetFocus(com.google.gwt.dom
+     * .client.Element, java.lang.Object, java.lang.Object)
+     */
     @Override
-    @SuppressWarnings("unchecked")
     public boolean resetFocus(Element parent, CellValue value, Object key) {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
@@ -66,8 +103,14 @@ public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
 	return cell.resetFocus(parent, physical, c);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.google.gwt.cell.client.AbstractCell#setValue(com.google.gwt.dom.client
+     * .Element, java.lang.Object, java.lang.Object)
+     */
     @Override
-    @SuppressWarnings("unchecked")
     public void setValue(Element parent, CellValue value, Object key) {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
@@ -75,8 +118,9 @@ public class DecisionTableCellWrapper extends AbstractCell<CellValue> {
 	cell.setValue(parent, physical, c);
     }
 
+    // Get the cell for the physical coordinate
     private void assertCell(Coordinate c) {
-	cell = cellFactory.getCellRenderer(c, manager);
+	cell = cellFactory.getCell(c, manager);
     }
 
 }

@@ -5,8 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.drools.guvnor.decisiontable.client.widget.cell.renderers.CellFactory;
-import org.drools.guvnor.decisiontable.client.widget.cell.renderers.VerticalDecisionTableCellRendererFactory;
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.CellValueFactory;
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.VerticalDecisionTableCellFactory;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
 import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
@@ -32,7 +32,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
-	this.cellFactory = new VerticalDecisionTableCellRendererFactory(this);
+	this.cellFactory = new VerticalDecisionTableCellFactory(this);
     }
 
     /*
@@ -105,7 +105,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    int iCol = 0;
 	    for (DTColumnConfig col : model.getMetadataCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableCellWrapper(this.manager,
+			new DecisionTableProxyCell(this.manager,
 				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
@@ -115,7 +115,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Attribute columns
 	    for (DTColumnConfig col : model.getAttributeCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableCellWrapper(this.manager,
+			new DecisionTableProxyCell(this.manager,
 				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
@@ -125,7 +125,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Condition columns
 	    for (DTColumnConfig col : model.getConditionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableCellWrapper(this.manager,
+			new DecisionTableProxyCell(this.manager,
 				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
@@ -135,7 +135,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Action columns
 	    for (DTColumnConfig col : model.getActionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableCellWrapper(this.manager,
+			new DecisionTableProxyCell(this.manager,
 				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
@@ -328,7 +328,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		CellValue cell = CellFactory.getInstance().makeCell(modelColumn, iRow, index);
+		CellValue cell = CellValueFactory.getInstance().makeCellValue(modelColumn, iRow, index);
 		data.get(iRow).add(index, cell);
 	    }
 	    assertColumnCoordinates(index);
@@ -340,7 +340,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		table.removeColumn(0);
 	    }
 	    DynamicEditColumn column = new DynamicEditColumn(modelColumn,
-		    new DecisionTableCellWrapper(this, cellFactory), index);
+		    new DecisionTableProxyCell(this, cellFactory), index);
 	    columns.add(index, column);
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);
@@ -391,7 +391,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    List<CellValue> row = new ArrayList<CellValue>();
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DTColumnConfig column = columns.get(iCol).getModelColumn();
-		CellValue data = CellFactory.getInstance().makeCell(column, index, iCol);
+		CellValue data = CellValueFactory.getInstance().makeCellValue(column, index, iCol);
 		row.add(data);
 	    }
 	    data.add(index, row);

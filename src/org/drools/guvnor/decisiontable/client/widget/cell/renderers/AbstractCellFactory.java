@@ -19,57 +19,59 @@ import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 
 /**
- * A class to lookup the Cell Renderer for a given coordinate.
+ * A Factory to provide the Cell specific to a given coordinate.
  * 
  * @author manstis
  * 
  */
-public abstract class AbstractCellRendererFactory {
+public abstract class AbstractCellFactory {
 
+    // Setup the cache. GWT's Cells are wrapped with an adaptor which
+    // casts the value of the CellValue to the type required for the GWT Cell
     {
-	rendererCache.put(MetadataCol.class.getName(),
+	cellCache.put(MetadataCol.class.getName(),
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName(),
+	cellCache.put(AttributeCol.class.getName(),
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName() + "#salience",
+	cellCache.put(AttributeCol.class.getName() + "#salience",
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName() + "#enabled",
+	cellCache.put(AttributeCol.class.getName() + "#enabled",
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName() + "#no-loop",
+	cellCache.put(AttributeCol.class.getName() + "#no-loop",
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName() + "#duration",
+	cellCache.put(AttributeCol.class.getName() + "#duration",
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName() + "#auto-focus",
+	cellCache.put(AttributeCol.class.getName() + "#auto-focus",
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(AttributeCol.class.getName() + "#lock-on-active",
+	cellCache.put(AttributeCol.class.getName() + "#lock-on-active",
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache
+	cellCache
 		.put(AttributeCol.class.getName() + "#date-effective",
 			new DecisionTableCellValueAdaptor<Date>(
 				new DatePickerCell(DateTimeFormat
 					.getFormat(PredefinedFormat.DATE_SHORT))));
-	rendererCache
+	cellCache
 		.put(AttributeCol.class.getName() + "#date-expires",
 			new DecisionTableCellValueAdaptor<Date>(
 				new DatePickerCell(DateTimeFormat
 					.getFormat(PredefinedFormat.DATE_SHORT))));
-	rendererCache.put(ConditionCol.class.getName(),
+	cellCache.put(ConditionCol.class.getName(),
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
-	rendererCache.put(ActionCol.class.getName(),
+	cellCache.put(ActionCol.class.getName(),
 		new DecisionTableCellValueAdaptor<String>(new EditTextCell()));
     }
 
-    // Fall back renderer should we not have one setup for a specific
-    // column\type etc
-    private static final DecisionTableCellValueAdaptor<String> DEFAULT_RENDERER = new DecisionTableCellValueAdaptor<String>(
+    // Default cell should a specific one not be configured
+    private static final DecisionTableCellValueAdaptor<String> DEFAULT_CELL = new DecisionTableCellValueAdaptor<String>(
 	    new EditTextCell());
 
-    private static Map<String, DecisionTableCellValueAdaptor<?>> rendererCache = new HashMap<String, DecisionTableCellValueAdaptor<?>>();
+    // The cache
+    private static Map<String, DecisionTableCellValueAdaptor<?>> cellCache = new HashMap<String, DecisionTableCellValueAdaptor<?>>();
 
-    // Decision table to which the Cell Renderers relate
+    // Decision table to which the Cells relate
     protected DecisionTableWidget decisionTable = null;
 
-    public AbstractCellRendererFactory(DecisionTableWidget decisionTable) {
+    public AbstractCellFactory(DecisionTableWidget decisionTable) {
 	if (decisionTable == null) {
 	    throw new IllegalArgumentException("decisionTable == null");
 	}
@@ -77,15 +79,15 @@ public abstract class AbstractCellRendererFactory {
     }
 
     /**
-     * Lookup a CellRenderer for the given coordinate.
+     * Lookup a Cell for the given coordinate.
      * 
      * @param c
      *            The physical coordinate of the cell
-     * @return A CellRenderer
+     * @return A Cell
      */
-    public DecisionTableCellValueAdaptor<?> getCellRenderer(Coordinate c,
+    public DecisionTableCellValueAdaptor<?> getCell(Coordinate c,
 	    SelectionManager manager) {
-	DecisionTableCellValueAdaptor<?> renderer = getCellRenderer(lookupColumn(c));
+	DecisionTableCellValueAdaptor<?> renderer = getCell(lookupColumn(c));
 	renderer.setSelectionManager(manager);
 	return renderer;
     }
@@ -102,12 +104,10 @@ public abstract class AbstractCellRendererFactory {
      */
     protected abstract DTColumnConfig lookupColumn(Coordinate c);
 
-    // CellRenderers are cached at different levels of precedence; key[0]
-    // contains the most specific renderer through to key[2] which contains
-    // the most generic. Should no match be found a default TextCellRenderer
-    // is provided
-    private DecisionTableCellValueAdaptor<?> getCellRenderer(
-	    DTColumnConfig column) {
+    // Cells are cached at different levels of precedence; key[0]
+    // contains the most specific through to key[2] which contains
+    // the most generic. Should no match be found the default is provided
+    private DecisionTableCellValueAdaptor<?> getCell(DTColumnConfig column) {
 
 	String[] keys = new String[3];
 
@@ -129,22 +129,22 @@ public abstract class AbstractCellRendererFactory {
 	    keys[0] = ActionCol.class.getName();
 	}
 
-	return lookupRenderer(keys);
+	return lookupCell(keys);
 
     }
 
     // Try the keys to find a renderer in the cache
-    private DecisionTableCellValueAdaptor<?> lookupRenderer(String[] keys) {
-	DecisionTableCellValueAdaptor<?> renderer = DEFAULT_RENDERER;
+    private DecisionTableCellValueAdaptor<?> lookupCell(String[] keys) {
+	DecisionTableCellValueAdaptor<?> cell = DEFAULT_CELL;
 	for (String key : keys) {
 	    if (key != null) {
-		if (rendererCache.containsKey(key)) {
-		    renderer = rendererCache.get(key);
+		if (cellCache.containsKey(key)) {
+		    cell = cellCache.get(key);
 		    break;
 		}
 	    }
 	}
-	return renderer;
+	return cell;
 
     }
 

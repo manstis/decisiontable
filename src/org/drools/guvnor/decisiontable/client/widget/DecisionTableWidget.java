@@ -3,7 +3,7 @@ package org.drools.guvnor.decisiontable.client.widget;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellRendererFactory;
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellFactory;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 
@@ -26,7 +26,7 @@ public abstract class DecisionTableWidget extends Composite {
     protected Panel mainPanel;
     protected ScrollPanel scrollPanel;
     protected DecisionTableHeaderWidget headerWidget;
-    protected AbstractCellRendererFactory cellFactory;
+    protected AbstractCellFactory cellFactory;
     protected CellTable<List<CellValue>> table = new CellTable<List<CellValue>>();
 
     // Decision Table data

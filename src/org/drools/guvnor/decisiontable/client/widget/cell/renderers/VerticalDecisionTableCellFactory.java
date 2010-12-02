@@ -10,10 +10,10 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
  * @author manstis
  * 
  */
-public class VerticalDecisionTableCellRendererFactory extends
-	AbstractCellRendererFactory {
+public class VerticalDecisionTableCellFactory extends
+	AbstractCellFactory {
 
-    public VerticalDecisionTableCellRendererFactory(
+    public VerticalDecisionTableCellFactory(
 	    DecisionTableWidget decisionTable) {
 	super(decisionTable);
     }
