@@ -26,24 +26,24 @@ package org.drools.guvnor.decisiontable.client.widget;
  * 
  */
 public class CellValue {
-    private String value;
+    private Object value;
     private int rowSpan = 1;
     private Coordinate coordinate;
     private Coordinate mapHtmlToData;
     private Coordinate mapDataToHtml;
 
-    public CellValue(String value, int row, int col) {
+    public CellValue(Object value, int row, int col) {
 	this.value = value;
 	this.coordinate = new Coordinate(row, col);
 	this.mapHtmlToData = new Coordinate(row, col);
 	this.mapDataToHtml = new Coordinate(row, col);
     }
 
-    public void setValue(String value) {
+    public void setValue(Object value) {
 	this.value = value;
     }
 
-    public String getValue() {
+    public Object getValue() {
 	return this.value;
     }
 

@@ -12,7 +12,7 @@ import com.google.gwt.cell.client.ValueUpdater;
  * @author manstis
  * 
  */
-public interface SelectionManager extends ValueUpdater<CellValue> {
+public interface SelectionManager extends ValueUpdater<Object> {
 
     public abstract void startSelecting(Coordinate start);
 

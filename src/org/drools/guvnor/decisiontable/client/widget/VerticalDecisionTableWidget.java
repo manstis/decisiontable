@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.drools.guvnor.decisiontable.client.widget.cell.renderers.CellFactory;
 import org.drools.guvnor.decisiontable.client.widget.cell.renderers.VerticalDecisionTableCellRendererFactory;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
@@ -104,7 +105,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    int iCol = 0;
 	    for (DTColumnConfig col : model.getMetadataCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new PassthroughCell(this.manager, this.cellFactory), iCol);
+			new DecisionTableCellWrapper(this.manager,
+				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -113,7 +115,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Attribute columns
 	    for (DTColumnConfig col : model.getAttributeCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new PassthroughCell(this.manager, this.cellFactory), iCol);
+			new DecisionTableCellWrapper(this.manager,
+				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -122,7 +125,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Condition columns
 	    for (DTColumnConfig col : model.getConditionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new PassthroughCell(this.manager, this.cellFactory), iCol);
+			new DecisionTableCellWrapper(this.manager,
+				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -131,7 +135,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Action columns
 	    for (DTColumnConfig col : model.getActionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new PassthroughCell(this.manager, this.cellFactory), iCol);
+			new DecisionTableCellWrapper(this.manager,
+				this.cellFactory), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -229,14 +234,16 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	 *            The value with which to update selected cells
 	 */
 	@Override
-	public void update(CellValue value) {
+	public void update(Object value) {
 	    for (Coordinate c : this.selections) {
 		data.set(c, value);
 	    }
-
-	    // A new value could cause other cells to become merged
+	    // Redraw and re-apply our visual trickery
+	    // TODO Only a partial redraw is necessary
+	    table.redraw();
 	    assertMerging();
 	    assertIndexes();
+	    assertRowHeights();
 	}
 
 	/**
@@ -260,7 +267,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    insertColumnBefore(modelColumn, index);
 	}
 
-	//Find the right-most index for a Metadata column 
+	// Find the right-most index for a Metadata column
 	private int findMetadataColumnIndex() {
 	    int index = 0;
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
@@ -272,7 +279,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    return index + 1;
 	}
 
-	//Find the right-most index for a Attribute column 
+	// Find the right-most index for a Attribute column
 	private int findAttributeColumnIndex() {
 	    int index = 0;
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
@@ -286,7 +293,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    return index + 1;
 	}
 
-	//Find the right-most index for a Condition column 
+	// Find the right-most index for a Condition column
 	private int findConditionColumnIndex() {
 	    int index = 0;
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
@@ -302,7 +309,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    return index + 1;
 	}
 
-	//Find the right-most index for an Action column 
+	// Find the right-most index for an Action column
 	private int findActionColumnIndex() {
 	    int index = columns.size();
 	    return index;
@@ -321,8 +328,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		CellValue cell = new CellValue("(R" + iRow + ",C"
-			+ columns.size() + ")", iRow, index);
+		CellValue cell = CellFactory.getInstance().makeCell(modelColumn, iRow, index);
 		data.get(iRow).add(index, cell);
 	    }
 	    assertColumnCoordinates(index);
@@ -334,7 +340,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		table.removeColumn(0);
 	    }
 	    DynamicEditColumn column = new DynamicEditColumn(modelColumn,
-		    new PassthroughCell(this, cellFactory), index);
+		    new DecisionTableCellWrapper(this, cellFactory), index);
 	    columns.add(index, column);
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);
@@ -344,10 +350,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
+	    assertIndexes();
 	    table.setRowCount(data.size());
+	    table.setPageSize(data.size());
 	    table.setRowData(0, data);
 	    assertMerging();
-	    assertIndexes();
 	    assertRowHeights();
 
 	    // Header needs to be narrowed when the vertical scrollbar appears
@@ -383,8 +390,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    List<CellValue> row = new ArrayList<CellValue>();
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
-		CellValue data = new CellValue(
-			"(R" + index + ",C" + iCol + ")", index, iCol);
+		DTColumnConfig column = columns.get(iCol).getModelColumn();
+		CellValue data = CellFactory.getInstance().makeCell(column, index, iCol);
 		row.add(data);
 	    }
 	    data.add(index, row);
@@ -392,11 +399,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
+	    assertIndexes();
 	    table.setRowCount(data.size());
 	    table.setPageSize(data.size());
 	    table.setRowData(0, data);
 	    assertMerging();
-	    assertIndexes();
 	    assertRowHeights();
 
 	    // Header needs to be narrowed when the vertical scrollbar appears
@@ -595,8 +602,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		    cell.setRowSpan(1);
 		}
 	    }
-	    table.redraw();
 	    assertIndexes();
+	    table.redraw();
 	    assertRowHeights();
 	    isMerged = false;
 	}
