@@ -15,6 +15,7 @@ import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
+import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.DatePickerCell;
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.SelectionCell;
@@ -32,14 +33,16 @@ public abstract class AbstractCellFactory {
     // Setup the cache. GWT's Cells are wrapped with an adaptor which
     // casts the value of the CellValue to the type required for the GWT Cell
     {
+	// Text editor
 	DecisionTableCellValueAdaptor<String> TEXT_CELL = new DecisionTableCellValueAdaptor<String>(
 		new EditTextCell());
 
+	// Date editor
 	DecisionTableCellValueAdaptor<Date> DATE_CELL = new DecisionTableCellValueAdaptor<Date>(
 		new DatePickerCell(
 			DateTimeFormat.getFormat(PredefinedFormat.DATE_SHORT)));
 
-	// Boolean list box
+	// Boolean editor (list)
 	List<String> booleanOptions = new ArrayList<String>();
 	booleanOptions.add("true");
 	booleanOptions.add("false");
@@ -47,12 +50,20 @@ public abstract class AbstractCellFactory {
 	DecisionTableCellValueAdaptor<String> BOOLEAN_CELL = new DecisionTableCellValueAdaptor<String>(
 		sc);
 
+	// Boolean (checkbox)
+	DecisionTableCellValueAdaptor<Boolean> CHECKBOX_CELL = new DecisionTableCellValueAdaptor<Boolean>(
+		new CheckboxCell());
+
+	// Numeric editor
+	DecisionTableCellValueAdaptor<String> NUMERIC_CELL = new DecisionTableCellValueAdaptor<String>(
+		new EditNumberCell());
+
 	cellCache.put(MetadataCol.class.getName(), TEXT_CELL);
 	cellCache.put(AttributeCol.class.getName(), TEXT_CELL);
-	cellCache.put(AttributeCol.class.getName() + "#salience", TEXT_CELL);
-	cellCache.put(AttributeCol.class.getName() + "#enabled", BOOLEAN_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#salience", NUMERIC_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#enabled", CHECKBOX_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#no-loop", BOOLEAN_CELL);
-	cellCache.put(AttributeCol.class.getName() + "#duration", TEXT_CELL);
+	cellCache.put(AttributeCol.class.getName() + "#duration", NUMERIC_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#auto-focus",
 		BOOLEAN_CELL);
 	cellCache.put(AttributeCol.class.getName() + "#lock-on-active",
