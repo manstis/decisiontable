@@ -1,4 +1,4 @@
-package org.drools.guvnor.decisiontable.client.widget.cell.renderers;
+package org.drools.guvnor.decisiontable.client.widget.cells;
 
 import com.google.gwt.cell.client.AbstractEditableCell;
 import com.google.gwt.cell.client.ValueUpdater;

@@ -1,6 +1,6 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import org.drools.guvnor.decisiontable.client.widget.cell.renderers.AbstractCellFactory;
+import org.drools.guvnor.decisiontable.client.widget.cells.AbstractCellFactory;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;

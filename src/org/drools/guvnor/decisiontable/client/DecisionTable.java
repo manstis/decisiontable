@@ -61,7 +61,7 @@ public class DecisionTable implements EntryPoint {
 	actionCol.setHeader("Action");
 	actionCols.add(actionCol);
 
-	String[][] guidedData = { { "1","2","3","4" }, { "","","","" } };
+	String[][] guidedData = { { "1", "2", "3", "4" }, { "", "", "", "" } };
 	guidedModel.setData(guidedData);
 	guidedModel.setMetadataCols(metadataCols);
 	guidedModel.setAttributeCols(attributeCols);

@@ -1,4 +1,4 @@
-package org.drools.guvnor.decisiontable.client.widget.cell.renderers;
+package org.drools.guvnor.decisiontable.client.widget.cells;
 
 import org.drools.guvnor.decisiontable.client.widget.Coordinate;
 import org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget;
