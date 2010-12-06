@@ -167,6 +167,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	// Draw the header
 	headerWidget.redraw();
+
     }
 
     /**

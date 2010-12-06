@@ -14,7 +14,7 @@ import com.google.gwt.user.client.ui.Panel;
 public abstract class DecisionTableHeaderWidget extends Composite {
 
     protected Panel panel;
-    protected DecisionTableWidget decisionTable = null;
+    protected DecisionTableWidget dtable;
 
     /**
      * Redraw the "Header"
@@ -27,6 +27,6 @@ public abstract class DecisionTableHeaderWidget extends Composite {
      * 
      * @param position
      */
-    protected abstract void setScrollPosition(int position);
+    public abstract void setScrollPosition(int position);
 
 }

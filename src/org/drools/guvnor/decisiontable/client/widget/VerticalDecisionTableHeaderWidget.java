@@ -1,9 +1,5 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.drools.guvnor.decisiontable.client.guvnor.SortDirection;
 import org.drools.guvnor.decisiontable.client.guvnor.TableImageResources;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
@@ -11,23 +7,23 @@ import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-import com.google.gwt.cell.client.AbstractCell;
-import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.DivElement;
+import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.EventTarget;
 import com.google.gwt.dom.client.Style.Overflow;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.dom.client.TableCellElement;
+import com.google.gwt.dom.client.TableElement;
+import com.google.gwt.dom.client.TableRowElement;
 import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.safehtml.client.SafeHtmlTemplates;
-import com.google.gwt.safehtml.client.SafeHtmlTemplates.Template;
-import com.google.gwt.safehtml.shared.SafeHtml;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.safehtml.shared.SafeHtmlUtils;
-import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.cellview.client.HasKeyboardPagingPolicy.KeyboardPagingPolicy;
-import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
-import com.google.gwt.user.cellview.client.Header;
-import com.google.gwt.user.cellview.client.IdentityColumn;
+import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 /**
  * The "header" for a VerticalDecisionTable. This is a bit of a cheat really: A
@@ -47,47 +43,25 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 public class VerticalDecisionTableHeaderWidget extends
 	DecisionTableHeaderWidget {
 
-    // The single cell
-    private Header<String> header = null;
-
-    // A CellTable to display the "Header"
-    private CellTable<String> table = new CellTable<String>();
+    private HeaderWidget widget;
 
     /**
      * Construct a "Header" for the provided DecisionTable
      * 
      * @param decisionTable
      */
-    public VerticalDecisionTableHeaderWidget(DecisionTableWidget decisionTable) {
-	this.decisionTable = decisionTable;
-
-	// We don't need any data in the table; as everything is handled by the
-	// Header
-	this.header = new Header<String>(new HeaderCell(
-		this.decisionTable.getColumns())) {
-
-	    @Override
-	    public String getValue() {
-		return "throw-away";
-	    }
-
-	};
-	// IdentityColumn chosen for no particular reason
-	IdentityColumn<String> col = new IdentityColumn<String>(new TextCell());
-	table.addColumn(col, header);
+    public VerticalDecisionTableHeaderWidget(DecisionTableWidget dtable) {
+	this.dtable = dtable;
 
 	// Construct the Widget
 	panel = new ScrollPanel();
+	widget = new HeaderWidget(dtable);
 
 	// We don't want scroll bars on the Header
 	panel.getElement().getStyle().setOverflow(Overflow.HIDDEN);
-
-	panel.add(table);
-	table.setKeyboardPagingPolicy(KeyboardPagingPolicy.CHANGE_PAGE);
-	table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
-	table.setRowData(0, new ArrayList<String>());
-	table.setRowCount(0);
+	panel.add(widget);
 	initWidget(panel);
+
     }
 
     /*
@@ -98,190 +72,199 @@ public class VerticalDecisionTableHeaderWidget extends
      * #setScrollPosition(int)
      */
     @Override
-    protected void setScrollPosition(int position) {
+    public void setScrollPosition(int position) {
 	((ScrollPanel) this.panel).setHorizontalScrollPosition(position);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.google.gwt.user.client.ui.UIObject#setWidth(java.lang.String)
-     */
-    @Override
-    public void setWidth(String width) {
-	super.setWidth(width);
-	this.panel.setWidth(width);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.drools.guvnor.decisiontable.client.widget.DecisionTableHeaderWidget
-     * #redraw()
-     */
     @Override
     public void redraw() {
-	this.table.redrawHeaders();
+	widget.redraw();
     }
 
-    /**
-     * This is our Super Hero Header Cell.
-     * 
-     * @author manstis
-     * 
-     */
-    static class HeaderCell extends AbstractCell<String> {
+    private class HeaderWidget extends Widget {
 
-	// OK, should probably expose as a property
-	private static final int ROW_HEIGHT = 32;
+	private TableElement table;
+	// private DecisionTableWidget dtable;
 
-	// The columns to be rendered in the Header. This is maintain by
-	// SelectionManager when columns are inserted
-	protected List<DynamicEditColumn> columns = new ArrayList<DynamicEditColumn>();
-	protected List<SortDirection> sortDirections = new ArrayList<SortDirection>();
-
-	private static Template template;
-
-	// HTML Templates for the different cells
-	interface Template extends SafeHtmlTemplates {
-	    @Template("<td rowspan=\"2\" class=\"generalHeaderCell\" style=\"height:{0}px\">{1}</td>")
-	    SafeHtml metaColumnHeader(int height, String value);
-
-	    @Template("<td rowspan=\"2\" class=\"generalHeaderCell\" style=\"height:{0}px\">{1}</td>")
-	    SafeHtml attributeColumnHeader(int height, String value);
-
-	    @Template("<td class=\"factTypeHeaderCell\" style=\"height:{0}px\">{1}</td>")
-	    SafeHtml conditionFactTypeColumnHeader(int height, String value);
-
-	    @Template("<td class=\"generalHeaderCell\" style=\"height:{0}px\">{1}</td>")
-	    SafeHtml conditionFactFieldColumnHeader(int height, String value);
-
-	    @Template("<td rowspan=\"2\" class=\"generalHeaderCell\" style=\"height:{0}px\">{1}</td>")
-	    SafeHtml actionColumnHeader(int height, String value);
-	}
-
-	// Images for sorting (to be implemented). This uses the same resources
-	// as those used in Ge0ffrey's new Guvnor tables
-	private static final TableImageResources TABLE_IMAGE_RESOURCES = GWT
+	private final TableImageResources TABLE_IMAGE_RESOURCES = GWT
 		.create(TableImageResources.class);
-	private static final String DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final AbstractImagePrototype DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.downArrow());
-	private static final String SMALL_DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final AbstractImagePrototype SMALL_DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.smallDownArrow());
-	private static final String UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final AbstractImagePrototype UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.upArrow());
-	private static final String SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final AbstractImagePrototype SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.smallUpArrow());
 
-	private static String makeImage(ImageResource resource) {
+	private AbstractImagePrototype makeImage(ImageResource resource) {
 	    AbstractImagePrototype prototype = AbstractImagePrototype
 		    .create(resource);
-	    return prototype.getHTML();
+	    return prototype;
 	}
 
-	/**
-	 * Construct the Header Cell
-	 * @param columns
-	 */
-	HeaderCell(List<DynamicEditColumn> columns) {
-	    this.columns = columns;
+	public HeaderWidget(DecisionTableWidget dtable) {
+	    dtable = dtable;
+	    table = Document.get().createTableElement();
+	    table.setCellPadding(0);
+	    table.setCellSpacing(0);
+	    table.setClassName("header-table");
 
-	    if (template == null) {
-		template = GWT.create(Template.class);
-	    }
+	    table.appendChild(Document.get().createTRElement());
+	    table.appendChild(Document.get().createTRElement());
+	    sinkEvents(Event.getTypeInt("click"));
+	    setElement(table);
 	}
 
 	@Override
-	public void render(String value, Object key, SafeHtmlBuilder sb) {
-	    StringBuffer header = new StringBuffer();
-	    header.append("<table class=\"headerTable\" cellspacing=\"0\" cellpadding=\"0\">");
-	    header.append("<tr>");
-	    for (DynamicEditColumn column : columns) {
-		header.append(makeColumnHeader(0, column));
+	public void onBrowserEvent(Event event) {
+	    String type = event.getType();
+
+	    EventTarget eventTarget = event.getEventTarget();
+	    if (!Element.is(eventTarget)
+		    || !getElement().isOrHasChild(Element.as(eventTarget))) {
+		return;
 	    }
-	    header.append("</tr><tr>");
-	    for (DynamicEditColumn column : columns) {
-		header.append(makeColumnHeader(1, column));
+
+	    Element target = event.getEventTarget().cast();
+
+	    // Find the cell where the event occurred.
+	    TableCellElement cell = findNearestParentCell(target);
+	    if (cell == null) {
+		return;
 	    }
-	    header.append("</tr><table>");
-	    SafeHtml html = SafeHtmlUtils.fromTrustedString(header.toString());
-	    sb.append(html);
+
+	    if (type.equals("click")) {
+		Window.alert(cell.getInnerText());
+	    }
 	}
 
-	protected StringBuffer makeColumnHeader(int iRow,
-		DynamicEditColumn column) {
-	    StringBuffer sb = new StringBuffer();
-	    DTColumnConfig modelColumn = column.getModelColumn();
-	    if (modelColumn instanceof MetadataCol) {
-		sb.append(makeMetaColumnHeader(iRow, (MetadataCol) modelColumn));
-	    } else if (modelColumn instanceof AttributeCol) {
-		sb.append(makeAttributeColumnHeader(iRow,
-			(AttributeCol) modelColumn));
-	    } else if (modelColumn instanceof ConditionCol) {
-		sb.append(makeConditionColumnHeader(iRow,
-			(ConditionCol) modelColumn));
-	    } else if (modelColumn instanceof ActionCol) {
-		sb.append(makeActionColumnHeader(iRow, (ActionCol) modelColumn));
+	private TableCellElement findNearestParentCell(Element elem) {
+	    while ((elem != null) && (elem != table)) {
+		String tagName = elem.getTagName();
+		if ("td".equalsIgnoreCase(tagName)
+			|| "th".equalsIgnoreCase(tagName)) {
+		    return elem.cast();
+		}
+		elem = elem.getParentElement();
 	    }
-	    return sb;
+	    return null;
 	}
 
-	protected StringBuffer makeMetaColumnHeader(int iRow, MetadataCol column) {
-	    StringBuffer sb = new StringBuffer();
-	    switch (iRow) {
-	    case 0:
-		sb.append(template
-			.metaColumnHeader(ROW_HEIGHT * 2, column.attr)
-			.asString());
-		break;
-	    case 1:
-		// Nothing for the second row
-	    }
-	    return sb;
+	private TableRowElement makeTableRowElement() {
+	    TableRowElement trow = Document.get().createTRElement();
+	    trow.setClassName("header-row");
+	    return trow;
 	}
 
-	protected StringBuffer makeAttributeColumnHeader(int iRow,
+	public void redraw() {
+	    TableRowElement oldRow;
+	    TableRowElement newRow;
+	    oldRow = table.getRows().getItem(0);
+	    newRow = makeTopRowElement();
+	    table.replaceChild(newRow, oldRow);
+	    oldRow = table.getRows().getItem(1);
+	    newRow = makeBottomRowElement();
+	    table.replaceChild(newRow, oldRow);
+	}
+
+	protected TableRowElement makeTopRowElement() {
+	    TableRowElement trow = makeTableRowElement();
+	    TableCellElement cell = null;
+	    for (DynamicEditColumn column : dtable.columns) {
+		DTColumnConfig modelColumn = column.getModelColumn();
+		if (modelColumn instanceof MetadataCol) {
+		    cell = makeMetadataTableCellElement((MetadataCol) modelColumn);
+		    trow.appendChild(cell);
+		} else if (modelColumn instanceof AttributeCol) {
+		    cell = makeAttributeTableCellElement((AttributeCol) modelColumn);
+		    trow.appendChild(cell);
+		} else if (modelColumn instanceof ConditionCol) {
+		    cell = makeConditionFactTypeTableCellElement((ConditionCol) modelColumn);
+		    cell.setClassName("header-cell-secondary");
+		    trow.appendChild(cell);
+		} else if (modelColumn instanceof ActionCol) {
+		    cell = makeActionTableCellElement((ActionCol) modelColumn);
+		    trow.appendChild(cell);
+		}
+	    }
+	    return trow;
+	}
+
+	protected TableRowElement makeBottomRowElement() {
+	    TableRowElement trow = makeTableRowElement();
+	    TableCellElement cell = null;
+	    for (DynamicEditColumn column : dtable.columns) {
+		DTColumnConfig modelColumn = column.getModelColumn();
+		if (modelColumn instanceof ConditionCol) {
+		    cell = makeConditionFactFieldTableCellElement((ConditionCol) modelColumn);
+		    trow.appendChild(cell);
+		}
+	    }
+	    return trow;
+	}
+
+	private TableCellElement makeTableCellElement() {
+	    TableCellElement tcell = Document.get().createTHElement();
+	    tcell.setClassName("header-cell-primary");
+
+	    DivElement div1 = Document.get().createDivElement();
+	    DivElement div2 = Document.get().createDivElement();
+	    DivElement div3 = Document.get().createDivElement();
+	    div1.setClassName("header-container");
+	    div2.setClassName("header-text");
+	    div3.setClassName("header-widget");
+
+	    div1.appendChild(div2);
+	    div1.appendChild(div3);
+	    div3.appendChild(DOWN_ARROW.createElement());
+
+	    tcell.appendChild(div1);
+	    return tcell;
+
+	}
+
+	private TableCellElement makeMetadataTableCellElement(MetadataCol column) {
+	    TableCellElement tcell = makeTableCellElement();
+	    setText(tcell, column.attr);
+	    tcell.setRowSpan(2);
+	    return tcell;
+	}
+
+	private TableCellElement makeAttributeTableCellElement(
 		AttributeCol column) {
-	    StringBuffer sb = new StringBuffer();
-	    switch (iRow) {
-	    case 0:
-		sb.append(template.attributeColumnHeader(ROW_HEIGHT * 2,
-			column.attr).asString());
-		break;
-	    case 1:
-		// Nothing for the second row
-	    }
-	    return sb;
+	    TableCellElement tcell = makeTableCellElement();
+	    setText(tcell, column.attr);
+	    tcell.setRowSpan(2);
+	    return tcell;
 	}
 
-	protected StringBuffer makeConditionColumnHeader(int iRow,
+	private TableCellElement makeConditionFactTypeTableCellElement(
 		ConditionCol column) {
-	    StringBuffer sb = new StringBuffer();
-	    switch (iRow) {
-	    case 0:
-		sb.append(template.conditionFactTypeColumnHeader(ROW_HEIGHT,
-			column.getFactType()).asString());
-		break;
-	    case 1:
-		sb.append(template.conditionFactFieldColumnHeader(ROW_HEIGHT,
-			column.getFactField()).asString());
-	    }
-	    return sb;
+	    TableCellElement tcell = makeTableCellElement();
+	    setText(tcell, column.getFactType());
+	    return tcell;
 	}
 
-	protected StringBuffer makeActionColumnHeader(int iRow, ActionCol column) {
-	    StringBuffer sb = new StringBuffer();
-	    switch (iRow) {
-	    case 0:
-		sb.append(template.actionColumnHeader(ROW_HEIGHT * 2,
-			column.getHeader()).asString());
-		break;
-	    case 1:
-		// Nothing for the second row
-	    }
-	    return sb;
+	private TableCellElement makeConditionFactFieldTableCellElement(
+		ConditionCol column) {
+	    TableCellElement tcell = makeTableCellElement();
+	    setText(tcell, column.getFactField());
+	    return tcell;
 	}
+
+	private TableCellElement makeActionTableCellElement(ActionCol column) {
+	    TableCellElement tcell = makeTableCellElement();
+	    setText(tcell, column.getHeader());
+	    tcell.setRowSpan(2);
+	    return tcell;
+	}
+
+	private void setText(TableCellElement cell, String text) {
+	    cell.getFirstChild().getFirstChild().<DivElement> cast()
+		    .setInnerText(text);
+	}
+
     }
 
 }
