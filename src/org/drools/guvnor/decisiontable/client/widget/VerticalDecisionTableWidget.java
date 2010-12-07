@@ -550,8 +550,6 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 		}
 	    }
-	    
-	    dumpIndexes();
 	}
 
 	// Ensure merging is reflected in the model
