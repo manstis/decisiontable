@@ -15,6 +15,8 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
@@ -593,7 +595,12 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < data.size(); iRow++) {
 		    CellValue cell = data.get(iRow).get(iCol);
+		    Coordinate c=new Coordinate(iRow,iCol);
+		    cell.setCoordinate(c);
+		    cell.setHtmlCoordinate(c);
+		    cell.setPhysicalCoordinate(c);
 		    cell.setRowSpan(1);
+		    
 		}
 	    }
 
@@ -631,7 +638,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	@Override
 	public void sort() {
 	    final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[columns
-		    .size() - 1];
+		    .size()];
 	    int index = 0;
 	    for (DynamicEditColumn column : columns) {
 		int sortIndex = column.getSortIndex();
@@ -641,7 +648,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		}
 	    }
 	    final int sortedColumnCount = index;
-
+	    
 	    List<List<CellValue>> displayedItems = table
 		    .getDisplayedItems();
 	    Collections.sort(displayedItems, new Comparator<List<CellValue>>() {
@@ -684,19 +691,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    data.clear();
 	    data.addAll(displayedItems);
 	    
-	    //Reset coordinates broken by sorting
-	    for(int iRow=0;iRow<data.size();iRow++) {
-		List<CellValue> row = data.get(iRow);
-		for(int iCol=0;iCol<row.size();iCol++) {
-		    Coordinate c = new Coordinate(iRow, iCol);
-		    data.get(iRow).get(iCol).setCoordinate(c);
-		}
-	    }
-
-	    assertModelMerging();
+	    removeModelMerging();
 	    table.setRowCount(data.size());
 	    table.setPageSize(data.size());
 	    table.setRowData(0, data);
+	    assertModelMerging();
 	    applyMergingToTable();
 
 	}
