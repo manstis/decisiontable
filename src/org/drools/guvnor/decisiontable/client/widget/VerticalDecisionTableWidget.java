@@ -14,6 +14,8 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
@@ -245,10 +247,10 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    }
 	    // Redraw and re-apply our visual trickery
 	    // TODO Only a partial redraw is necessary
+	    removeModelMerging();
 	    table.redraw();
-	    assertMerging();
-	    assertIndexes();
-	    assertRowHeights();
+	    assertModelMerging();
+	    applyMergingToTable();
 	}
 
 	/**
@@ -356,12 +358,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
-	    assertIndexes();
+	    assertModelMerging();
 	    table.setRowCount(data.size());
 	    table.setPageSize(data.size());
 	    table.setRowData(0, data);
-	    assertMerging();
-	    assertRowHeights();
+	    applyMergingToTable();
 
 	    // Header needs to be narrowed when the vertical scrollbar appears
 	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()
@@ -406,12 +407,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
-	    assertIndexes();
+	    assertModelMerging();
 	    table.setRowCount(data.size());
 	    table.setPageSize(data.size());
 	    table.setRowData(0, data);
-	    assertMerging();
-	    assertRowHeights();
+	    applyMergingToTable();
 
 	    // Header needs to be narrowed when the vertical scrollbar appears
 	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()
@@ -451,9 +451,14 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	@Override
 	public boolean toggleMerging() {
 	    if (!isMerged) {
-		applyMerging();
+		isMerged = true;
+		assertModelMerging();
+		applyMergingToTable();
 	    } else {
-		removeMerging();
+		isMerged = false;
+		removeModelMerging();
+		table.redraw();
+		assertRowHeights();
 	    }
 	    return isMerged;
 	}
@@ -515,12 +520,13 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	// coordinate (0,0) which equates to (2) HTML element (0,1) in
 	// which case the cell at physical coordinate (0,1) would
 	// have a (3) mapping back to (0,0).
-	private void assertIndexes() {
+	private void assertModelIndexes() {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
 		List<CellValue> row = data.get(iRow);
 		int colCount = 0;
 		for (int iCol = 0; iCol < row.size(); iCol++) {
+
 		    CellValue indexCell = row.get(iCol);
 
 		    int newRow = 0;
@@ -544,123 +550,81 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 		}
 	    }
+	    
+	    dumpIndexes();
 	}
 
-	// Apply merging
-	private void assertIndexMerging() {
+	// Ensure merging is reflected in the model
+	private void assertModelMerging() {
 	    final int MAX_ROW = data.size() - 1;
 
-	    for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
+	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
 		    int rowSpan = 1;
 		    CellValue cell1 = data.get(iRow).get(iCol);
 		    CellValue cell2 = data.get(iRow + rowSpan).get(iCol);
 
 		    // Don't merge empty cells
-		    if (!cell1.isEmpty()) {
+		    if (isMerged && !cell1.isEmpty()) {
 			while (cell1.getValue().equals(cell2.getValue())
 				&& iRow + rowSpan < MAX_ROW) {
-			    if (cell2.getRowSpan() != 0) {
-				table.getRowElement(iRow + rowSpan).deleteCell(
-					iCol);
-				cell2.setRowSpan(0);
-			    }
-
+			    cell2.setRowSpan(0);
 			    rowSpan++;
 			    cell2 = data.get(iRow + rowSpan).get(iCol);
 			}
 			if (cell1.getValue().equals(cell2.getValue())) {
-			    if (cell2.getRowSpan() != 0) {
-				table.getRowElement(iRow + rowSpan).deleteCell(
-					iCol);
-				cell2.setRowSpan(0);
-			    }
+			    cell2.setRowSpan(0);
 			    rowSpan++;
 			}
 		    }
 		    cell1.setRowSpan(rowSpan);
-		    if (rowSpan > 1) {
-			table.getRowElement(cell1.getHtmlCoordinate().getRow())
-				.getCells()
-				.getItem(cell1.getHtmlCoordinate().getCol())
-				.setRowSpan(rowSpan);
-		    }
 		    iRow = iRow + rowSpan - 1;
 		}
 	    }
-	    assertIndexes();
-	    assertRowHeights();
-	    isMerged = true;
+
+	    // Set indexes after merging has been corrected
+	    // TODO Could this be incorporated into here?
+	    assertModelIndexes();
+
 	}
 
-	
-	// Ensure the table's visuals are correct for the merge state
-	private void assertMerging() {
-	    if (isMerged) {
-		removeMerging();
-		applyMerging();
-	    }
-	}
-
-	// Apply merging
-	private void applyMerging() {
-	    final int MAX_ROW = data.size() - 1;
-
-	    for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
-		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-		    int rowSpan = 1;
-		    CellValue cell1 = data.get(iRow).get(iCol);
-		    CellValue cell2 = data.get(iRow + rowSpan).get(iCol);
-
-		    // Don't merge empty cells
-		    if (!cell1.isEmpty()) {
-			while (cell1.getValue().equals(cell2.getValue())
-				&& iRow + rowSpan < MAX_ROW) {
-			    if (cell2.getRowSpan() != 0) {
-				table.getRowElement(iRow + rowSpan).deleteCell(
-					iCol);
-				cell2.setRowSpan(0);
-			    }
-
-			    rowSpan++;
-			    cell2 = data.get(iRow + rowSpan).get(iCol);
-			}
-			if (cell1.getValue().equals(cell2.getValue())) {
-			    if (cell2.getRowSpan() != 0) {
-				table.getRowElement(iRow + rowSpan).deleteCell(
-					iCol);
-				cell2.setRowSpan(0);
-			    }
-			    rowSpan++;
-			}
-		    }
-		    cell1.setRowSpan(rowSpan);
-		    if (rowSpan > 1) {
-			table.getRowElement(cell1.getHtmlCoordinate().getRow())
-				.getCells()
-				.getItem(cell1.getHtmlCoordinate().getCol())
-				.setRowSpan(rowSpan);
-		    }
-		    iRow = iRow + rowSpan - 1;
-		}
-	    }
-	    assertIndexes();
-	    assertRowHeights();
-	    isMerged = true;
-	}
-
-	// Remove merging
-	private void removeMerging() {
+	// Remove merging from model
+	private void removeModelMerging() {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < data.size(); iRow++) {
 		    CellValue cell = data.get(iRow).get(iCol);
 		    cell.setRowSpan(1);
 		}
 	    }
-	    assertIndexes();
-	    table.redraw();
+
+	    // Set indexes after merging has been corrected
+	    // TODO Could this be incorporated into here?
+	    assertModelIndexes();
+	}
+
+	// Apply merging to UI
+	private void applyMergingToTable() {
+
+	    if (isMerged) {
+		final int MAX_ROW = data.size();
+
+		for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
+		    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
+			CellValue cell1 = data.get(iRow).get(iCol);
+
+			if (cell1.getRowSpan() == 0) {
+			    table.getRowElement(iRow).deleteCell(iCol);
+			} else if (cell1.getRowSpan() > 1) {
+			    table.getRowElement(
+				    cell1.getHtmlCoordinate().getRow())
+				    .getCells()
+				    .getItem(cell1.getHtmlCoordinate().getCol())
+				    .setRowSpan(cell1.getRowSpan());
+			}
+		    }
+		}
+	    }
 	    assertRowHeights();
-	    isMerged = false;
 	}
 
 	// ************** DEBUG

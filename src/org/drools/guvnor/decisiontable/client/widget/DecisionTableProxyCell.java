@@ -116,7 +116,7 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
 	cell.setValue(parent, physical, c);
-    }
+    }	
 
     // Get the cell for the physical coordinate
     private void assertCell(Coordinate c) {
