@@ -315,7 +315,7 @@ public class VerticalDecisionTableHeaderWidget extends
     public void headerClicked(DynamicEditColumn header) {
 	updateSortOrder(header);
 	redraw();
-	dtable.sort();
+	dtable.manager.sort();
     }
 
     private void updateSortOrder(DynamicEditColumn header) {

@@ -1,6 +1,7 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
@@ -14,8 +15,6 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
@@ -520,7 +519,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	// coordinate (0,0) which equates to (2) HTML element (0,1) in
 	// which case the cell at physical coordinate (0,1) would
 	// have a (3) mapping back to (0,0).
-	private void assertModelIndexes() {
+	@Override
+	public void assertModelIndexes() {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
 		List<CellValue> row = data.get(iRow);
@@ -553,7 +553,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	}
 
 	// Ensure merging is reflected in the model
-	private void assertModelMerging() {
+	@Override
+	public void assertModelMerging() {
 	    final int MAX_ROW = data.size() - 1;
 
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
@@ -587,7 +588,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	}
 
 	// Remove merging from model
-	private void removeModelMerging() {
+	@Override
+	public void removeModelMerging() {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < data.size(); iRow++) {
 		    CellValue cell = data.get(iRow).get(iCol);
@@ -601,7 +603,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	}
 
 	// Apply merging to UI
-	private void applyMergingToTable() {
+	@Override
+	public void applyMergingToTable() {
 
 	    if (isMerged) {
 		final int MAX_ROW = data.size();
@@ -623,6 +626,79 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		}
 	    }
 	    assertRowHeights();
+	}
+
+	@Override
+	public void sort() {
+	    final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[columns
+		    .size() - 1];
+	    int index = 0;
+	    for (DynamicEditColumn column : columns) {
+		int sortIndex = column.getSortIndex();
+		if (sortIndex != -1) {
+		    sortOrderList[sortIndex] = column;
+		    index++;
+		}
+	    }
+	    final int sortedColumnCount = index;
+
+	    List<List<CellValue>> displayedItems = table
+		    .getDisplayedItems();
+	    Collections.sort(displayedItems, new Comparator<List<CellValue>>() {
+		public int compare(List<CellValue> leftRow,
+			List<CellValue> rightRow) {
+		    int comparison = 0;
+		    for (int index = 0; index < sortedColumnCount; index++) {
+			DynamicEditColumn sortableHeader = sortOrderList[index];
+			Comparable leftColumnValue = leftRow.get(sortableHeader
+				.getColumnIndex());
+			Comparable rightColumnValue = rightRow
+				.get(sortableHeader.getColumnIndex());
+			comparison = (leftColumnValue == rightColumnValue) ? 0
+				: (leftColumnValue == null) ? -1
+					: (rightColumnValue == null) ? 1
+						: leftColumnValue
+							.compareTo(rightColumnValue);
+			if (comparison != 0) {
+			    switch (sortableHeader.getSortDirection()) {
+			    case ASCENDING:
+				break;
+			    case DESCENDING:
+				comparison = -comparison;
+				break;
+			    default:
+				throw new IllegalStateException(
+					"Sorting can only be enabled for ASCENDING or"
+						+ " DESCENDING, not sortDirection ("
+						+ sortableHeader
+							.getSortDirection()
+						+ ") .");
+			    }
+			    return comparison;
+			}
+		    }
+		    return comparison;
+		}
+	    });
+
+	    data.clear();
+	    data.addAll(displayedItems);
+	    
+	    //Reset coordinates broken by sorting
+	    for(int iRow=0;iRow<data.size();iRow++) {
+		List<CellValue> row = data.get(iRow);
+		for(int iCol=0;iCol<row.size();iCol++) {
+		    Coordinate c = new Coordinate(iRow, iCol);
+		    data.get(iRow).get(iCol).setCoordinate(c);
+		}
+	    }
+
+	    assertModelMerging();
+	    table.setRowCount(data.size());
+	    table.setPageSize(data.size());
+	    table.setRowData(0, data);
+	    applyMergingToTable();
+
 	}
 
 	// ************** DEBUG

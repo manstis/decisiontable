@@ -29,8 +29,18 @@ public interface SelectionManager extends ValueUpdater<Object> {
 
     public abstract void insertRowBefore(int index);
 
+    public abstract void assertModelIndexes();
+
+    public abstract void assertModelMerging();
+
+    public abstract void removeModelMerging();
+
+    public abstract void applyMergingToTable();
+
     public abstract void assertRowHeights();
 
     public abstract boolean toggleMerging();
+
+    public abstract void sort();
 
 }
