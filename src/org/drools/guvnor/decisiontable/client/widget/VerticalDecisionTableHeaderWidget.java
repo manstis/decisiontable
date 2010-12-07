@@ -1,5 +1,9 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.drools.guvnor.decisiontable.client.guvnor.SortDirection;
 import org.drools.guvnor.decisiontable.client.guvnor.TableImageResources;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
@@ -13,33 +17,15 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
 import com.google.gwt.dom.client.Style.Overflow;
-import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.dom.client.TableCellElement;
 import com.google.gwt.dom.client.TableElement;
 import com.google.gwt.dom.client.TableRowElement;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
-import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-/**
- * The "header" for a VerticalDecisionTable. This is a bit of a cheat really: A
- * VerticalDecisionTable can have one row of it's Conditions columns merged if
- * need be. This is not easily achieved with GWT's vanilla CellTable as the
- * Header is merged across all columns that share the same object and therefore
- * you cannot specify it is rendered differently for each column. The cheat
- * employed herein is to use a single "Header" Cell for all columns. This header
- * contains a list of all columns defined for the DecisionTable and renders an
- * HTML table accordingly. The plumbing for sorting, filtering etc therefore has
- * to be performed at a level lower than the usual GWT abstraction (i.e. more
- * DOM level manipulation).
- * 
- * @author manstis
- * 
- */
 public class VerticalDecisionTableHeaderWidget extends
 	DecisionTableHeaderWidget {
 
@@ -55,7 +41,7 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	// Construct the Widget
 	panel = new ScrollPanel();
-	widget = new HeaderWidget(dtable);
+	widget = new HeaderWidget();
 
 	// We don't want scroll bars on the Header
 	panel.getElement().getStyle().setOverflow(Overflow.HIDDEN);
@@ -81,30 +67,34 @@ public class VerticalDecisionTableHeaderWidget extends
 	widget.redraw();
     }
 
+    /**
+     * This is the actual header widget.
+     * 
+     * @author manstis
+     * 
+     */
     private class HeaderWidget extends Widget {
 
 	private TableElement table;
-	// private DecisionTableWidget dtable;
 
 	private final TableImageResources TABLE_IMAGE_RESOURCES = GWT
 		.create(TableImageResources.class);
-	private final AbstractImagePrototype DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final String DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.downArrow());
-	private final AbstractImagePrototype SMALL_DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final String SMALL_DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.smallDownArrow());
-	private final AbstractImagePrototype UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final String UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.upArrow());
-	private final AbstractImagePrototype SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
+	private final String SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.smallUpArrow());
 
-	private AbstractImagePrototype makeImage(ImageResource resource) {
+	private String makeImage(ImageResource resource) {
 	    AbstractImagePrototype prototype = AbstractImagePrototype
 		    .create(resource);
-	    return prototype;
+	    return prototype.getHTML();
 	}
 
-	public HeaderWidget(DecisionTableWidget dtable) {
-	    dtable = dtable;
+	public HeaderWidget() {
 	    table = Document.get().createTableElement();
 	    table.setCellPadding(0);
 	    table.setCellSpacing(0);
@@ -135,7 +125,14 @@ public class VerticalDecisionTableHeaderWidget extends
 	    }
 
 	    if (type.equals("click")) {
-		Window.alert(cell.getInnerText());
+		// TODO Relate this to the actual column to set Sort Direction
+		int row = cell.getPropertyInt("row");
+		int col = cell.getPropertyInt("col");
+		DynamicEditColumn column = dtable.getColumns().get(col);
+		if (row == 1
+			|| !(column.getModelColumn() instanceof ConditionCol)) {
+		    headerClicked(column);
+		}
 	    }
 	}
 
@@ -174,17 +171,24 @@ public class VerticalDecisionTableHeaderWidget extends
 	    for (DynamicEditColumn column : dtable.columns) {
 		DTColumnConfig modelColumn = column.getModelColumn();
 		if (modelColumn instanceof MetadataCol) {
-		    cell = makeMetadataTableCellElement((MetadataCol) modelColumn);
+		    cell = makeMetadataTableCellElement(column);
+		    cell.setPropertyInt("row", 0);
+		    cell.setPropertyInt("col", column.getColumnIndex());
 		    trow.appendChild(cell);
 		} else if (modelColumn instanceof AttributeCol) {
-		    cell = makeAttributeTableCellElement((AttributeCol) modelColumn);
+		    cell = makeAttributeTableCellElement(column);
+		    cell.setPropertyInt("row", 0);
+		    cell.setPropertyInt("col", column.getColumnIndex());
 		    trow.appendChild(cell);
 		} else if (modelColumn instanceof ConditionCol) {
-		    cell = makeConditionFactTypeTableCellElement((ConditionCol) modelColumn);
-		    cell.setClassName("header-cell-secondary");
+		    cell = makeConditionFactTypeTableCellElement(column);
+		    cell.setPropertyInt("row", 0);
+		    cell.setPropertyInt("col", column.getColumnIndex());
 		    trow.appendChild(cell);
 		} else if (modelColumn instanceof ActionCol) {
-		    cell = makeActionTableCellElement((ActionCol) modelColumn);
+		    cell = makeActionTableCellElement(column);
+		    cell.setPropertyInt("row", 0);
+		    cell.setPropertyInt("col", column.getColumnIndex());
 		    trow.appendChild(cell);
 		}
 	    }
@@ -197,14 +201,17 @@ public class VerticalDecisionTableHeaderWidget extends
 	    for (DynamicEditColumn column : dtable.columns) {
 		DTColumnConfig modelColumn = column.getModelColumn();
 		if (modelColumn instanceof ConditionCol) {
-		    cell = makeConditionFactFieldTableCellElement((ConditionCol) modelColumn);
+		    cell = makeConditionFactFieldTableCellElement(column);
+		    cell.setPropertyInt("row", 1);
+		    cell.setPropertyInt("col", column.getColumnIndex());
 		    trow.appendChild(cell);
 		}
 	    }
 	    return trow;
 	}
 
-	private TableCellElement makeTableCellElement() {
+	private TableCellElement makeTableCellSortableElement(
+		DynamicEditColumn column) {
 	    TableCellElement tcell = Document.get().createTHElement();
 	    tcell.setClassName("header-cell-primary");
 
@@ -217,45 +224,71 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	    div1.appendChild(div2);
 	    div1.appendChild(div3);
-	    div3.appendChild(DOWN_ARROW.createElement());
+	    div3.setInnerHTML(getSortDirectionIcon(column.getSortDirection(),
+		    column.getSortIndex()));
 
 	    tcell.appendChild(div1);
 	    return tcell;
 
 	}
 
-	private TableCellElement makeMetadataTableCellElement(MetadataCol column) {
-	    TableCellElement tcell = makeTableCellElement();
-	    setText(tcell, column.attr);
+	private TableCellElement makeTableCellFactTypeElement(
+		DynamicEditColumn column) {
+	    TableCellElement tcell = Document.get().createTHElement();
+	    tcell.setClassName("header-cell-secondary");
+
+	    DivElement div1 = Document.get().createDivElement();
+	    DivElement div2 = Document.get().createDivElement();
+	    DivElement div3 = Document.get().createDivElement();
+	    div1.setClassName("header-container");
+	    div2.setClassName("header-text");
+	    div3.setClassName("header-widget");
+
+	    div1.appendChild(div2);
+	    div1.appendChild(div3);
+	    // TODO Need some way to merge - another icon?
+
+	    tcell.appendChild(div1);
+	    return tcell;
+
+	}
+
+	private TableCellElement makeMetadataTableCellElement(
+		DynamicEditColumn column) {
+	    TableCellElement tcell = makeTableCellSortableElement(column);
+	    setText(tcell, ((MetadataCol) column.getModelColumn()).attr);
 	    tcell.setRowSpan(2);
 	    return tcell;
 	}
 
 	private TableCellElement makeAttributeTableCellElement(
-		AttributeCol column) {
-	    TableCellElement tcell = makeTableCellElement();
-	    setText(tcell, column.attr);
+		DynamicEditColumn column) {
+	    TableCellElement tcell = makeTableCellSortableElement(column);
+	    setText(tcell, ((AttributeCol) column.getModelColumn()).attr);
 	    tcell.setRowSpan(2);
 	    return tcell;
 	}
 
 	private TableCellElement makeConditionFactTypeTableCellElement(
-		ConditionCol column) {
-	    TableCellElement tcell = makeTableCellElement();
-	    setText(tcell, column.getFactType());
+		DynamicEditColumn column) {
+	    TableCellElement tcell = makeTableCellFactTypeElement(column);
+	    setText(tcell,
+		    ((ConditionCol) column.getModelColumn()).getFactType());
 	    return tcell;
 	}
 
 	private TableCellElement makeConditionFactFieldTableCellElement(
-		ConditionCol column) {
-	    TableCellElement tcell = makeTableCellElement();
-	    setText(tcell, column.getFactField());
+		DynamicEditColumn column) {
+	    TableCellElement tcell = makeTableCellSortableElement(column);
+	    setText(tcell,
+		    ((ConditionCol) column.getModelColumn()).getFactField());
 	    return tcell;
 	}
 
-	private TableCellElement makeActionTableCellElement(ActionCol column) {
-	    TableCellElement tcell = makeTableCellElement();
-	    setText(tcell, column.getHeader());
+	private TableCellElement makeActionTableCellElement(
+		DynamicEditColumn column) {
+	    TableCellElement tcell = makeTableCellSortableElement(column);
+	    setText(tcell, ((ActionCol) column.getModelColumn()).getHeader());
 	    tcell.setRowSpan(2);
 	    return tcell;
 	}
@@ -265,6 +298,46 @@ public class VerticalDecisionTableHeaderWidget extends
 		    .setInnerText(text);
 	}
 
+	private String getSortDirectionIcon(SortDirection sd, int sortIndex) {
+	    String html = "";
+	    switch (sd) {
+	    case ASCENDING:
+		html = (sortIndex == 0 ? UP_ARROW : SMALL_UP_ARROW);
+		break;
+	    case DESCENDING:
+		html = (sortIndex == 0 ? DOWN_ARROW : SMALL_DOWN_ARROW);
+	    }
+	    return html;
+	}
+
+    }
+
+    public void headerClicked(DynamicEditColumn header) {
+	updateSortOrder(header);
+	redraw();
+	dtable.sort();
+    }
+
+    private void updateSortOrder(DynamicEditColumn header) {
+	if (header.getSortIndex() == 0) {
+	    if (header.getSortDirection() != SortDirection.ASCENDING) {
+		header.setSortDirection(SortDirection.ASCENDING);
+	    } else {
+		header.setSortDirection(SortDirection.DESCENDING);
+	    }
+	} else {
+	    header.setSortIndex(0);
+	    header.setSortDirection(SortDirection.ASCENDING);
+	    int sortIndex = 1;
+	    for (DynamicEditColumn sortableHeader : dtable.getColumns()) {
+		if (!sortableHeader.equals(header)) {
+		    if (sortableHeader.getSortDirection() != SortDirection.NONE) {
+			sortableHeader.setSortIndex(sortIndex);
+			sortIndex++;
+		    }
+		}
+	    }
+	}
     }
 
 }

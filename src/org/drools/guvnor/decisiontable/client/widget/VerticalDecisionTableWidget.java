@@ -546,6 +546,54 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    }
 	}
 
+	// Apply merging
+	private void assertIndexMerging() {
+	    final int MAX_ROW = data.size() - 1;
+
+	    for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
+		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
+		    int rowSpan = 1;
+		    CellValue cell1 = data.get(iRow).get(iCol);
+		    CellValue cell2 = data.get(iRow + rowSpan).get(iCol);
+
+		    // Don't merge empty cells
+		    if (!cell1.isEmpty()) {
+			while (cell1.getValue().equals(cell2.getValue())
+				&& iRow + rowSpan < MAX_ROW) {
+			    if (cell2.getRowSpan() != 0) {
+				table.getRowElement(iRow + rowSpan).deleteCell(
+					iCol);
+				cell2.setRowSpan(0);
+			    }
+
+			    rowSpan++;
+			    cell2 = data.get(iRow + rowSpan).get(iCol);
+			}
+			if (cell1.getValue().equals(cell2.getValue())) {
+			    if (cell2.getRowSpan() != 0) {
+				table.getRowElement(iRow + rowSpan).deleteCell(
+					iCol);
+				cell2.setRowSpan(0);
+			    }
+			    rowSpan++;
+			}
+		    }
+		    cell1.setRowSpan(rowSpan);
+		    if (rowSpan > 1) {
+			table.getRowElement(cell1.getHtmlCoordinate().getRow())
+				.getCells()
+				.getItem(cell1.getHtmlCoordinate().getCol())
+				.setRowSpan(rowSpan);
+		    }
+		    iRow = iRow + rowSpan - 1;
+		}
+	    }
+	    assertIndexes();
+	    assertRowHeights();
+	    isMerged = true;
+	}
+
+	
 	// Ensure the table's visuals are correct for the merge state
 	private void assertMerging() {
 	    if (isMerged) {

@@ -1,6 +1,8 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.drools.guvnor.decisiontable.client.widget.cells.AbstractCellFactory;
@@ -131,11 +133,65 @@ public abstract class DecisionTableWidget extends Composite {
 
     /**
      * The DecisionTable is nested inside a ScrollPanel. This allows
-     * ScrollEvents to be hooked up to other dependant controls (e.g. the
+     * ScrollEvents to be hooked up to other defendant controls (e.g. the
      * Header).
      * 
      * @return
      */
     protected abstract ScrollHandler getScrollHandler();
+
+    protected void sort() {
+	final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[columns
+		.size() - 1];
+	int index=0;
+	for (DynamicEditColumn column : columns) {
+	    int sortIndex = column.getSortIndex();
+	    if (sortIndex != -1) {
+		sortOrderList[sortIndex] = column;
+		index++;
+	    }
+	}
+	final int sortedColumnCount = index;
+
+	List<List<CellValue>> displayedItems = new ArrayList<List<CellValue>>(
+		table.getDisplayedItems());
+	Collections.sort(displayedItems, new Comparator<List<CellValue>>() {
+	    public int compare(List<CellValue> leftRow, List<CellValue> rightRow) {
+		int comparison = 0;
+		for (int index = 0; index < sortedColumnCount; index++) {
+		    DynamicEditColumn sortableHeader = sortOrderList[index];
+		    Comparable leftColumnValue = leftRow.get(sortableHeader
+			    .getColumnIndex());
+		    Comparable rightColumnValue = rightRow.get(sortableHeader
+			    .getColumnIndex());
+		    comparison = (leftColumnValue == rightColumnValue) ? 0
+			    : (leftColumnValue == null) ? -1
+				    : (rightColumnValue == null) ? 1
+					    : leftColumnValue
+						    .compareTo(rightColumnValue);
+		    if (comparison != 0) {
+			switch (sortableHeader.getSortDirection()) {
+			case ASCENDING:
+			    break;
+			case DESCENDING:
+			    comparison = -comparison;
+			    break;
+			default:
+			    throw new IllegalStateException(
+				    "Sorting can only be enabled for ASCENDING or"
+					    + " DESCENDING, not sortDirection ("
+					    + sortableHeader.getSortDirection()
+					    + ") .");
+			}
+			return comparison;
+		    }
+		}
+		return comparison;
+	    }
+	});
+	table.setRowData(0, displayedItems);
+	table.redraw();
+	manager.assertRowHeights();
+    }
 
 }

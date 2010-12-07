@@ -47,7 +47,9 @@ public class Coordinate {
 
     @Override
     public int hashCode() {
-	return row * 29 + col;
+	int hash = row;
+	hash = 31 * hash + col;
+	return hash;
     }
 
 }

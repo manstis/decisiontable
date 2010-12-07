@@ -91,6 +91,7 @@ h1 {
 	color: #4B4A4A;
 	text-align: left;
 	text-shadow: 1px 1px 0 #DDDDFF;
+	cursor: default;
 }
 
 .header-cell-primary {
@@ -113,7 +114,6 @@ h1 {
 }
 
 .header-widget {
-	/*float: right;*/
 	display: inline;
 	margin-left: 5px;
 }

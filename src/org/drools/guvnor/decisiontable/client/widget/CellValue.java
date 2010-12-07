@@ -25,7 +25,7 @@ package org.drools.guvnor.decisiontable.client.widget;
  * @author manstis
  * 
  */
-public class CellValue {
+public class CellValue implements Comparable<CellValue> {
     private Object value;
     private int rowSpan = 1;
     private Coordinate coordinate;
@@ -81,6 +81,12 @@ public class CellValue {
 
     public void setHtmlCoordinate(Coordinate c) {
 	this.mapDataToHtml = c;
+    }
+
+    @Override
+    //TODO CellValues need to sort themselves based upon their datatype
+    public int compareTo(CellValue cv) {
+	return ((String) this.value).compareTo((String)cv.value);
     }
 
 }
