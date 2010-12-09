@@ -23,4 +23,10 @@ public interface TableImageResources extends ClientBundle {
     @Source("columnPicker.png")
     ImageResource columnPicker();
 
+    @Source("mergeLink.png")
+    ImageResource mergeLink();
+
+    @Source("mergeUnlink.png")
+    ImageResource mergeUnlink();
+
 }

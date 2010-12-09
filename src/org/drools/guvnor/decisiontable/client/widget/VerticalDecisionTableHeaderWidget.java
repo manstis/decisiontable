@@ -22,6 +22,7 @@ import com.google.gwt.dom.client.TableElement;
 import com.google.gwt.dom.client.TableRowElement;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -87,6 +88,10 @@ public class VerticalDecisionTableHeaderWidget extends
 		.upArrow());
 	private final String SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
 		.smallUpArrow());
+	private final String MERGE_LINK = makeImage(TABLE_IMAGE_RESOURCES
+		.mergeLink());
+	private final String MERGE_UNLINK = makeImage(TABLE_IMAGE_RESOURCES
+		.mergeUnlink());
 
 	private String makeImage(ImageResource resource) {
 	    AbstractImagePrototype prototype = AbstractImagePrototype
@@ -125,13 +130,20 @@ public class VerticalDecisionTableHeaderWidget extends
 	    }
 
 	    if (type.equals("click")) {
-		// TODO Relate this to the actual column to set Sort Direction
 		int row = cell.getPropertyInt("row");
 		int col = cell.getPropertyInt("col");
 		DynamicEditColumn column = dtable.getColumns().get(col);
-		if (row == 1
-			|| !(column.getModelColumn() instanceof ConditionCol)) {
-		    headerClicked(column);
+		switch (row) {
+		case 0:
+		    if (column.getModelColumn() instanceof ConditionCol) {
+			//mergableHeaderClicked(column);
+		    } else {
+			sortableHeaderClicked(column);
+		    }
+		case 1:
+		    if (column.getModelColumn() instanceof ConditionCol) {
+			sortableHeaderClicked(column);
+		    }
 		}
 	    }
 	}
@@ -246,7 +258,6 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	    div1.appendChild(div2);
 	    div1.appendChild(div3);
-	    // TODO Need some way to merge - another icon?
 
 	    tcell.appendChild(div1);
 	    return tcell;
@@ -271,9 +282,25 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	private TableCellElement makeConditionFactTypeTableCellElement(
 		DynamicEditColumn column) {
+	    String factType = ((ConditionCol) column.getModelColumn())
+		    .getFactType();
 	    TableCellElement tcell = makeTableCellFactTypeElement(column);
-	    setText(tcell,
-		    ((ConditionCol) column.getModelColumn()).getFactType());
+	    setText(tcell, factType);
+
+	    // Peek ahead to the next column and add "merge" icon if applicable
+	    int iCol = dtable.getColumns().indexOf(column);
+	    if (iCol < dtable.columns.size() - 1) {
+		DTColumnConfig peek = dtable.getColumns().get(iCol + 1)
+			.getModelColumn();
+		if (peek instanceof ConditionCol) {
+		    if (((ConditionCol) peek).getFactType().equals(factType)) {
+			DivElement widget = tcell.getFirstChild().getChild(1)
+				.<DivElement> cast();
+			widget.setInnerHTML(MERGE_LINK);
+		    }
+		}
+	    }
+
 	    return tcell;
 	}
 
@@ -312,7 +339,7 @@ public class VerticalDecisionTableHeaderWidget extends
 
     }
 
-    public void headerClicked(DynamicEditColumn header) {
+    public void sortableHeaderClicked(DynamicEditColumn header) {
 	updateSortOrder(header);
 	redraw();
 	dtable.manager.sort();
@@ -338,6 +365,10 @@ public class VerticalDecisionTableHeaderWidget extends
 		}
 	    }
 	}
+    }
+
+    public void mergableHeaderClicked(DynamicEditColumn column) {
+	Window.alert("clicked");
     }
 
 }

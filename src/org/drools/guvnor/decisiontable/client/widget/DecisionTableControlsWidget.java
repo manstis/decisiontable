@@ -6,6 +6,7 @@ import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
+import com.google.gwt.dom.client.Style.Display;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyPressEvent;
@@ -15,6 +16,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -64,15 +66,16 @@ public class DecisionTableControlsWidget extends Composite {
 	});
 
 	// Add Condition column button
-	Button btnAddConditionColumn = new Button("Add Condition Column",
-		new ClickHandler() {
+	final FactPicker factPicker=new FactPicker();
+	factPicker.setCommand(new Command() {
 
-		    @Override
-		    public void onClick(ClickEvent event) {
-			dtable.clearSelection();
-			dtable.addColumn(getNewConditionColumn());
-		    }
-		});
+	    @Override
+	    public void execute() {
+		dtable.clearSelection();
+		dtable.addColumn(getNewConditionColumn(factPicker.getFactType(), factPicker.getFactField()));
+	    }
+	    
+	});
 
 	// Add Action column button
 	Button btnAddActionColumn = new Button("Add Action Column",
@@ -131,13 +134,13 @@ public class DecisionTableControlsWidget extends Composite {
 		});
 
 	VerticalPanel vp1 = new VerticalPanel();
+	vp1.add(btnAddMetadataColumn);
+	vp1.add(btnAddActionColumn);
 	vp1.add(attributeColumnPicker);
 	panel.add(vp1);
-
+	
 	VerticalPanel vp2 = new VerticalPanel();
-	vp2.add(btnAddMetadataColumn);
-	vp2.add(btnAddConditionColumn);
-	vp2.add(btnAddActionColumn);
+	vp2.add(factPicker);
 	panel.add(vp2);
 
 	VerticalPanel vp3 = new VerticalPanel();
@@ -163,10 +166,10 @@ public class DecisionTableControlsWidget extends Composite {
 	return column;
     }
 
-    private DTColumnConfig getNewConditionColumn() {
+    private DTColumnConfig getNewConditionColumn(String factType, String factField) {
 	ConditionCol column = new ConditionCol();
-	column.setFactType("fact-type");
-	column.setFactField("fact-field");
+	column.setFactType(factType);
+	column.setFactField(factField);
 	return column;
     }
 
@@ -277,4 +280,63 @@ public class DecisionTableControlsWidget extends Composite {
 
     }
 
+    /**
+     * Simple Widget allowing entering of Fact details (Class and Field)
+     * 
+     * @author manstis
+     * 
+     */
+    private static class FactPicker extends Composite {
+
+	private Panel panel = new VerticalPanel();
+	private Button btnEnter = new Button();
+	private TextBox txtFactType=new TextBox();
+	private TextBox txtFactField=new TextBox();
+
+	private FactPicker() {
+	    this.btnEnter.setText("Add Fact column");
+	    panel.add(btnEnter);
+	    
+	    Panel pnlFactType=new HorizontalPanel();
+	    Label lblFactType=new Label("Fact Type:");
+	    lblFactType.getElement().getStyle().setDisplay(Display.INLINE);
+	    pnlFactType.add(lblFactType);
+	    pnlFactType.add(txtFactType);
+	    
+	    Panel pnlFactField=new HorizontalPanel();
+	    Label lblFactField=new Label("Fact Field:");
+	    lblFactField.getElement().getStyle().setDisplay(Display.INLINE);
+	    pnlFactField.add(lblFactField);
+	    pnlFactField.add(txtFactField);
+
+	    panel.add(pnlFactType);
+	    panel.add(pnlFactField);
+	    initWidget(panel);
+	}
+
+	private void setCommand(final Command command) {
+	    this.btnEnter.addClickHandler(new ClickHandler() {
+
+		@Override
+		public void onClick(ClickEvent event) {
+		    command.execute();
+		}
+
+	    });
+	}
+
+	private String getFactType() {
+	    String value = txtFactType.getText();
+	    return value;
+	}
+	
+	private String getFactField() {
+	    String value=txtFactField.getText();
+	    return value;
+	}
+	
+
+    }
+
+    
 }
