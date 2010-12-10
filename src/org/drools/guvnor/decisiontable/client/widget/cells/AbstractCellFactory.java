@@ -99,6 +99,8 @@ public abstract class AbstractCellFactory {
      * 
      * @param c
      *            The physical coordinate of the cell
+     * @param manager
+     *            The SelectionManager used to update cells' content
      * @return A Cell
      */
     public DecisionTableCellValueAdaptor<?> getCell(Coordinate c,

@@ -15,11 +15,11 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.dom.client.TableCellElement;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -47,9 +47,17 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
     @Override
     protected Panel getMainPanel() {
 	if (this.mainPanel == null) {
-	    this.mainPanel = new VerticalPanel();
+	    this.mainPanel = new HorizontalPanel();
 	}
 	return this.mainPanel;
+    }
+
+    @Override
+    protected Panel getBodyPanel() {
+	if (this.bodyPanel == null) {
+	    this.bodyPanel = new VerticalPanel();
+	}
+	return this.bodyPanel;
     }
 
     /*
@@ -70,6 +78,20 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
      * (non-Javadoc)
      * 
      * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
+     * getSidebarWidget()
+     */
+    @Override
+    protected DecisionTableSidebarWidget getSidebarWidget() {
+	if (this.sidebarWidget == null) {
+	    this.sidebarWidget = new VerticalDecisionTableSidebarWidget(this);
+	}
+	return this.sidebarWidget;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
      * getScrollHandler()
      */
     @Override
@@ -80,6 +102,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    public void onScroll(ScrollEvent event) {
 		headerWidget.setScrollPosition(scrollPanel
 			.getHorizontalScrollPosition());
+		sidebarWidget
+			.setScrollPosition(scrollPanel.getScrollPosition());
 	    }
 	};
     }
@@ -92,6 +116,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
      */
     @Override
     public void setData(GuidedDecisionTable model) {
+
 	this.model = model;
 
 	final int dataSize = model.getData().length;
@@ -423,8 +448,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	/**
 	 * This ensures the height of rows remains correct following merge
 	 * operations. Thinking about it this probably doesn't make sense for a
-	 * Vertical Decision Table but I'll refactor it when I get to write that
-	 * one!
+	 * Horizontal Decision Table but I'll refactor it when I get to write
+	 * that one!
 	 */
 	@Override
 	public void assertRowHeights() {
@@ -434,11 +459,13 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		for (int iCol = 0; iCol < row.size(); iCol++) {
 		    CellValue cell = data.get(iRow).get(iCol);
 		    if (cell.getRowSpan() != 0) {
-			table.getRowElement(cell.getHtmlCoordinate().getRow())
+			TableCellElement tce = table
+				.getRowElement(
+					cell.getHtmlCoordinate().getRow())
 				.getCells()
-				.getItem(cell.getHtmlCoordinate().getCol())
-				.getStyle()
-				.setHeight(cell.getRowSpan() * 48, Unit.PX);
+				.getItem(cell.getHtmlCoordinate().getCol());
+			int height = cell.getRowSpan() * resource.cellTableStyle().rowHeight();
+			tce.getStyle().setHeight(height, Unit.PX);
 		    }
 		}
 	    }
@@ -595,12 +622,12 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < data.size(); iRow++) {
 		    CellValue cell = data.get(iRow).get(iCol);
-		    Coordinate c=new Coordinate(iRow,iCol);
+		    Coordinate c = new Coordinate(iRow, iCol);
 		    cell.setCoordinate(c);
 		    cell.setHtmlCoordinate(c);
 		    cell.setPhysicalCoordinate(c);
 		    cell.setRowSpan(1);
-		    
+
 		}
 	    }
 
@@ -648,9 +675,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		}
 	    }
 	    final int sortedColumnCount = index;
-	    
-	    List<List<CellValue>> displayedItems = table
-		    .getDisplayedItems();
+
+	    List<List<CellValue>> displayedItems = table.getDisplayedItems();
 	    Collections.sort(displayedItems, new Comparator<List<CellValue>>() {
 		public int compare(List<CellValue> leftRow,
 			List<CellValue> rightRow) {
@@ -690,7 +716,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	    data.clear();
 	    data.addAll(displayedItems);
-	    
+
 	    removeModelMerging();
 	    table.setRowCount(data.size());
 	    table.setPageSize(data.size());

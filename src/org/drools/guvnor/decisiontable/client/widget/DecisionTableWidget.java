@@ -1,14 +1,14 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.drools.guvnor.decisiontable.client.widget.cells.AbstractCellFactory;
+import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.HasKeyboardPagingPolicy.KeyboardPagingPolicy;
@@ -26,11 +26,16 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 public abstract class DecisionTableWidget extends Composite {
 
     protected Panel mainPanel;
+    protected Panel bodyPanel;
     protected ScrollPanel scrollPanel;
     protected DecisionTableHeaderWidget headerWidget;
+    protected DecisionTableSidebarWidget sidebarWidget;
     protected AbstractCellFactory cellFactory;
-    protected CellTable<List<CellValue>> table = new CellTable<List<CellValue>>();
 
+    protected CellTableResource resource = GWT.create(CellTableResource.class);
+    protected CellTable<List<CellValue>> table = new CellTable<List<CellValue>>(
+	    0, resource);
+    
     // Decision Table data
     protected DynamicData data;
     protected GuidedDecisionTable model;
@@ -48,15 +53,22 @@ public abstract class DecisionTableWidget extends Composite {
      */
     public DecisionTableWidget() {
 	mainPanel = getMainPanel();
+	bodyPanel = getBodyPanel();
 	headerWidget = getHeaderWidget();
+	sidebarWidget = getSidebarWidget();
+
 	scrollPanel = new ScrollPanel();
 	scrollPanel.add(table);
 	scrollPanel.addScrollHandler(getScrollHandler());
 
 	table.setKeyboardPagingPolicy(KeyboardPagingPolicy.CHANGE_PAGE);
 	table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
-	mainPanel.add(headerWidget);
-	mainPanel.add(scrollPanel);
+
+	bodyPanel.add(headerWidget);
+	bodyPanel.add(scrollPanel);
+	mainPanel.add(sidebarWidget);
+	mainPanel.add(bodyPanel);
+
 	initWidget(mainPanel);
     }
 
@@ -112,17 +124,22 @@ public abstract class DecisionTableWidget extends Composite {
     }
 
     /**
-     * Gets the Widget's main panel to which other content will be added. This
-     * allows subclasses to have some control over the general layout of the
-     * Decision Table, for example a Vertical Decision Table returns a
-     * VerticalPanel to which the DecisionTableHeaderWidget and
-     * VerticalDecisionTableWidget are added thus providing for a vertical
-     * layout. A HorizontalDecisionTableWidget could return a HorizontalPanel
-     * thus affording a more horizontal layout.
+     * Gets the Widget's outer most panel to which other content will be added.
+     * This allows subclasses to have some control over the general layout of
+     * the Decision Table.
      * 
      * @return
      */
     protected abstract Panel getMainPanel();
+
+    /**
+     * Gets the Widgets inner panel to which the DecisionTable and Header will
+     * be added. This allows subclasses to have some control over the internal
+     * layout of the Decision Table.
+     * 
+     * @return
+     */
+    protected abstract Panel getBodyPanel();
 
     /**
      * Gets the Widget responsible for rendering the DecisionTables "header".
@@ -130,6 +147,13 @@ public abstract class DecisionTableWidget extends Composite {
      * @return
      */
     protected abstract DecisionTableHeaderWidget getHeaderWidget();
+
+    /**
+     * Gets the Widget responsible for rendering the DecisionTables "side-bar".
+     * 
+     * @return
+     */
+    protected abstract DecisionTableSidebarWidget getSidebarWidget();
 
     /**
      * The DecisionTable is nested inside a ScrollPanel. This allows

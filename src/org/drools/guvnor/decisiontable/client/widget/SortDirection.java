@@ -1,4 +1,4 @@
-package org.drools.guvnor.decisiontable.client.guvnor;
+package org.drools.guvnor.decisiontable.client.widget;
 
 /**
  * @author Geoffrey De Smet

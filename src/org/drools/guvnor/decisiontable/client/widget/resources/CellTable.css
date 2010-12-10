@@ -1,0 +1,129 @@
+@CHARSET "UTF-8";
+
+/* CellTable body */
+
+@def selectionBorderWidth 0px;
+@def rowHeight 32px;
+	
+.cellTableWidget {
+}
+
+.cellTableFirstColumn {
+}
+
+.cellTableLastColumn {
+}
+
+.cellTableFooter {
+}
+
+.cellTableHeader {
+}
+
+.cellTableCell {
+	padding: 0px;
+	margin: 0px;
+	width:100px;
+	text-align: center;
+}
+
+.cellTableFirstColumnFooter {
+}
+
+.cellTableFirstColumnHeader {
+}
+
+.cellTableLastColumnFooter {
+}
+
+.cellTableLastColumnHeader {
+}
+
+.cellTableEvenRow {
+	background: #ffffff;
+}
+
+.cellTableEvenRowCell {
+	border: selectionBorderWidth solid #ffffff;
+}
+
+.cellTableOddRow {
+	background: #f3f7fb;
+}
+
+.cellTableOddRowCell {
+	border: selectionBorderWidth solid #f3f7fb;
+}
+
+.cellTableHoveredRow {
+	background: #ffffcc;
+}
+
+.cellTableHoveredRowCell {
+	border: selectionBorderWidth solid #eee;
+}
+
+.cellTableKeyboardSelectedRow {
+
+}
+
+.cellTableKeyboardSelectedRowCell {
+}
+
+.cellTableSelectedRow {
+}
+
+.cellTableSelectedRowCell {
+}
+
+.cellTableKeyboardSelectedCell {
+}
+
+@sprite .cellTableLoading {
+	gwt-image: 'cellTableLoading';
+	margin: 30px;
+}
+
+/* Header */
+
+.headerTable {
+	table-layout: fixed;
+	padding: 0px;
+	margin: 0px;
+}
+
+.headerRow {
+	height: 24px;
+	color: #4B4A4A;
+	text-align: left;
+	text-shadow: 1px 1px 0 #DDDDFF;
+	cursor: default;
+}
+
+.headerCellPrimary {
+	width: 100px;
+	font-size: 8pt;
+	text-align: center;
+	border-bottom: 2px solid grey;
+}
+
+.headerCellSecondary {
+	width: 100px;
+	font-size: 8pt;
+	text-align: center;
+	border-bottom: 1px solid grey;
+}
+
+.headerContainer {
+	width: 100px;
+}
+
+.headerText {
+	display: inline;
+	margin-left: 5px;
+}
+
+.headerWidget {
+	display: inline;
+	margin-left: 5px;
+}

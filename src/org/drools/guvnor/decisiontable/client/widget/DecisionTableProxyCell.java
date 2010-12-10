@@ -24,7 +24,7 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
     protected AbstractCellFactory cellFactory;
 
     // The physical cell for the coordinate
-    private AbstractCell<CellValue> cell;
+    private AbstractCell<CellValue> physicalCell;
 
     public DecisionTableProxyCell(SelectionManager manager,
 	    AbstractCellFactory cellFactory) {
@@ -45,7 +45,7 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
-	return cell.isEditing(parent, physical, c);
+	return physicalCell.isEditing(parent, physical, c);
     }
 
     /*
@@ -66,12 +66,12 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
 
-	//Setup the selected range
+	// Setup the selected range
 	if (type.equals("click")) {
 	    manager.startSelecting(c);
 	}
 
-	cell.onBrowserEvent(parent, physical, c, event, valueUpdater);
+	physicalCell.onBrowserEvent(parent, physical, c, event, valueUpdater);
     }
 
     /*
@@ -85,7 +85,7 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
-	cell.render(physical, c, sb);
+	physicalCell.render(physical, c, sb);
     }
 
     /*
@@ -100,7 +100,7 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
-	return cell.resetFocus(parent, physical, c);
+	return physicalCell.resetFocus(parent, physical, c);
     }
 
     /*
@@ -115,12 +115,12 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
 	Coordinate c = value.getPhysicalCoordinate();
 	CellValue physical = manager.getPhysicalCell(c);
 	assertCell(c);
-	cell.setValue(parent, physical, c);
-    }	
+	physicalCell.setValue(parent, physical, c);
+    }
 
     // Get the cell for the physical coordinate
     private void assertCell(Coordinate c) {
-	cell = cellFactory.getCell(c, manager);
+	physicalCell = cellFactory.getCell(c, manager);
     }
 
 }

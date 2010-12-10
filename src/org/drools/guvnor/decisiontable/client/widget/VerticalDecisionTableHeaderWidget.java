@@ -1,17 +1,11 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.drools.guvnor.decisiontable.client.guvnor.SortDirection;
-import org.drools.guvnor.decisiontable.client.guvnor.TableImageResources;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
 import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
@@ -20,10 +14,8 @@ import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.TableCellElement;
 import com.google.gwt.dom.client.TableElement;
 import com.google.gwt.dom.client.TableRowElement;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -38,7 +30,7 @@ public class VerticalDecisionTableHeaderWidget extends
      * @param decisionTable
      */
     public VerticalDecisionTableHeaderWidget(DecisionTableWidget dtable) {
-	this.dtable = dtable;
+	super(dtable);
 
 	// Construct the Widget
 	panel = new ScrollPanel();
@@ -78,32 +70,11 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	private TableElement table;
 
-	private final TableImageResources TABLE_IMAGE_RESOURCES = GWT
-		.create(TableImageResources.class);
-	private final String DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
-		.downArrow());
-	private final String SMALL_DOWN_ARROW = makeImage(TABLE_IMAGE_RESOURCES
-		.smallDownArrow());
-	private final String UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
-		.upArrow());
-	private final String SMALL_UP_ARROW = makeImage(TABLE_IMAGE_RESOURCES
-		.smallUpArrow());
-	private final String MERGE_LINK = makeImage(TABLE_IMAGE_RESOURCES
-		.mergeLink());
-	private final String MERGE_UNLINK = makeImage(TABLE_IMAGE_RESOURCES
-		.mergeUnlink());
-
-	private String makeImage(ImageResource resource) {
-	    AbstractImagePrototype prototype = AbstractImagePrototype
-		    .create(resource);
-	    return prototype.getHTML();
-	}
-
 	public HeaderWidget() {
 	    table = Document.get().createTableElement();
 	    table.setCellPadding(0);
 	    table.setCellSpacing(0);
-	    table.setClassName("header-table");
+	    table.setClassName(resource.cellTableStyle().headerTable());
 
 	    table.appendChild(Document.get().createTRElement());
 	    table.appendChild(Document.get().createTRElement());
@@ -136,7 +107,7 @@ public class VerticalDecisionTableHeaderWidget extends
 		switch (row) {
 		case 0:
 		    if (column.getModelColumn() instanceof ConditionCol) {
-			//mergableHeaderClicked(column);
+			// mergableHeaderClicked(column);
 		    } else {
 			sortableHeaderClicked(column);
 		    }
@@ -162,7 +133,7 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	private TableRowElement makeTableRowElement() {
 	    TableRowElement trow = Document.get().createTRElement();
-	    trow.setClassName("header-row");
+	    trow.setClassName(resource.cellTableStyle().headerRow());
 	    return trow;
 	}
 
@@ -225,14 +196,14 @@ public class VerticalDecisionTableHeaderWidget extends
 	private TableCellElement makeTableCellSortableElement(
 		DynamicEditColumn column) {
 	    TableCellElement tcell = Document.get().createTHElement();
-	    tcell.setClassName("header-cell-primary");
+	    tcell.setClassName(resource.cellTableStyle().headerCellPrimary());
 
 	    DivElement div1 = Document.get().createDivElement();
 	    DivElement div2 = Document.get().createDivElement();
 	    DivElement div3 = Document.get().createDivElement();
-	    div1.setClassName("header-container");
-	    div2.setClassName("header-text");
-	    div3.setClassName("header-widget");
+	    div1.setClassName(resource.cellTableStyle().headerContainer());
+	    div2.setClassName(resource.cellTableStyle().headerText());
+	    div3.setClassName(resource.cellTableStyle().headerWidget());
 
 	    div1.appendChild(div2);
 	    div1.appendChild(div3);
@@ -247,14 +218,14 @@ public class VerticalDecisionTableHeaderWidget extends
 	private TableCellElement makeTableCellFactTypeElement(
 		DynamicEditColumn column) {
 	    TableCellElement tcell = Document.get().createTHElement();
-	    tcell.setClassName("header-cell-secondary");
+	    tcell.setClassName(resource.cellTableStyle().headerCellSecondary());
 
 	    DivElement div1 = Document.get().createDivElement();
 	    DivElement div2 = Document.get().createDivElement();
 	    DivElement div3 = Document.get().createDivElement();
-	    div1.setClassName("header-container");
-	    div2.setClassName("header-text");
-	    div3.setClassName("header-widget");
+	    div1.setClassName(resource.cellTableStyle().headerContainer());
+	    div2.setClassName(resource.cellTableStyle().headerText());
+	    div3.setClassName(resource.cellTableStyle().headerWidget());
 
 	    div1.appendChild(div2);
 	    div1.appendChild(div3);
