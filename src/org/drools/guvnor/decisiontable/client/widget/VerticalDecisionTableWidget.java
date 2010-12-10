@@ -363,8 +363,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
-			modelColumn, iRow, index);
+		CellValue<?> cell = CellValueFactory.getInstance()
+			.makeCellValue(modelColumn, iRow, index);
 		data.get(iRow).add(index, cell);
 	    }
 	    assertColumnCoordinates(index);
@@ -426,8 +426,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    List<CellValue<?>> row = new ArrayList<CellValue<?>>();
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DTColumnConfig column = columns.get(iCol).getModelColumn();
-		CellValue<?> data = CellValueFactory.getInstance().makeCellValue(
-			column, index, iCol);
+		CellValue<?> data = CellValueFactory.getInstance()
+			.makeCellValue(column, index, iCol);
 		row.add(data);
 	    }
 	    data.add(index, row);
@@ -646,21 +646,36 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    if (isMerged) {
 		final int MAX_ROW = data.size();
 
-		for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
-		    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-			CellValue<?> cell1 = data.get(iRow).get(iCol);
+		// HTML coordinates are only valid after all deletions. The
+		// alternative is to adjust HTML coordinates as each cell is
+		// deleted... hmmmmm, but then for each cell deleted we'd
+		// need to iterate over the remainder of the row which would
+		// be preferable if the majority of the table is not merged
+		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
+		    for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
+			CellValue<?> cell = data.get(iRow).get(iCol);
 
-			if (cell1.getRowSpan() == 0) {
+			if (cell.getRowSpan() == 0) {
 			    table.getRowElement(iRow).deleteCell(iCol);
-			} else if (cell1.getRowSpan() > 1) {
-			    table.getRowElement(
-				    cell1.getHtmlCoordinate().getRow())
-				    .getCells()
-				    .getItem(cell1.getHtmlCoordinate().getCol())
-				    .setRowSpan(cell1.getRowSpan());
 			}
 		    }
 		}
+
+		// Apply merging
+		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
+		    for (int iCol = 0; iCol < columns.size(); iCol++) {
+			CellValue<?> cell = data.get(iRow).get(iCol);
+
+			if (cell.getRowSpan() > 1) {
+			    table.getRowElement(
+				    cell.getHtmlCoordinate().getRow())
+				    .getCells()
+				    .getItem(cell.getHtmlCoordinate().getCol())
+				    .setRowSpan(cell.getRowSpan());
+			}
+		    }
+		}
+
 	    }
 	    assertRowHeights();
 	}
@@ -680,44 +695,45 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    final int sortedColumnCount = index;
 
 	    List<List<CellValue<?>>> displayedItems = table.getDisplayedItems();
-	    Collections.sort(displayedItems, new Comparator<List<CellValue<?>>>() {
+	    Collections.sort(displayedItems,
+		    new Comparator<List<CellValue<?>>>() {
 
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public int compare(List<CellValue<?>> leftRow,
-			List<CellValue<?>> rightRow) {
-		    int comparison = 0;
-		    for (int index = 0; index < sortedColumnCount; index++) {
-			DynamicEditColumn sortableHeader = sortOrderList[index];
-			Comparable leftColumnValue = leftRow.get(sortableHeader
-				.getColumnIndex());
-			Comparable rightColumnValue = rightRow
-				.get(sortableHeader.getColumnIndex());
-			comparison = (leftColumnValue == rightColumnValue) ? 0
-				: (leftColumnValue == null) ? -1
-					: (rightColumnValue == null) ? 1
-						: leftColumnValue
-							.compareTo(rightColumnValue);
-			if (comparison != 0) {
-			    switch (sortableHeader.getSortDirection()) {
-			    case ASCENDING:
-				break;
-			    case DESCENDING:
-				comparison = -comparison;
-				break;
-			    default:
-				throw new IllegalStateException(
-					"Sorting can only be enabled for ASCENDING or"
-						+ " DESCENDING, not sortDirection ("
-						+ sortableHeader
-							.getSortDirection()
-						+ ") .");
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			public int compare(List<CellValue<?>> leftRow,
+				List<CellValue<?>> rightRow) {
+			    int comparison = 0;
+			    for (int index = 0; index < sortedColumnCount; index++) {
+				DynamicEditColumn sortableHeader = sortOrderList[index];
+				Comparable leftColumnValue = leftRow
+					.get(sortableHeader.getColumnIndex());
+				Comparable rightColumnValue = rightRow
+					.get(sortableHeader.getColumnIndex());
+				comparison = (leftColumnValue == rightColumnValue) ? 0
+					: (leftColumnValue == null) ? -1
+						: (rightColumnValue == null) ? 1
+							: leftColumnValue
+								.compareTo(rightColumnValue);
+				if (comparison != 0) {
+				    switch (sortableHeader.getSortDirection()) {
+				    case ASCENDING:
+					break;
+				    case DESCENDING:
+					comparison = -comparison;
+					break;
+				    default:
+					throw new IllegalStateException(
+						"Sorting can only be enabled for ASCENDING or"
+							+ " DESCENDING, not sortDirection ("
+							+ sortableHeader
+								.getSortDirection()
+							+ ") .");
+				    }
+				    return comparison;
+				}
 			    }
 			    return comparison;
 			}
-		    }
-		    return comparison;
-		}
-	    });
+		    });
 
 	    data.clear();
 	    data.addAll(displayedItems);
