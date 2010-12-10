@@ -33,6 +33,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
+    private static final List<List<CellValue>> EMPTY_SET = new ArrayList<List<CellValue>>();
+
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
 	this.cellFactory = new VerticalDecisionTableCellFactory(this);
@@ -464,7 +466,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 					cell.getHtmlCoordinate().getRow())
 				.getCells()
 				.getItem(cell.getHtmlCoordinate().getCol());
-			int height = cell.getRowSpan() * resource.cellTableStyle().rowHeight();
+			int height = cell.getRowSpan()
+				* resource.cellTableStyle().rowHeight();
 			tce.getStyle().setHeight(height, Unit.PX);
 		    }
 		}
@@ -720,6 +723,12 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    removeModelMerging();
 	    table.setRowCount(data.size());
 	    table.setPageSize(data.size());
+
+	    // If a sort does not change the data (i.e. a sort does not
+	    // re-order anything) CellTable does not redraw the table so we
+	    // don't need to re-apply merging to the HTML table (unfortunately
+	    // there are no "hooks" into CellTable to know this happened...
+	    table.setRowData(0, EMPTY_SET);
 	    table.setRowData(0, data);
 	    assertModelMerging();
 	    applyMergingToTable();

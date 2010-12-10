@@ -111,6 +111,7 @@ public class VerticalDecisionTableHeaderWidget extends
 		    } else {
 			sortableHeaderClicked(column);
 		    }
+		    break;
 		case 1:
 		    if (column.getModelColumn() instanceof ConditionCol) {
 			sortableHeaderClicked(column);
