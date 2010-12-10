@@ -30,7 +30,6 @@ public class DecisionTableCellValueAdaptor<T> extends
     /**
      * @param cell
      */
-    @SuppressWarnings("unchecked")
     public DecisionTableCellValueAdaptor(AbstractCell<T> cell) {
 	super(cell.getConsumedEvents());
 	this.cell = cell;
@@ -61,7 +60,6 @@ public class DecisionTableCellValueAdaptor<T> extends
      * @see com.google.gwt.cell.client.AbstractCell#getConsumedEvents()
      */
     @Override
-    @SuppressWarnings("unchecked")
     public Set<String> getConsumedEvents() {
 	return cell.getConsumedEvents();
     }
@@ -104,7 +102,9 @@ public class DecisionTableCellValueAdaptor<T> extends
 	    NativeEvent event, ValueUpdater<CellValue<?>> valueUpdater) {
 
 	// Updates are passed back to the SelectionManager where merged cells
-	// are also updated
+	// are also updated. Override the Column's FieldUpdater because
+	// a Horizontal Decision Table will potentially have a different
+	// data-type per row.
 	cell.onBrowserEvent(parent, (T) value.getValue(), key, event,
 		new ValueUpdater<T>() {
 
