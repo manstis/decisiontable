@@ -33,7 +33,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
-    private static final List<List<CellValue>> EMPTY_SET = new ArrayList<List<CellValue>>();
+    private static final List<List<CellValue<?>>> EMPTY_SET = new ArrayList<List<CellValue<?>>>();
 
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
@@ -176,10 +176,10 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    this.data = new DynamicData();
 	    for (int iRow = 0; iRow < dataSize; iRow++) {
 		String[] row = model.getData()[iRow];
-		ArrayList<CellValue> cellRow = new ArrayList<CellValue>();
+		ArrayList<CellValue<?>> cellRow = new ArrayList<CellValue<?>>();
 		for (iCol = 0; iCol < row.length; iCol++) {
 		    DTColumnConfig column = columns.get(iCol).getModelColumn();
-		    CellValue cv = CellValueFactory.getInstance()
+		    CellValue<?> cv = CellValueFactory.getInstance()
 			    .makeCellValue(column, iRow, iCol);
 		    cv.setValue(row[iCol]);
 		    cellRow.add(cv);
@@ -236,7 +236,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	@Override
 	public void startSelecting(Coordinate start) {
 	    clearSelection();
-	    CellValue startCell = data.get(start);
+	    CellValue<?> startCell = data.get(start);
 	    extendSelection(startCell.getCoordinate());
 	}
 
@@ -249,7 +249,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	 *            The physical coordinate of the cell
 	 */
 	@Override
-	public CellValue getPhysicalCell(Coordinate c) {
+	public CellValue<?> getPhysicalCell(Coordinate c) {
 	    return data.get(c);
 	}
 
@@ -363,7 +363,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		CellValue cell = CellValueFactory.getInstance().makeCellValue(
+		CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
 			modelColumn, iRow, index);
 		data.get(iRow).add(index, cell);
 	    }
@@ -423,10 +423,10 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 			"Row number cannot be greater than the number of declared rows.");
 	    }
 
-	    List<CellValue> row = new ArrayList<CellValue>();
+	    List<CellValue<?>> row = new ArrayList<CellValue<?>>();
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DTColumnConfig column = columns.get(iCol).getModelColumn();
-		CellValue data = CellValueFactory.getInstance().makeCellValue(
+		CellValue<?> data = CellValueFactory.getInstance().makeCellValue(
 			column, index, iCol);
 		row.add(data);
 	    }
@@ -457,9 +457,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void assertRowHeights() {
 	    final int MAX_ROW = data.size();
 	    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		for (int iCol = 0; iCol < row.size(); iCol++) {
-		    CellValue cell = data.get(iRow).get(iCol);
+		    CellValue<?> cell = data.get(iRow).get(iCol);
 		    if (cell.getRowSpan() != 0) {
 			TableCellElement tce = table
 				.getRowElement(
@@ -496,8 +496,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 	// Ensure Coordinates are the extents of merged cell
 	private void extendSelection(Coordinate coordinate) {
-	    CellValue startCell = data.get(coordinate);
-	    CellValue endCell = startCell;
+	    CellValue<?> startCell = data.get(coordinate);
+	    CellValue<?> endCell = startCell;
 	    while (startCell.getRowSpan() == 0) {
 		startCell = data.get(startCell.getCoordinate().getRow() - 1)
 			.get(startCell.getCoordinate().getCol());
@@ -512,11 +512,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	}
 
 	// Select a range of cells between the two coordinates.
-	private void selectRange(CellValue startCell, CellValue endCell) {
+	private void selectRange(CellValue<?> startCell, CellValue<?> endCell) {
 	    int col = startCell.getCoordinate().getCol();
 	    for (int iRow = startCell.getCoordinate().getRow(); iRow <= endCell
 		    .getCoordinate().getRow(); iRow++) {
-		CellValue cell = data.get(iRow).get(col);
+		CellValue<?> cell = data.get(iRow).get(col);
 		selections.add(cell.getCoordinate());
 	    }
 	}
@@ -524,9 +524,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	// Ensure cells in rows have correct physical coordinates
 	private void assertRowCoordinates(int index) {
 	    for (int iRow = index; iRow < data.size(); iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		for (int iCol = 0; iCol < row.size(); iCol++) {
-		    CellValue cell = data.get(iRow).get(iCol);
+		    CellValue<?> cell = data.get(iRow).get(iCol);
 		    cell.setCoordinate(new Coordinate(iRow, iCol));
 		}
 	    }
@@ -535,9 +535,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	// Ensure cells in columns have correct physical coordinates
 	private void assertColumnCoordinates(int index) {
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		for (int iCol = index; iCol < row.size(); iCol++) {
-		    CellValue cell = data.get(iRow).get(iCol);
+		    CellValue<?> cell = data.get(iRow).get(iCol);
 		    cell.setCoordinate(new Coordinate(iRow, iCol));
 		}
 	    }
@@ -555,11 +555,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void assertModelIndexes() {
 
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		int colCount = 0;
 		for (int iCol = 0; iCol < row.size(); iCol++) {
 
-		    CellValue indexCell = row.get(iCol);
+		    CellValue<?> indexCell = row.get(iCol);
 
 		    int newRow = 0;
 		    int newCol = 0;
@@ -567,12 +567,12 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 			newRow = iRow;
 			newCol = colCount++;
 
-			CellValue cell = data.get(newRow).get(newCol);
+			CellValue<?> cell = data.get(newRow).get(newCol);
 			cell.setPhysicalCoordinate(new Coordinate(iRow, iCol));
 
 		    } else {
-			List<CellValue> priorRow = data.get(iRow - 1);
-			CellValue priorCell = priorRow.get(iCol);
+			List<CellValue<?>> priorRow = data.get(iRow - 1);
+			CellValue<?> priorCell = priorRow.get(iCol);
 			Coordinate priorHtmlCoordinate = priorCell
 				.getHtmlCoordinate();
 			newRow = priorHtmlCoordinate.getRow();
@@ -592,8 +592,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
 		    int rowSpan = 1;
-		    CellValue cell1 = data.get(iRow).get(iCol);
-		    CellValue cell2 = data.get(iRow + rowSpan).get(iCol);
+		    CellValue<?> cell1 = data.get(iRow).get(iCol);
+		    CellValue<?> cell2 = data.get(iRow + rowSpan).get(iCol);
 
 		    // Don't merge empty cells
 		    if (isMerged && !cell1.isEmpty()) {
@@ -624,7 +624,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	public void removeModelMerging() {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		for (int iRow = 0; iRow < data.size(); iRow++) {
-		    CellValue cell = data.get(iRow).get(iCol);
+		    CellValue<?> cell = data.get(iRow).get(iCol);
 		    Coordinate c = new Coordinate(iRow, iCol);
 		    cell.setCoordinate(c);
 		    cell.setHtmlCoordinate(c);
@@ -648,7 +648,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
 		for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
 		    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-			CellValue cell1 = data.get(iRow).get(iCol);
+			CellValue<?> cell1 = data.get(iRow).get(iCol);
 
 			if (cell1.getRowSpan() == 0) {
 			    table.getRowElement(iRow).deleteCell(iCol);
@@ -679,10 +679,12 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    }
 	    final int sortedColumnCount = index;
 
-	    List<List<CellValue>> displayedItems = table.getDisplayedItems();
-	    Collections.sort(displayedItems, new Comparator<List<CellValue>>() {
-		public int compare(List<CellValue> leftRow,
-			List<CellValue> rightRow) {
+	    List<List<CellValue<?>>> displayedItems = table.getDisplayedItems();
+	    Collections.sort(displayedItems, new Comparator<List<CellValue<?>>>() {
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public int compare(List<CellValue<?>> leftRow,
+			List<CellValue<?>> rightRow) {
 		    int comparison = 0;
 		    for (int index = 0; index < sortedColumnCount; index++) {
 			DynamicEditColumn sortableHeader = sortOrderList[index];
@@ -741,9 +743,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    System.out.println("coordinates");
 	    System.out.println("-----------");
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		for (int iCol = 0; iCol < row.size(); iCol++) {
-		    CellValue cell = row.get(iCol);
+		    CellValue<?> cell = row.get(iCol);
 
 		    Coordinate c = cell.getCoordinate();
 		    int rowSpan = cell.getRowSpan();
@@ -758,9 +760,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    System.out.println("htmlToDataMap");
 	    System.out.println("-------------");
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		for (int iCol = 0; iCol < row.size(); iCol++) {
-		    CellValue cell = row.get(iCol);
+		    CellValue<?> cell = row.get(iCol);
 
 		    Coordinate c = cell.getPhysicalCoordinate();
 		    int rowSpan = cell.getRowSpan();
@@ -775,9 +777,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    System.out.println("dataToHtmlMap");
 	    System.out.println("-------------");
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		List<CellValue> row = data.get(iRow);
+		List<CellValue<?>> row = data.get(iRow);
 		for (int iCol = 0; iCol < row.size(); iCol++) {
-		    CellValue cell = row.get(iCol);
+		    CellValue<?> cell = row.get(iCol);
 
 		    Coordinate c = cell.getHtmlCoordinate();
 		    int rowSpan = cell.getRowSpan();
@@ -794,7 +796,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    System.out.println(title);
 	    System.out.println();
 	    for (Coordinate c : selections) {
-		CellValue cell = data.get(c.getRow()).get(c.getCol());
+		CellValue<?> cell = data.get(c.getRow()).get(c.getCol());
 		System.out.println(cell.getCoordinate().toString());
 	    }
 	    System.out.println();

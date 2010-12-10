@@ -16,7 +16,7 @@ public interface SelectionManager extends ValueUpdater<Object> {
 
     public abstract void startSelecting(Coordinate start);
 
-    public abstract CellValue getPhysicalCell(Coordinate c);
+    public abstract CellValue<?> getPhysicalCell(Coordinate c);
 
     public abstract void clearSelection();
 

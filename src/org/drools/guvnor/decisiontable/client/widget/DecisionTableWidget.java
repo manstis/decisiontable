@@ -33,7 +33,7 @@ public abstract class DecisionTableWidget extends Composite {
     protected AbstractCellFactory cellFactory;
 
     protected CellTableResource resource = GWT.create(CellTableResource.class);
-    protected CellTable<List<CellValue>> table = new CellTable<List<CellValue>>(
+    protected CellTable<List<CellValue<?>>> table = new CellTable<List<CellValue<?>>>(
 	    0, resource);
     
     // Decision Table data

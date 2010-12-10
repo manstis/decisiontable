@@ -25,25 +25,27 @@ package org.drools.guvnor.decisiontable.client.widget;
  * @author manstis
  * 
  */
-public class CellValue implements Comparable<CellValue> {
-    private Object value;
+public class CellValue<T extends Comparable<T>> implements
+	Comparable<CellValue<T>> {
+    private T value;
     private int rowSpan = 1;
     private Coordinate coordinate;
     private Coordinate mapHtmlToData;
     private Coordinate mapDataToHtml;
 
-    public CellValue(Object value, int row, int col) {
+    public CellValue(T value, int row, int col) {
 	this.value = value;
 	this.coordinate = new Coordinate(row, col);
 	this.mapHtmlToData = new Coordinate(row, col);
 	this.mapDataToHtml = new Coordinate(row, col);
     }
 
+    @SuppressWarnings("unchecked")
     public void setValue(Object value) {
-	this.value = value;
+	this.value = (T) value;
     }
 
-    public Object getValue() {
+    public T getValue() {
 	return this.value;
     }
 
@@ -84,9 +86,9 @@ public class CellValue implements Comparable<CellValue> {
     }
 
     @Override
-    //TODO CellValues need to sort themselves based upon their datatype
-    public int compareTo(CellValue cv) {
-	return ((String) this.value).compareTo((String)cv.value);
+    // TODO CellValues need to sort themselves based upon their datatype
+    public int compareTo(CellValue<T> cv) {
+	return this.value.compareTo(cv.value);
     }
 
 }

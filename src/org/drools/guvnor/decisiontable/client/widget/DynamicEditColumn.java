@@ -15,7 +15,7 @@ import com.google.gwt.user.cellview.client.Column;
  * @author manstis
  * 
  */
-public class DynamicEditColumn extends Column<List<CellValue>, CellValue> {
+public class DynamicEditColumn extends Column<List<CellValue<?>>, CellValue<?>> {
 
     private int columnIndex = 0;
     private DTColumnConfig modelColumn;
@@ -30,8 +30,8 @@ public class DynamicEditColumn extends Column<List<CellValue>, CellValue> {
     }
 
     @Override
-    public CellValue getValue(List<CellValue> object) {
-	return (CellValue) object.get(columnIndex);
+    public CellValue<?> getValue(List<CellValue<?>> object) {
+	return (CellValue<?>) object.get(columnIndex);
     }
 
     public int getColumnIndex() {

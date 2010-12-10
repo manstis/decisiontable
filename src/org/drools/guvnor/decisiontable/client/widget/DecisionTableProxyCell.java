@@ -18,13 +18,13 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
  * @author manstis
  * 
  */
-public class DecisionTableProxyCell extends AbstractCell<CellValue> {
+public class DecisionTableProxyCell extends AbstractCell<CellValue<?>> {
 
     protected SelectionManager manager;
     protected AbstractCellFactory cellFactory;
 
     // The physical cell for the coordinate
-    private AbstractCell<CellValue> physicalCell;
+    private AbstractCell<CellValue<?>> physicalCell;
 
     public DecisionTableProxyCell(SelectionManager manager,
 	    AbstractCellFactory cellFactory) {
@@ -41,9 +41,9 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
      * client.Element, java.lang.Object, java.lang.Object)
      */
     @Override
-    public boolean isEditing(Element parent, CellValue value, Object key) {
+    public boolean isEditing(Element parent, CellValue<?> value, Object key) {
 	Coordinate c = value.getPhysicalCoordinate();
-	CellValue physical = manager.getPhysicalCell(c);
+	CellValue<?> physical = manager.getPhysicalCell(c);
 	assertCell(c);
 	return physicalCell.isEditing(parent, physical, c);
     }
@@ -58,12 +58,12 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
      * com.google.gwt.cell.client.ValueUpdater)
      */
     @Override
-    public void onBrowserEvent(Element parent, CellValue value, Object key,
-	    NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
+    public void onBrowserEvent(Element parent, CellValue<?> value, Object key,
+	    NativeEvent event, ValueUpdater<CellValue<?>> valueUpdater) {
 
 	String type = event.getType();
 	Coordinate c = value.getPhysicalCoordinate();
-	CellValue physical = manager.getPhysicalCell(c);
+	CellValue<?> physical = manager.getPhysicalCell(c);
 	assertCell(c);
 
 	// Setup the selected range
@@ -81,9 +81,9 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
      * java.lang.Object, com.google.gwt.safehtml.shared.SafeHtmlBuilder)
      */
     @Override
-    public void render(CellValue value, Object key, SafeHtmlBuilder sb) {
+    public void render(CellValue<?> value, Object key, SafeHtmlBuilder sb) {
 	Coordinate c = value.getPhysicalCoordinate();
-	CellValue physical = manager.getPhysicalCell(c);
+	CellValue<?> physical = manager.getPhysicalCell(c);
 	assertCell(c);
 	physicalCell.render(physical, c, sb);
     }
@@ -96,9 +96,9 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
      * .client.Element, java.lang.Object, java.lang.Object)
      */
     @Override
-    public boolean resetFocus(Element parent, CellValue value, Object key) {
+    public boolean resetFocus(Element parent, CellValue<?> value, Object key) {
 	Coordinate c = value.getPhysicalCoordinate();
-	CellValue physical = manager.getPhysicalCell(c);
+	CellValue<?> physical = manager.getPhysicalCell(c);
 	assertCell(c);
 	return physicalCell.resetFocus(parent, physical, c);
     }
@@ -111,9 +111,9 @@ public class DecisionTableProxyCell extends AbstractCell<CellValue> {
      * .Element, java.lang.Object, java.lang.Object)
      */
     @Override
-    public void setValue(Element parent, CellValue value, Object key) {
+    public void setValue(Element parent, CellValue<?> value, Object key) {
 	Coordinate c = value.getPhysicalCoordinate();
-	CellValue physical = manager.getPhysicalCell(c);
+	CellValue<?> physical = manager.getPhysicalCell(c);
 	assertCell(c);
 	physicalCell.setValue(parent, physical, c);
     }

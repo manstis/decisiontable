@@ -23,16 +23,16 @@ public class CellValueFactory {
     private enum DATA_TYPES {
 	STRING() {
 	    @Override
-	    public CellValue getNewCellValue(int iRow, int iCol) {
-		CellValue cv = new CellValue("", iRow, iCol);
+	    public CellValue<String> getNewCellValue(int iRow, int iCol) {
+		CellValue<String> cv = new CellValue<String>("", iRow, iCol);
 		return cv;
 	    }
 
 	},
 	NUMERIC() {
 	    @Override
-	    public CellValue getNewCellValue(int iRow, int iCol) {
-		CellValue cv = new CellValue("", iRow, iCol);
+	    public CellValue<Integer> getNewCellValue(int iRow, int iCol) {
+		CellValue<Integer> cv = new CellValue<Integer>(0, iRow, iCol);
 		return cv;
 	    }
 
@@ -40,34 +40,34 @@ public class CellValueFactory {
 	DATE() {
 	    @Override
 	    @SuppressWarnings("deprecation")
-	    public CellValue getNewCellValue(int iRow, int iCol) {
+	    public CellValue<Date> getNewCellValue(int iRow, int iCol) {
 		Date d = new Date();
 		int year = d.getYear();
 		int month = d.getMonth();
 		int date = d.getDate();
 		Date nd = new Date(year, month, date);
-		CellValue cv = new CellValue(nd, iRow, iCol);
+		CellValue<Date> cv = new CellValue<Date>(nd, iRow, iCol);
 		return cv;
 	    }
 
 	},
 	BOOLEAN() {
 	    @Override
-	    public CellValue getNewCellValue(int iRow, int iCol) {
-		CellValue cv = new CellValue(Boolean.TRUE, iRow, iCol);
+	    public CellValue<Boolean> getNewCellValue(int iRow, int iCol) {
+		CellValue<Boolean> cv = new CellValue<Boolean>(Boolean.TRUE, iRow, iCol);
 		return cv;
 	    }
 
 	},
 	DIALECT() {
 	    @Override
-	    public CellValue getNewCellValue(int iRow, int iCol) {
-		CellValue cv = new CellValue("java", iRow, iCol);
+	    public CellValue<String> getNewCellValue(int iRow, int iCol) {
+		CellValue<String> cv = new CellValue<String>("java", iRow, iCol);
 		return cv;
 	    }
 
 	};
-	public abstract CellValue getNewCellValue(int iRow, int iCol);
+	public abstract CellValue<?> getNewCellValue(int iRow, int iCol);
     }
 
     // Setup the cache
@@ -124,7 +124,7 @@ public class CellValueFactory {
      *            Column coordinate for initialisation
      * @return A CellValue
      */
-    public CellValue makeCellValue(DTColumnConfig column, int iRow, int iCol) {
+    public CellValue<?> makeCellValue(DTColumnConfig column, int iRow, int iCol) {
 	DATA_TYPES dataType = getDataType(column);
 	return dataType.getNewCellValue(iRow, iCol);
     }

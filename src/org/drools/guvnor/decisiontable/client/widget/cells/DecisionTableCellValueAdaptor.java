@@ -19,10 +19,11 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
  * @param <T>
  *            The data-type required by the wrapped cell
  */
-public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
+public class DecisionTableCellValueAdaptor<T> extends
+	AbstractCell<CellValue<?>> {
 
     // Really we want AbstractCell<?> but that leads to generics hell
-    private AbstractCell cell;
+    private AbstractCell<T> cell;
 
     protected SelectionManager manager;
 
@@ -30,7 +31,7 @@ public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
      * @param cell
      */
     @SuppressWarnings("unchecked")
-    public DecisionTableCellValueAdaptor(AbstractCell cell) {
+    public DecisionTableCellValueAdaptor(AbstractCell<T> cell) {
 	super(cell.getConsumedEvents());
 	this.cell = cell;
     }
@@ -84,7 +85,7 @@ public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public boolean isEditing(Element parent, CellValue value, Object key) {
+    public boolean isEditing(Element parent, CellValue<?> value, Object key) {
 	return cell.isEditing(parent, (T) value.getValue(), key);
     }
 
@@ -99,8 +100,8 @@ public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void onBrowserEvent(Element parent, CellValue value, Object key,
-	    NativeEvent event, ValueUpdater<CellValue> valueUpdater) {
+    public void onBrowserEvent(Element parent, CellValue<?> value, Object key,
+	    NativeEvent event, ValueUpdater<CellValue<?>> valueUpdater) {
 
 	// Updates are passed back to the SelectionManager where merged cells
 	// are also updated
@@ -123,7 +124,7 @@ public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void render(CellValue value, Object key, SafeHtmlBuilder sb) {
+    public void render(CellValue<?> value, Object key, SafeHtmlBuilder sb) {
 	cell.render((T) value.getValue(), key, sb);
     }
 
@@ -136,7 +137,7 @@ public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public boolean resetFocus(Element parent, CellValue value, Object key) {
+    public boolean resetFocus(Element parent, CellValue<?> value, Object key) {
 	return cell.resetFocus(parent, (T) value.getValue(), key);
     }
 
@@ -149,7 +150,7 @@ public class DecisionTableCellValueAdaptor<T> extends AbstractCell<CellValue> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void setValue(Element parent, CellValue value, Object key) {
+    public void setValue(Element parent, CellValue<?> value, Object key) {
 	cell.setValue(parent, (T) value.getValue(), key);
     }
 
