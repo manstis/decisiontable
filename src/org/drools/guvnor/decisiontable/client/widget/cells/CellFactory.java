@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.drools.guvnor.decisiontable.client.widget.Coordinate;
-import org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget;
 import org.drools.guvnor.decisiontable.client.widget.SelectionManager;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
@@ -28,7 +26,7 @@ import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
  * @author manstis
  * 
  */
-public abstract class AbstractCellFactory {
+public class CellFactory {
 
     // Setup the cache. GWT's Cells are wrapped with an adaptor which
     // casts the value of the CellValue to the type required for the GWT Cell
@@ -38,7 +36,7 @@ public abstract class AbstractCellFactory {
 		new PopupTextEditCell());
 
 	// Numeric editor
-	DecisionTableCellValueAdaptor<String> NUMERIC_CELL = new DecisionTableCellValueAdaptor<String>(
+	DecisionTableCellValueAdaptor<Integer> NUMERIC_CELL = new DecisionTableCellValueAdaptor<Integer>(
 		new PopupNumericEditCell());
 
 	// Date editor
@@ -84,48 +82,20 @@ public abstract class AbstractCellFactory {
     // The cache
     private static Map<String, DecisionTableCellValueAdaptor<?>> cellCache = new HashMap<String, DecisionTableCellValueAdaptor<?>>();
 
-    // Decision table to which the Cells relate
-    protected DecisionTableWidget decisionTable = null;
-
-    public AbstractCellFactory(DecisionTableWidget decisionTable) {
-	if (decisionTable == null) {
-	    throw new IllegalArgumentException("decisionTable == null");
-	}
-	this.decisionTable = decisionTable;
-    }
-
     /**
-     * Lookup a Cell for the given coordinate.
+     * Lookup a Cell for the given DTColumnConfig. Cells are cached at different
+     * levels of precedence; key[0] contains the most specific through to key[2]
+     * which contains the most generic. Should no match be found the default is
+     * provided
      * 
-     * @param c
-     *            The physical coordinate of the cell
+     * @param column
+     *            The Decision Table model column
      * @param manager
      *            The SelectionManager used to update cells' content
      * @return A Cell
      */
-    public DecisionTableCellValueAdaptor<?> getCell(Coordinate c,
+    public DecisionTableCellValueAdaptor<?> getCell(DTColumnConfig column,
 	    SelectionManager manager) {
-	DecisionTableCellValueAdaptor<?> renderer = getCell(lookupColumn(c));
-	renderer.setSelectionManager(manager);
-	return renderer;
-    }
-
-    /**
-     * Lookup a DTColumnConfig column for a given table coordinate. The column
-     * type determines the CellRenderer. A Vertical Decision Table would use the
-     * coordinates column property whereas a Horizontal Decision Table would use
-     * the coordinates row property.
-     * 
-     * @param c
-     *            The table coordinate
-     * @return The DTColumnConfig
-     */
-    protected abstract DTColumnConfig lookupColumn(Coordinate c);
-
-    // Cells are cached at different levels of precedence; key[0]
-    // contains the most specific through to key[2] which contains
-    // the most generic. Should no match be found the default is provided
-    private DecisionTableCellValueAdaptor<?> getCell(DTColumnConfig column) {
 
 	String[] keys = new String[3];
 
@@ -147,7 +117,9 @@ public abstract class AbstractCellFactory {
 	    keys[0] = ActionCol.class.getName();
 	}
 
-	return lookupCell(keys);
+	DecisionTableCellValueAdaptor<?> cell = lookupCell(keys);
+	cell.setSelectionManager(manager);
+	return cell;
 
     }
 

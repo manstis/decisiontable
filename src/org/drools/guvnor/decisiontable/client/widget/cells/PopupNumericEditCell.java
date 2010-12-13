@@ -16,9 +16,10 @@ import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.regexp.shared.RegExp;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.text.shared.SafeHtmlRenderer;
-import com.google.gwt.text.shared.SimpleSafeHtmlRenderer;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.google.gwt.user.client.ui.PopupPanel;
@@ -31,26 +32,27 @@ import com.google.gwt.user.client.ui.TextBox;
  * @author manstis
  * 
  */
-public class PopupNumericEditCell extends AbstractEditableCell<String, String> {
+public class PopupNumericEditCell extends
+	AbstractEditableCell<Integer, Integer> {
 
     private int offsetX = 10;
     private int offsetY = 10;
     private Object lastKey;
     private Element lastParent;
-    private String lastValue;
+    private Integer lastValue;
     private PopupPanel panel;
     private TextBox textBox;
-    private final SafeHtmlRenderer<String> renderer;
-    private ValueUpdater<String> valueUpdater;
+    private final SafeHtmlRenderer<Integer> renderer;
+    private ValueUpdater<Integer> valueUpdater;
 
     // A valid number
     private static final RegExp VALID = RegExp.compile("(^-{0,1}\\d*$)");
 
     public PopupNumericEditCell() {
-	this(SimpleSafeHtmlRenderer.getInstance());
+	this(IntegerSafeHtmlRenderer.getInstance());
     }
 
-    public PopupNumericEditCell(SafeHtmlRenderer<String> renderer) {
+    public PopupNumericEditCell(SafeHtmlRenderer<Integer> renderer) {
 	super("click", "keydown");
 	if (renderer == null) {
 	    throw new IllegalArgumentException("renderer == null");
@@ -153,7 +155,7 @@ public class PopupNumericEditCell extends AbstractEditableCell<String, String> {
      * gwt.dom.client.Element, java.lang.Object, java.lang.Object)
      */
     @Override
-    public boolean isEditing(Element parent, String value, Object key) {
+    public boolean isEditing(Element parent, Integer value, Object key) {
 	return lastKey != null && lastKey.equals(key);
     }
 
@@ -167,8 +169,8 @@ public class PopupNumericEditCell extends AbstractEditableCell<String, String> {
      * com.google.gwt.cell.client.ValueUpdater)
      */
     @Override
-    public void onBrowserEvent(Element parent, String value, Object key,
-	    NativeEvent event, ValueUpdater<String> valueUpdater) {
+    public void onBrowserEvent(Element parent, Integer value, Object key,
+	    NativeEvent event, ValueUpdater<Integer> valueUpdater) {
 	super.onBrowserEvent(parent, value, key, event, valueUpdater);
 	if (event.getType().equals("click")) {
 	    onEnterKeyDown(parent, value, key, event, valueUpdater);
@@ -182,26 +184,22 @@ public class PopupNumericEditCell extends AbstractEditableCell<String, String> {
      * java.lang.Object, com.google.gwt.safehtml.shared.SafeHtmlBuilder)
      */
     @Override
-    public void render(String value, Object key, SafeHtmlBuilder sb) {
+    public void render(Integer value, Object key, SafeHtmlBuilder sb) {
 	// Get the view data.
-	String viewData = getViewData(key);
+	Integer viewData = getViewData(key);
 	if (viewData != null && viewData.equals(value)) {
 	    clearViewData(key);
 	    viewData = null;
 	}
 
-	String s = null;
+	Integer i = null;
 	if (viewData != null) {
-	    s = viewData;
+	    i = viewData;
 	} else if (value != null) {
-	    s = value;
+	    i = value;
 	}
-	if (s != null) {
-	    if (s.length() > 8) {
-		sb.append(renderer.render(s.substring(0, 8) + "..."));
-	    } else {
-		sb.append(renderer.render(s));
-	    }
+	if (i != null) {
+	    sb.append(renderer.render(i));
 	}
     }
 
@@ -215,16 +213,16 @@ public class PopupNumericEditCell extends AbstractEditableCell<String, String> {
      * com.google.gwt.cell.client.ValueUpdater)
      */
     @Override
-    protected void onEnterKeyDown(final Element parent, String value,
-	    Object key, NativeEvent event, ValueUpdater<String> valueUpdater) {
+    protected void onEnterKeyDown(final Element parent, Integer value,
+	    Object key, NativeEvent event, ValueUpdater<Integer> valueUpdater) {
 	this.lastKey = key;
 	this.lastParent = parent;
 	this.lastValue = value;
 	this.valueUpdater = valueUpdater;
 
-	String viewData = getViewData(key);
-	String text = (viewData == null) ? value : viewData;
-	textBox.setValue(text);
+	Integer viewData = getViewData(key);
+	Integer number = (viewData == null) ? value : viewData;
+	textBox.setValue((number == null ? "" : Integer.toString(number)));
 	panel.setPopupPositionAndShow(new PositionCallback() {
 	    public void setPosition(int offsetWidth, int offsetHeight) {
 		panel.setPopupPosition(parent.getAbsoluteLeft() + offsetX,
@@ -250,18 +248,47 @@ public class PopupNumericEditCell extends AbstractEditableCell<String, String> {
     protected void commit() {
 	// Hide pop-up
 	Element cellParent = lastParent;
-	String oldValue = lastValue;
+	Integer oldValue = lastValue;
 	Object key = lastKey;
 	panel.hide();
 
 	// Update values
 	String text = textBox.getValue();
-	setViewData(key, text);
+	Integer number = null;
+	if (!text.equals("")) {
+	    number = Integer.parseInt(text);
+	}
+	setViewData(key, number);
 	setValue(cellParent, oldValue, key);
 	if (valueUpdater != null) {
-	    valueUpdater.update(text);
+	    valueUpdater.update(number);
 	}
 
+    }
+
+    private static class IntegerSafeHtmlRenderer implements
+	    SafeHtmlRenderer<Integer> {
+
+	private static IntegerSafeHtmlRenderer instance;
+
+	public static IntegerSafeHtmlRenderer getInstance() {
+	    if (instance == null) {
+		instance = new IntegerSafeHtmlRenderer();
+	    }
+	    return instance;
+	}
+
+	private IntegerSafeHtmlRenderer() {
+	}
+
+	public SafeHtml render(Integer object) {
+	    return SafeHtmlUtils.fromString(Integer.toString(object));
+	}
+
+	public void render(Integer object, SafeHtmlBuilder appendable) {
+	    appendable
+		    .append(SafeHtmlUtils.fromString(Integer.toString(object)));
+	}
     }
 
 }

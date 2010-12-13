@@ -16,7 +16,7 @@ public interface SelectionManager extends ValueUpdater<Object> {
 
     public abstract void startSelecting(Coordinate start);
 
-    public abstract CellValue<?> getPhysicalCell(Coordinate c);
+    public abstract Comparable<?> getPhysicalCell(Coordinate c);
 
     public abstract void clearSelection();
 
@@ -34,10 +34,6 @@ public interface SelectionManager extends ValueUpdater<Object> {
     public abstract void assertModelMerging();
 
     public abstract void removeModelMerging();
-
-    public abstract void applyMergingToTable();
-
-    public abstract void assertRowHeights();
 
     public abstract boolean toggleMerging();
 

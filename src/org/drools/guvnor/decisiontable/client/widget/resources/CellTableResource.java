@@ -1,19 +1,28 @@
 package org.drools.guvnor.decisiontable.client.widget.resources;
 
+import com.google.gwt.resources.client.ClientBundle;
+import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.user.cellview.client.CellTable;
 
 /**
- * Resources for the Decision Table. 
+ * Resources for the Decision Table.
  * 
  * @author manstis
  * 
  */
-public interface CellTableResource extends CellTable.Resources {
+public interface CellTableResource extends ClientBundle {
 
-    public interface CellTableStyle extends CellTable.Style {
+    public interface CellTableStyle extends CssResource {
 
 	int rowHeight();
+
+	String cellTable();
+	
+	String cellTableEvenRow();
+
+	String cellTableOddRow();
+
+	String cellTableCell();
 
 	String headerTable();
 
@@ -30,7 +39,7 @@ public interface CellTableResource extends CellTable.Resources {
 	String headerWidget();
 
     };
-    
+
     @Source("downArrow.png")
     ImageResource downArrow();
 
@@ -51,7 +60,7 @@ public interface CellTableResource extends CellTable.Resources {
 
     @Source("mergeUnlink.png")
     ImageResource mergeUnlink();
-    
+
     @Source({ "CellTable.css" })
     CellTableStyle cellTableStyle();
 };

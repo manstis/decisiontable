@@ -6,8 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.drools.guvnor.decisiontable.client.widget.cells.CellFactory;
 import org.drools.guvnor.decisiontable.client.widget.cells.CellValueFactory;
-import org.drools.guvnor.decisiontable.client.widget.cells.VerticalDecisionTableCellFactory;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
 import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
@@ -15,8 +15,6 @@ import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 
-import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.dom.client.TableCellElement;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -33,11 +31,10 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
-    private static final List<List<CellValue<?>>> EMPTY_SET = new ArrayList<List<CellValue<?>>>();
-
     public VerticalDecisionTableWidget() {
 	this.manager = new VerticalSelectionManager();
-	this.cellFactory = new VerticalDecisionTableCellFactory(this);
+	this.cellFactory = new CellFactory();
+	this.table.setSelectionManager(this.manager);
     }
 
     /*
@@ -126,17 +123,13 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	if (dataSize > 0) {
 
 	    // Clear existing columns
-	    for (int iCol = 0; iCol < columns.size(); iCol++) {
-		table.removeColumn(iCol);
-	    }
-	    columns.clear();
+	    table.removeAllColumns();
 
 	    // Initialise CellTable's Metadata columns
 	    int iCol = 0;
 	    for (DTColumnConfig col : model.getMetadataCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableProxyCell(this.manager,
-				this.cellFactory), iCol);
+			this.cellFactory.getCell(col, manager), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -145,8 +138,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Attribute columns
 	    for (DTColumnConfig col : model.getAttributeCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableProxyCell(this.manager,
-				this.cellFactory), iCol);
+			this.cellFactory.getCell(col, manager), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -155,8 +147,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Condition columns
 	    for (DTColumnConfig col : model.getConditionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableProxyCell(this.manager,
-				this.cellFactory), iCol);
+			this.cellFactory.getCell(col, manager), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -165,8 +156,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Initialise CellTable's Action columns
 	    for (DTColumnConfig col : model.getActionCols()) {
 		DynamicEditColumn column = new DynamicEditColumn(col,
-			new DecisionTableProxyCell(this.manager,
-				this.cellFactory), iCol);
+			this.cellFactory.getCell(col, manager), iCol);
 		table.addColumn(column);
 		columns.add(iCol, column);
 		iCol++;
@@ -187,13 +177,8 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		this.data.add(cellRow);
 	    }
 	}
-	table.setPageSize(dataSize);
-	table.setRowCount(dataSize);
-	table.setRowData(0, data);
-
-	// Calls to CellTable.setRowData() causes the rows to revert to their
-	// default heights
-	manager.assertRowHeights();
+	table.setRowData(data);
+	table.redraw();
 
 	// Draw the header
 	headerWidget.redraw();
@@ -261,13 +246,6 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    selections.clear();
 	}
 
-	/**
-	 * Update all selected cells with the applicable value. When a value of
-	 * a cell is changed it can force additional merging of cells.
-	 * 
-	 * @param value
-	 *            The value with which to update selected cells
-	 */
 	@Override
 	public void update(Object value) {
 	    for (Coordinate c : this.selections) {
@@ -276,9 +254,9 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Redraw and re-apply our visual trickery
 	    // TODO Only a partial redraw is necessary
 	    removeModelMerging();
-	    table.redraw();
 	    assertModelMerging();
-	    applyMergingToTable();
+	    table.redraw();
+
 	}
 
 	/**
@@ -368,29 +346,24 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 		data.get(iRow).add(index, cell);
 	    }
 	    assertColumnCoordinates(index);
-	    // CellTable doesn't support inserting arbitrary columns so we
-	    // need to delete and reinsert all columns. We also need to
-	    // re-index the model column from which the cell will retrieve
-	    // it's value
-	    for (int iCol = 0; iCol < columns.size(); iCol++) {
-		table.removeColumn(0);
-	    }
+
 	    DynamicEditColumn column = new DynamicEditColumn(modelColumn,
-		    new DecisionTableProxyCell(this, cellFactory), index);
+		    cellFactory.getCell(modelColumn, manager), index);
+
 	    columns.add(index, column);
+	    table.addColumn(index, column);
+
+	    // Re-index columns
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn col = columns.get(iCol);
 		col.setColumnIndex(iCol);
-		table.addColumn(col);
 	    }
 
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
 	    assertModelMerging();
-	    table.setRowCount(data.size());
-	    table.setPageSize(data.size());
-	    table.setRowData(0, data);
-	    applyMergingToTable();
+	    table.setRowData(data);
+	    table.redraw();
 
 	    // Header needs to be narrowed when the vertical scrollbar appears
 	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()
@@ -436,42 +409,14 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    // Changing the data causes a redraw so we need to re-apply our
 	    // visual trickery
 	    assertModelMerging();
-	    table.setRowCount(data.size());
-	    table.setPageSize(data.size());
-	    table.setRowData(0, data);
-	    applyMergingToTable();
+	    table.setRowData(data);
+	    table.redraw();
+	    // applyMergingToTable();
 
 	    // Header needs to be narrowed when the vertical scrollbar appears
 	    headerWidget.setWidth(scrollPanel.getElement().getClientWidth()
 		    + "px");
 	    headerWidget.redraw();
-	}
-
-	/**
-	 * This ensures the height of rows remains correct following merge
-	 * operations. Thinking about it this probably doesn't make sense for a
-	 * Horizontal Decision Table but I'll refactor it when I get to write
-	 * that one!
-	 */
-	@Override
-	public void assertRowHeights() {
-	    final int MAX_ROW = data.size();
-	    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-		List<CellValue<?>> row = data.get(iRow);
-		for (int iCol = 0; iCol < row.size(); iCol++) {
-		    CellValue<?> cell = data.get(iRow).get(iCol);
-		    if (cell.getRowSpan() != 0) {
-			TableCellElement tce = table
-				.getRowElement(
-					cell.getHtmlCoordinate().getRow())
-				.getCells()
-				.getItem(cell.getHtmlCoordinate().getCol());
-			int height = cell.getRowSpan()
-				* resource.cellTableStyle().rowHeight();
-			tce.getStyle().setHeight(height, Unit.PX);
-		    }
-		}
-	    }
 	}
 
 	/**
@@ -484,12 +429,11 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    if (!isMerged) {
 		isMerged = true;
 		assertModelMerging();
-		applyMergingToTable();
+		table.redraw();
 	    } else {
 		isMerged = false;
 		removeModelMerging();
 		table.redraw();
-		assertRowHeights();
 	    }
 	    return isMerged;
 	}
@@ -639,47 +583,6 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    assertModelIndexes();
 	}
 
-	// Apply merging to UI
-	@Override
-	public void applyMergingToTable() {
-
-	    if (isMerged) {
-		final int MAX_ROW = data.size();
-
-		// HTML coordinates are only valid after all deletions. The
-		// alternative is to adjust HTML coordinates as each cell is
-		// deleted... hmmmmm, but then for each cell deleted we'd
-		// need to iterate over the remainder of the row which would
-		// be preferable if the majority of the table is not merged
-		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-		    for (int iCol = columns.size() - 1; iCol >= 0; iCol--) {
-			CellValue<?> cell = data.get(iRow).get(iCol);
-
-			if (cell.getRowSpan() == 0) {
-			    table.getRowElement(iRow).deleteCell(iCol);
-			}
-		    }
-		}
-
-		// Apply merging
-		for (int iRow = 0; iRow < MAX_ROW; iRow++) {
-		    for (int iCol = 0; iCol < columns.size(); iCol++) {
-			CellValue<?> cell = data.get(iRow).get(iCol);
-
-			if (cell.getRowSpan() > 1) {
-			    table.getRowElement(
-				    cell.getHtmlCoordinate().getRow())
-				    .getCells()
-				    .getItem(cell.getHtmlCoordinate().getCol())
-				    .setRowSpan(cell.getRowSpan());
-			}
-		    }
-		}
-
-	    }
-	    assertRowHeights();
-	}
-
 	@Override
 	public void sort() {
 	    final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[columns
@@ -694,62 +597,49 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 	    }
 	    final int sortedColumnCount = index;
 
-	    List<List<CellValue<?>>> displayedItems = table.getDisplayedItems();
-	    Collections.sort(displayedItems,
-		    new Comparator<List<CellValue<?>>>() {
+	    Collections.sort(data, new Comparator<List<CellValue<?>>>() {
 
-			@SuppressWarnings({ "rawtypes", "unchecked" })
-			public int compare(List<CellValue<?>> leftRow,
-				List<CellValue<?>> rightRow) {
-			    int comparison = 0;
-			    for (int index = 0; index < sortedColumnCount; index++) {
-				DynamicEditColumn sortableHeader = sortOrderList[index];
-				Comparable leftColumnValue = leftRow
-					.get(sortableHeader.getColumnIndex());
-				Comparable rightColumnValue = rightRow
-					.get(sortableHeader.getColumnIndex());
-				comparison = (leftColumnValue == rightColumnValue) ? 0
-					: (leftColumnValue == null) ? -1
-						: (rightColumnValue == null) ? 1
-							: leftColumnValue
-								.compareTo(rightColumnValue);
-				if (comparison != 0) {
-				    switch (sortableHeader.getSortDirection()) {
-				    case ASCENDING:
-					break;
-				    case DESCENDING:
-					comparison = -comparison;
-					break;
-				    default:
-					throw new IllegalStateException(
-						"Sorting can only be enabled for ASCENDING or"
-							+ " DESCENDING, not sortDirection ("
-							+ sortableHeader
-								.getSortDirection()
-							+ ") .");
-				    }
-				    return comparison;
-				}
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public int compare(List<CellValue<?>> leftRow,
+			List<CellValue<?>> rightRow) {
+		    int comparison = 0;
+		    for (int index = 0; index < sortedColumnCount; index++) {
+			DynamicEditColumn sortableHeader = sortOrderList[index];
+			Comparable leftColumnValue = leftRow.get(sortableHeader
+				.getColumnIndex());
+			Comparable rightColumnValue = rightRow
+				.get(sortableHeader.getColumnIndex());
+			comparison = (leftColumnValue == rightColumnValue) ? 0
+				: (leftColumnValue == null) ? -1
+					: (rightColumnValue == null) ? 1
+						: leftColumnValue
+							.compareTo(rightColumnValue);
+			if (comparison != 0) {
+			    switch (sortableHeader.getSortDirection()) {
+			    case ASCENDING:
+				break;
+			    case DESCENDING:
+				comparison = -comparison;
+				break;
+			    default:
+				throw new IllegalStateException(
+					"Sorting can only be enabled for ASCENDING or"
+						+ " DESCENDING, not sortDirection ("
+						+ sortableHeader
+							.getSortDirection()
+						+ ") .");
 			    }
 			    return comparison;
 			}
-		    });
-
-	    data.clear();
-	    data.addAll(displayedItems);
+		    }
+		    return comparison;
+		}
+	    });
 
 	    removeModelMerging();
-	    table.setRowCount(data.size());
-	    table.setPageSize(data.size());
-
-	    // If a sort does not change the data (i.e. a sort does not
-	    // re-order anything) CellTable does not redraw the table so we
-	    // don't need to re-apply merging to the HTML table (unfortunately
-	    // there are no "hooks" into CellTable to know this happened...
-	    table.setRowData(0, EMPTY_SET);
-	    table.setRowData(0, data);
 	    assertModelMerging();
-	    applyMergingToTable();
+	    table.setRowData(data);
+	    table.redraw();
 
 	}
 

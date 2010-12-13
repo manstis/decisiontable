@@ -2,6 +2,7 @@ package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.List;
 
+import org.drools.guvnor.decisiontable.client.widget.cells.DecisionTableCellValueAdaptor;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 
 import com.google.gwt.user.cellview.client.Column;
@@ -23,7 +24,7 @@ public class DynamicEditColumn extends Column<List<CellValue<?>>, CellValue<?>> 
     private int sortIndex = -1;
 
     public DynamicEditColumn(DTColumnConfig modelColumn,
-	    DecisionTableProxyCell cell, int columnIndex) {
+	    DecisionTableCellValueAdaptor<?> cell, int columnIndex) {
 	super(cell);
 	this.modelColumn = modelColumn;
 	this.columnIndex = columnIndex;

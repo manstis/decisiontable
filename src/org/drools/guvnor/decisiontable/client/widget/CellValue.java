@@ -86,7 +86,6 @@ public class CellValue<T extends Comparable<T>> implements
     }
 
     @Override
-    // TODO CellValues need to sort themselves based upon their datatype
     public int compareTo(CellValue<T> cv) {
 	return this.value.compareTo(cv.value);
     }

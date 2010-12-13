@@ -32,7 +32,7 @@ public class CellValueFactory {
 	NUMERIC() {
 	    @Override
 	    public CellValue<Integer> getNewCellValue(int iRow, int iCol) {
-		CellValue<Integer> cv = new CellValue<Integer>(0, iRow, iCol);
+		CellValue<Integer> cv = new CellValue<Integer>(null, iRow, iCol);
 		return cv;
 	    }
 

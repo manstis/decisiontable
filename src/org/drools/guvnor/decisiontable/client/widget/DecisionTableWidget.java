@@ -3,16 +3,13 @@ package org.drools.guvnor.decisiontable.client.widget;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.drools.guvnor.decisiontable.client.widget.cells.AbstractCellFactory;
+import org.drools.guvnor.decisiontable.client.widget.cells.CellFactory;
 import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 import org.drools.ide.common.client.modeldriven.dt.GuidedDecisionTable;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ScrollHandler;
-import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.cellview.client.HasKeyboardPagingPolicy.KeyboardPagingPolicy;
-import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.ScrollPanel;
@@ -30,11 +27,8 @@ public abstract class DecisionTableWidget extends Composite {
     protected ScrollPanel scrollPanel;
     protected DecisionTableHeaderWidget headerWidget;
     protected DecisionTableSidebarWidget sidebarWidget;
-    protected AbstractCellFactory cellFactory;
+    protected CellFactory cellFactory;
 
-    protected CellTableResource resource = GWT.create(CellTableResource.class);
-    protected CellTable<List<CellValue<?>>> table = new CellTable<List<CellValue<?>>>(
-	    0, resource);
     
     // Decision Table data
     protected DynamicData data;
@@ -43,6 +37,11 @@ public abstract class DecisionTableWidget extends Composite {
     // This handles interaction between the user and constraints on how the
     // table should be rendered
     protected SelectionManager manager;
+
+    protected CellTableResource resource = GWT.create(CellTableResource.class);
+
+    //TODO VerticalHeaderlessCellTable should be abstracted and the SelectionManager set in the constructor
+    protected VerticalHeaderlessCellTable table = new VerticalHeaderlessCellTable(resource);
 
     // CellTable does not expose "getColumns" so we keep track ourselves. Could
     // sub-class CellTable....
@@ -61,8 +60,8 @@ public abstract class DecisionTableWidget extends Composite {
 	scrollPanel.add(table);
 	scrollPanel.addScrollHandler(getScrollHandler());
 
-	table.setKeyboardPagingPolicy(KeyboardPagingPolicy.CHANGE_PAGE);
-	table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
+	//table.setKeyboardPagingPolicy(KeyboardPagingPolicy.CHANGE_PAGE);
+	//table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
 
 	bodyPanel.add(headerWidget);
 	bodyPanel.add(scrollPanel);
