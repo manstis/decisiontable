@@ -36,13 +36,14 @@ public abstract class MergableGridWidget extends Widget {
     protected TableSectionElement tbody;
 
     // Resources
-    protected CellTableResource resource = GWT.create(CellTableResource.class);
-    protected CellTableStyle style;
+    protected static CellTableResource resource = GWT.create(CellTableResource.class);
+    protected static CellTableStyle style=resource.cellTableStyle();
 
     // The DecisionTable to which this grid belongs. This is used soley
     // to record when a cell has been clicked as the DecisionTable manages
     // writing values back to merged cells...
     protected DecisionTableWidget dtable;
+    protected DecisionTableSidebarWidget sideBarWidget;
 
     /**
      * A grid of possibly merged cells.
@@ -52,18 +53,17 @@ public abstract class MergableGridWidget extends Widget {
      * @param resource
      *            ClientBundle for the grid
      */
-    public MergableGridWidget(DecisionTableWidget dtable,
-	    CellTableResource resource) {
+    public MergableGridWidget(DecisionTableWidget dtable) {
 
 	this.dtable = dtable;
-	this.resource = resource;
-	this.style = resource.cellTableStyle();
-	this.style.ensureInjected();
+	this.sideBarWidget=dtable.getSidebarWidget();
+	
+	style.ensureInjected();
 
 	// Create some elements to contain the grid
 	table = Document.get().createTableElement();
 	tbody = Document.get().createTBodyElement();
-	table.setClassName(this.style.cellTable());
+	table.setClassName(style.cellTable());
 	table.setCellPadding(0);
 	table.setCellSpacing(0);
 	setElement(table);

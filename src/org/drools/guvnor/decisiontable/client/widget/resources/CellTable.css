@@ -1,22 +1,23 @@
 @CHARSET "UTF-8";
 
 /* CellTable body */
-
 @def rowHeight 32px;
-
+@def rowHeaderHeight 24px;
+@def spacerHeight 48px;
+@def spacerWidth 32px;
 .cellTable {
 	cursor: default;
 	table-layout: fixed;
 	padding: 0px;
 	margin: 0px;
 }
-		
+
 .cellTableCell {
 	padding: 0px;
 	margin: 0px;
-	width:100px;
+	width: 100px;
 	text-align: center;
-	outline:none;
+	outline: none;
 }
 
 .cellTableEvenRow {
@@ -28,7 +29,6 @@
 }
 
 /* Header */
-
 .headerTable {
 	table-layout: fixed;
 	padding: 0px;
@@ -36,7 +36,7 @@
 }
 
 .headerRow {
-	height: 24px;
+	height: rowHeaderHeight;
 	color: #4B4A4A;
 	text-align: left;
 	text-shadow: 1px 1px 0 #DDDDFF;
@@ -69,4 +69,54 @@
 .headerWidget {
 	display: inline;
 	margin-left: 5px;
+}
+
+.spacer {
+	width: spacerWidth;
+	height: spacerHeight;
+	border-bottom: 2px solid grey;
+	border-right: 1px solid grey;
+}
+
+.selectorAddCell {
+	width: spacerWidth;
+	text-align: center;
+}
+
+.selectorDeleteCell {
+	width: spacerWidth;
+	text-align: center;
+	border-right: 1px solid grey;
+}
+
+.selectorControl {
+	display: inline;
+}
+
+.selectorAddImage {
+	background-image: url("/selectorAdd.png");
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: default;
+}
+
+.selectorAddImage:HOVER {
+	background-image: url("/selectorAddHover.png");
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: default;
+}
+
+.selectorDeleteImage {
+	background-image: url("/selectorDelete.png");
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: default;
+}
+
+.selectorDeleteImage:HOVER {
+	background-image: url("/selectorDeleteHover.png");
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: default;
 }

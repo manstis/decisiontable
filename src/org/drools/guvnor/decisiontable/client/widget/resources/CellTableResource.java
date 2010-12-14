@@ -15,6 +15,8 @@ public interface CellTableResource extends ClientBundle {
     public interface CellTableStyle extends CssResource {
 
 	int rowHeight();
+	
+	int rowHeaderHeight();
 
 	String cellTable();
 	
@@ -37,7 +39,19 @@ public interface CellTableResource extends ClientBundle {
 	String headerText();
 
 	String headerWidget();
+	
+	String spacer();
+	
+	String selectorAddCell();
+	
+	String selectorDeleteCell();
 
+	String selectorControl();
+	
+	String selectorAddImage();
+
+	String selectorDeleteImage();
+	
     };
 
     @Source("downArrow.png")
@@ -63,4 +77,5 @@ public interface CellTableResource extends ClientBundle {
 
     @Source({ "CellTable.css" })
     CellTableStyle cellTableStyle();
+
 };

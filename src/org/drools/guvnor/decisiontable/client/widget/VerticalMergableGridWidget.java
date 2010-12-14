@@ -2,8 +2,6 @@ package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.List;
 
-import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource;
-
 import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Style.Unit;
@@ -21,14 +19,16 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
  */
 public class VerticalMergableGridWidget extends MergableGridWidget {
 
-    public VerticalMergableGridWidget(DecisionTableWidget dtable,
-	    CellTableResource resource) {
-	super(dtable, resource);
+    public VerticalMergableGridWidget(DecisionTableWidget dtable) {
+	super(dtable);
     }
 
     @Override
     public void redraw() {
 
+	//Prepare sidebar
+	sideBarWidget.initialise();
+	
 	// Could do with a heap load more styles
 	String evenRowStyle = style.cellTableEvenRow();
 	String oddRowStyle = style.cellTableOddRow();
@@ -38,10 +38,12 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
 	for (int iRow = 0; iRow < data.size(); iRow++) {
 
-	    List<CellValue<? extends Comparable<?>>> rowData = data.get(iRow);
+	    //Add a selector for each row
+	    sideBarWidget.addSelector();
 
 	    boolean isEven = iRow % 2 == 0;
 	    String trClasses = isEven ? evenRowStyle : oddRowStyle;
+	    List<CellValue<? extends Comparable<?>>> rowData = data.get(iRow);
 
 	    TableRowElement tre = Document.get().createTRElement();
 	    tre.addClassName(trClasses);

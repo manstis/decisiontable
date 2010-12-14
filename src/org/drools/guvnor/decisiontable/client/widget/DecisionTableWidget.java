@@ -51,7 +51,7 @@ public abstract class DecisionTableWidget extends Composite implements
     public DecisionTableWidget() {
 	mainPanel = getMainPanel();
 	bodyPanel = getBodyPanel();
-	gridWidget=getGridWidget();
+	gridWidget = getGridWidget();
 	headerWidget = getHeaderWidget();
 	sidebarWidget = getSidebarWidget();
 
@@ -76,6 +76,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	super.setHeight(height);
 	mainPanel.setHeight(height);
 	scrollPanel.setHeight(height);
+	sidebarWidget.setHeight(height);
     }
 
     @Override
@@ -317,6 +318,11 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Header needs to be narrowed when the vertical scrollbar appears
 	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
 	headerWidget.redraw();
+
+	// Sidebar needs to be narrowed when the horizontal scrollbar appears
+	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
+		+ "px");
+
     }
 
     /**
@@ -362,6 +368,11 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Header needs to be narrowed when the vertical scrollbar appears
 	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
 	headerWidget.redraw();
+
+	// Sidebar needs to be narrowed when the horizontal scrollbar appears
+	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
+		+ "px");
+
     }
 
     /**
@@ -641,6 +652,7 @@ public abstract class DecisionTableWidget extends Composite implements
 
     // ************** DEBUG
 
+    @SuppressWarnings("unused")
     private void dumpIndexes() {
 	System.out.println("coordinates");
 	System.out.println("-----------");
@@ -694,6 +706,7 @@ public abstract class DecisionTableWidget extends Composite implements
 
     }
 
+    @SuppressWarnings("unused")
     private void dumpSelections(String title) {
 	System.out.println(title);
 	System.out.println();

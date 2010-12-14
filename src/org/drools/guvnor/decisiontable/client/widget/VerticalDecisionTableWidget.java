@@ -1,8 +1,5 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource;
-
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ScrollEvent;
 import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -18,11 +15,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * 
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
-
-    // Styles may differ for Vertical and Horizontal Decision Tables if we have
-    // borders to seperate columns (which becomes rows in a Horizontal Decision
-    // Table)
-    protected static CellTableResource resource = GWT.create(CellTableResource.class);
 
     /*
      * (non-Javadoc)
@@ -49,7 +41,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
     @Override
     protected MergableGridWidget getGridWidget() {
 	if (this.gridWidget == null) {
-	    this.gridWidget = new VerticalMergableGridWidget(this, resource);
+	    this.gridWidget = new VerticalMergableGridWidget(this);
 	}
 	return this.gridWidget;
     }
