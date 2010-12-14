@@ -8,39 +8,59 @@ import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource
 
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
-import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.dom.client.TableCellElement;
 import com.google.gwt.dom.client.TableElement;
 import com.google.gwt.dom.client.TableRowElement;
 import com.google.gwt.dom.client.TableSectionElement;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
 
-public class VerticalHeaderlessCellTable extends Widget {
+/**
+ * A minimal CellTable replacement that renders merged cells and handles basic
+ * events. No keyboard navigation implemented.
+ * 
+ * @author manstis
+ * 
+ */
+public abstract class MergableGridWidget extends Widget {
 
-    private List<DynamicEditColumn> columns = new ArrayList<DynamicEditColumn>();
-    private List<List<CellValue<?>>> data = new ArrayList<List<CellValue<?>>>();
+    // Data to render
+    protected List<DynamicEditColumn> columns = new ArrayList<DynamicEditColumn>();
+    protected List<List<CellValue<? extends Comparable<?>>>> data = new ArrayList<List<CellValue<? extends Comparable<?>>>>();
 
-    private TableElement table;
-    private TableSectionElement tbody;
+    // TABLE elements
+    protected TableElement table;
+    protected TableSectionElement tbody;
 
+    // Resources
     protected CellTableResource resource = GWT.create(CellTableResource.class);
-
     protected CellTableStyle style;
 
-    protected SelectionManager manager;
+    // The DecisionTable to which this grid belongs. This is used soley
+    // to record when a cell has been clicked as the DecisionTable manages
+    // writing values back to merged cells...
+    protected DecisionTableWidget dtable;
 
-    public VerticalHeaderlessCellTable(CellTableResource resource) {
+    /**
+     * A grid of possibly merged cells.
+     * 
+     * @param dtable
+     *            DecisionTable to which the grid is a child
+     * @param resource
+     *            ClientBundle for the grid
+     */
+    public MergableGridWidget(DecisionTableWidget dtable,
+	    CellTableResource resource) {
 
+	this.dtable = dtable;
 	this.resource = resource;
 	this.style = resource.cellTableStyle();
 	this.style.ensureInjected();
 
+	// Create some elements to contain the grid
 	table = Document.get().createTableElement();
 	tbody = Document.get().createTBodyElement();
 	table.setClassName(this.style.cellTable());
@@ -50,89 +70,79 @@ public class VerticalHeaderlessCellTable extends Widget {
 
 	table.appendChild(tbody);
 
+	// Events in which we're interested (note, if a Cell<?> appears not to
+	// work I've probably forgotten some events. Might be a better way of
+	// doing this, but I copied CellTable<?, ?>' lead
 	sinkEvents(Event.getTypeInt("click") | Event.getTypeInt("mouseover")
-		| Event.getTypeInt("mouseout"));
+		| Event.getTypeInt("mouseout") | Event.getTypeInt("change"));
     }
 
-    public void setSelectionManager(SelectionManager manager) {
-	this.manager = manager;
-    }
-
+    /**
+     * Delete all columns
+     */
     public void removeAllColumns() {
 	columns.clear();
     }
 
+    /**
+     * Remove a column at a specific index
+     * 
+     * @param index
+     */
     public void removeColumn(int index) {
 	columns.remove(index);
     };
 
+    /**
+     * Add a column at the end of the list of columns
+     * 
+     * @param column
+     */
     public void addColumn(DynamicEditColumn column) {
 	columns.add(column);
     }
 
+    /**
+     * Add a column at a specific index
+     * 
+     * @param index
+     * @param column
+     */
     public void addColumn(int index, DynamicEditColumn column) {
 	columns.add(index, column);
     }
 
-    public void setRowData(List<List<CellValue<?>>> data) {
+    /**
+     * Get a list of columns (Woot, CellTable lacks this!)
+     * 
+     * @return
+     */
+    public List<DynamicEditColumn> getColumns() {
+	return this.columns;
+    }
+
+    /**
+     * Set the data to be rendered. HasData<?> has this method but it also
+     * forces you to implement paging that we did not need.
+     * 
+     * @param data
+     */
+    public void setRowData(List<List<CellValue<? extends Comparable<?>>>> data) {
 	this.data = data;
     }
 
-    public void redraw() {
+    /**
+     * Render the data as HTML
+     */
+    public abstract void redraw();
 
-	String evenRowStyle = style.cellTableEvenRow();
-	String oddRowStyle = style.cellTableOddRow();
-	String cellStyle = style.cellTableCell();
-
-	TableSectionElement nbody = Document.get().createTBodyElement();
-
-	for (int iRow = 0; iRow < data.size(); iRow++) {
-
-	    List<CellValue<?>> rowData = data.get(iRow);
-
-	    boolean isEven = iRow % 2 == 0;
-	    String trClasses = isEven ? evenRowStyle : oddRowStyle;
-
-	    TableRowElement tre = Document.get().createTRElement();
-	    tre.addClassName(trClasses);
-
-	    for (int iCol = 0; iCol < columns.size(); iCol++) {
-		DynamicEditColumn column = columns.get(iCol);
-
-		String tdClasses = cellStyle;
-		String divClasses = cellStyle;
-
-		CellValue<?> cellData = rowData.get(iCol);
-		int rowSpan = cellData.getRowSpan();
-		if (rowSpan > 0) {
-
-		    TableCellElement tce = Document.get().createTDElement();
-		    DivElement div = Document.get().createDivElement();
-		    tce.addClassName(tdClasses);
-		    div.addClassName(divClasses);
-
-		    tce.getStyle().setHeight(style.rowHeight() * rowSpan,
-			    Unit.PX);
-		    tce.setRowSpan(rowSpan);
-
-		    SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
-		    if (rowData != null) {
-			column.render(rowData, null, cellBuilder);
-		    }
-		    div.setInnerHTML(cellBuilder.toSafeHtml().asString());
-		    tce.appendChild(div);
-		    tre.appendChild(tce);
-		}
-
-	    }
-
-	    nbody.appendChild(tre);
-	}
-	table.replaceChild(nbody, tbody);
-	tbody = nbody;
-
-    }
-
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.google.gwt.user.client.ui.Widget#onBrowserEvent(com.google.gwt.user
+     * .client.Event)
+     */
     @Override
     public void onBrowserEvent(Event event) {
 
@@ -161,32 +171,28 @@ public class VerticalHeaderlessCellTable extends Widget {
 	String eventType = event.getType();
 
 	// Convert HTML coordinates to physical coordinates
-	List<CellValue<?>> htmlRow = data.get(iRow);
-	CellValue<?> htmlCell = htmlRow.get(iCol);
+	List<CellValue<? extends Comparable<?>>> htmlRow = data.get(iRow);
+	CellValue<? extends Comparable<?>> htmlCell = htmlRow.get(iCol);
 	Coordinate c = htmlCell.getPhysicalCoordinate();
-	CellValue<?> physicalCell = data.get(c.getRow()).get(c.getCol());
+	CellValue<? extends Comparable<?>> physicalCell = data.get(c.getRow())
+		.get(c.getCol());
 
 	// Setup the selected range
 	if (eventType.equals("click")) {
-	    manager.startSelecting(c);
+	    dtable.startSelecting(c);
 	}
 
 	// Pass event and physical cell to Cell Widget for handling
-	Cell<CellValue<?>> cellWidget = columns.get(c.getCol()).getCell();
+	Cell<CellValue<? extends Comparable<?>>> cellWidget = columns.get(
+		c.getCol()).getCell();
 	if (cellWidget.getConsumedEvents().contains(eventType)) {
 	    Element parent = getCellParent(tableCell);
 	    cellWidget.onBrowserEvent(parent, physicalCell, null, event, null);
 	}
     }
 
-    /**
-     * Find the cell that contains the element. Note that the TD element is not
-     * the parent. The parent is the div inside the TD cell.
-     * 
-     * @param elem
-     *            the element
-     * @return the parent cell
-     */
+    // Find the cell that contains the element. Note that the TD element is not
+    // the parent. The parent is the div inside the TD cell.
     private TableCellElement findNearestParentCell(Element elem) {
 	while ((elem != null) && (elem != table)) {
 	    String tagName = elem.getTagName();
@@ -199,14 +205,8 @@ public class VerticalHeaderlessCellTable extends Widget {
 	return null;
     }
 
-    /**
-     * Get the parent element that is passed to the {@link Cell} from the table
-     * cell element.
-     * 
-     * @param td
-     *            the table cell
-     * @return the parent of the {@link Cell}
-     */
+    // Get the parent element that is passed to the {@link Cell} from the table
+    // cell element.
     private Element getCellParent(TableCellElement td) {
 	return td.getFirstChildElement();
     }

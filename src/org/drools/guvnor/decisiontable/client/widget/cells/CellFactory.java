@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.drools.guvnor.decisiontable.client.widget.SelectionManager;
+import org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget;
 import org.drools.ide.common.client.modeldriven.dt.ActionCol;
 import org.drools.ide.common.client.modeldriven.dt.AttributeCol;
 import org.drools.ide.common.client.modeldriven.dt.ConditionCol;
@@ -80,7 +80,7 @@ public class CellFactory {
 	    new EditTextCell());
 
     // The cache
-    private static Map<String, DecisionTableCellValueAdaptor<?>> cellCache = new HashMap<String, DecisionTableCellValueAdaptor<?>>();
+    private static Map<String, DecisionTableCellValueAdaptor<? extends Comparable<?>>> cellCache = new HashMap<String, DecisionTableCellValueAdaptor<? extends Comparable<?>>>();
 
     /**
      * Lookup a Cell for the given DTColumnConfig. Cells are cached at different
@@ -94,8 +94,8 @@ public class CellFactory {
      *            The SelectionManager used to update cells' content
      * @return A Cell
      */
-    public DecisionTableCellValueAdaptor<?> getCell(DTColumnConfig column,
-	    SelectionManager manager) {
+    public DecisionTableCellValueAdaptor<? extends Comparable<?>> getCell(DTColumnConfig column,
+	    DecisionTableWidget dtable) {
 
 	String[] keys = new String[3];
 
@@ -117,15 +117,15 @@ public class CellFactory {
 	    keys[0] = ActionCol.class.getName();
 	}
 
-	DecisionTableCellValueAdaptor<?> cell = lookupCell(keys);
-	cell.setSelectionManager(manager);
+	DecisionTableCellValueAdaptor<? extends Comparable<?>> cell = lookupCell(keys);
+	cell.setDecisionTableWidget(dtable);
 	return cell;
 
     }
 
     // Try the keys to find a renderer in the cache
-    private DecisionTableCellValueAdaptor<?> lookupCell(String[] keys) {
-	DecisionTableCellValueAdaptor<?> cell = DEFAULT_CELL;
+    private DecisionTableCellValueAdaptor<? extends Comparable<?>> lookupCell(String[] keys) {
+	DecisionTableCellValueAdaptor<? extends Comparable<?>> cell = DEFAULT_CELL;
 	for (String key : keys) {
 	    if (key != null) {
 		if (cellCache.containsKey(key)) {

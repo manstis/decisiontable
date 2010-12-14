@@ -3,7 +3,7 @@ package org.drools.guvnor.decisiontable.client.widget.cells;
 import java.util.Set;
 
 import org.drools.guvnor.decisiontable.client.widget.CellValue;
-import org.drools.guvnor.decisiontable.client.widget.SelectionManager;
+import org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -20,12 +20,12 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
  *            The data-type required by the wrapped cell
  */
 public class DecisionTableCellValueAdaptor<T> extends
-	AbstractCell<CellValue<?>> {
+	AbstractCell<CellValue<? extends Comparable<?>>> {
 
     // Really we want AbstractCell<?> but that leads to generics hell
     private AbstractCell<T> cell;
 
-    protected SelectionManager manager;
+    protected DecisionTableWidget dtable;
 
     /**
      * @param cell
@@ -36,12 +36,12 @@ public class DecisionTableCellValueAdaptor<T> extends
     }
 
     /**
-     * Inject a SelectionManager to handle value updates
+     * Inject a DecisionTableWidget to handle value updates
      * 
      * @param manager
      */
-    public void setSelectionManager(SelectionManager manager) {
-	this.manager = manager;
+    public void setDecisionTableWidget(DecisionTableWidget dtable) {
+	this.dtable = dtable;
     }
 
     /*
@@ -83,7 +83,8 @@ public class DecisionTableCellValueAdaptor<T> extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    public boolean isEditing(Element parent, CellValue<?> value, Object key) {
+    public boolean isEditing(Element parent,
+	    CellValue<? extends Comparable<?>> value, Object key) {
 	return cell.isEditing(parent, (T) value.getValue(), key);
     }
 
@@ -98,8 +99,10 @@ public class DecisionTableCellValueAdaptor<T> extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void onBrowserEvent(Element parent, CellValue<?> value, Object key,
-	    NativeEvent event, ValueUpdater<CellValue<?>> valueUpdater) {
+    public void onBrowserEvent(Element parent,
+	    CellValue<? extends Comparable<?>> value, Object key,
+	    NativeEvent event,
+	    ValueUpdater<CellValue<? extends Comparable<?>>> valueUpdater) {
 
 	// Updates are passed back to the SelectionManager where merged cells
 	// are also updated. Override the Column's FieldUpdater because
@@ -110,7 +113,7 @@ public class DecisionTableCellValueAdaptor<T> extends
 
 		    @Override
 		    public void update(T value) {
-			manager.update(value);
+			dtable.update(value);
 		    }
 
 		});
@@ -124,7 +127,8 @@ public class DecisionTableCellValueAdaptor<T> extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void render(CellValue<?> value, Object key, SafeHtmlBuilder sb) {
+    public void render(CellValue<? extends Comparable<?>> value, Object key,
+	    SafeHtmlBuilder sb) {
 	cell.render((T) value.getValue(), key, sb);
     }
 
@@ -137,7 +141,8 @@ public class DecisionTableCellValueAdaptor<T> extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    public boolean resetFocus(Element parent, CellValue<?> value, Object key) {
+    public boolean resetFocus(Element parent,
+	    CellValue<? extends Comparable<?>> value, Object key) {
 	return cell.resetFocus(parent, (T) value.getValue(), key);
     }
 
@@ -150,7 +155,8 @@ public class DecisionTableCellValueAdaptor<T> extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void setValue(Element parent, CellValue<?> value, Object key) {
+    public void setValue(Element parent,
+	    CellValue<? extends Comparable<?>> value, Object key) {
 	cell.setValue(parent, (T) value.getValue(), key);
     }
 

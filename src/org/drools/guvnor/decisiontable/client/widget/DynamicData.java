@@ -9,11 +9,11 @@ import java.util.List;
  * @author manstis
  * 
  */
-public class DynamicData extends ArrayList<List<CellValue<?>>> {
+public class DynamicData extends ArrayList<List<CellValue<? extends Comparable<?>>>> {
 
     private static final long serialVersionUID = -3710491920672816057L;
 
-    public CellValue<?> get(Coordinate c) {
+    public CellValue<? extends Comparable<?>> get(Coordinate c) {
 	return this.get(c.getRow()).get(c.getCol());
     }
 

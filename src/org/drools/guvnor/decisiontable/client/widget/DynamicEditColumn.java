@@ -16,7 +16,9 @@ import com.google.gwt.user.cellview.client.Column;
  * @author manstis
  * 
  */
-public class DynamicEditColumn extends Column<List<CellValue<?>>, CellValue<?>> {
+public class DynamicEditColumn
+	extends
+	Column<List<CellValue<? extends Comparable<?>>>, CellValue<? extends Comparable<?>>> {
 
     private int columnIndex = 0;
     private DTColumnConfig modelColumn;
@@ -24,14 +26,15 @@ public class DynamicEditColumn extends Column<List<CellValue<?>>, CellValue<?>> 
     private int sortIndex = -1;
 
     public DynamicEditColumn(DTColumnConfig modelColumn,
-	    DecisionTableCellValueAdaptor<?> cell, int columnIndex) {
+	    DecisionTableCellValueAdaptor<? extends Comparable<?>> cell,
+	    int columnIndex) {
 	super(cell);
 	this.modelColumn = modelColumn;
 	this.columnIndex = columnIndex;
     }
 
     @Override
-    public CellValue<?> getValue(List<CellValue<?>> object) {
+    public CellValue<?> getValue(List<CellValue<? extends Comparable<?>>> object) {
 	return (CellValue<?>) object.get(columnIndex);
     }
 

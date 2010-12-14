@@ -152,7 +152,7 @@ public class VerticalDecisionTableHeaderWidget extends
 	protected TableRowElement makeTopRowElement() {
 	    TableRowElement trow = makeTableRowElement();
 	    TableCellElement cell = null;
-	    for (DynamicEditColumn column : dtable.columns) {
+	    for (DynamicEditColumn column : dtable.getColumns()) {
 		DTColumnConfig modelColumn = column.getModelColumn();
 		if (modelColumn instanceof MetadataCol) {
 		    cell = makeMetadataTableCellElement(column);
@@ -182,7 +182,7 @@ public class VerticalDecisionTableHeaderWidget extends
 	protected TableRowElement makeBottomRowElement() {
 	    TableRowElement trow = makeTableRowElement();
 	    TableCellElement cell = null;
-	    for (DynamicEditColumn column : dtable.columns) {
+	    for (DynamicEditColumn column : dtable.getColumns()) {
 		DTColumnConfig modelColumn = column.getModelColumn();
 		if (modelColumn instanceof ConditionCol) {
 		    cell = makeConditionFactFieldTableCellElement(column);
@@ -261,7 +261,7 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	    // Peek ahead to the next column and add "merge" icon if applicable
 	    int iCol = dtable.getColumns().indexOf(column);
-	    if (iCol < dtable.columns.size() - 1) {
+	    if (iCol < dtable.getColumns().size() - 1) {
 		DTColumnConfig peek = dtable.getColumns().get(iCol + 1)
 			.getModelColumn();
 		if (peek instanceof ConditionCol) {
@@ -314,7 +314,7 @@ public class VerticalDecisionTableHeaderWidget extends
     public void sortableHeaderClicked(DynamicEditColumn header) {
 	updateSortOrder(header);
 	redraw();
-	dtable.manager.sort();
+	dtable.sort();
     }
 
     private void updateSortOrder(DynamicEditColumn header) {
