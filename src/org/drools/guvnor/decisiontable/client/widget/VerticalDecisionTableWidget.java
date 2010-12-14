@@ -22,7 +22,7 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
     // Styles may differ for Vertical and Horizontal Decision Tables if we have
     // borders to seperate columns (which becomes rows in a Horizontal Decision
     // Table)
-    protected CellTableResource resource = GWT.create(CellTableResource.class);
+    protected static CellTableResource resource = GWT.create(CellTableResource.class);
 
     /*
      * (non-Javadoc)
