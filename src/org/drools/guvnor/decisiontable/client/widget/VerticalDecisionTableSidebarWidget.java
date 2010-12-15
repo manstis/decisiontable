@@ -143,6 +143,7 @@ public class VerticalDecisionTableSidebarWidget extends
 	    this.table.removeChild(table.getFirstChild());
 	    this.tbody = Document.get().createTBodyElement();
 	    this.table.appendChild(tbody);
+	    this.indexes.clear();
 	    rows = 0;
 	}
 
@@ -170,11 +171,14 @@ public class VerticalDecisionTableSidebarWidget extends
 	    tce2.setClassName(tdDeleteClasses);
 	    DivElement divDelete = Document.get().createDivElement();
 	    divDelete.setClassName(style.selectorDeleteImage());
-	    divDelete.setInnerHTML("&nbsp");
+	    divDelete.setInnerHTML("&nbsp;");
 	    tce2.appendChild(divDelete);
 
 	    tre.appendChild(tce1);
 	    tre.appendChild(tce2);
+
+
+	    
 	    tbody.appendChild(tre);
 
 	    indexes.add(index);
