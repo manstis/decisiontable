@@ -33,13 +33,14 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	String evenRowStyle = style.cellTableEvenRow();
 	String oddRowStyle = style.cellTableOddRow();
 	String cellStyle = style.cellTableCell();
+	String divStyle = style.cellTableCellDiv();
 
 	TableSectionElement nbody = Document.get().createTBodyElement();
 
 	for (int iRow = 0; iRow < data.size(); iRow++) {
 
 	    //Add a selector for each row
-	    sideBarWidget.addSelector();
+	    sideBarWidget.addSelector(iRow);
 
 	    boolean isEven = iRow % 2 == 0;
 	    String trClasses = isEven ? evenRowStyle : oddRowStyle;
@@ -53,9 +54,6 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 		// Column to render the column
 		DynamicEditColumn column = columns.get(iCol);
 
-		String tdClasses = cellStyle;
-		String divClasses = cellStyle;
-
 		CellValue<? extends Comparable<?>> cellData = rowData.get(iCol);
 		int rowSpan = cellData.getRowSpan();
 		if (rowSpan > 0) {
@@ -64,8 +62,8 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 		    // attributes that need to be dynamic
 		    TableCellElement tce = Document.get().createTDElement();
 		    DivElement div = Document.get().createDivElement();
-		    tce.addClassName(tdClasses);
-		    div.addClassName(divClasses);
+		    tce.addClassName(cellStyle);
+		    div.addClassName(divStyle);
 
 		    // A dynamic attribute!
 		    tce.getStyle().setHeight(style.rowHeight() * rowSpan,

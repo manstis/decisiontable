@@ -110,18 +110,6 @@ public class DecisionTableControlsWidget extends Composite {
 	    }
 	});
 
-	// Insert Row control
-	final NumberRequestor rowNumberWidget = new NumberRequestor(
-		"Insert row before:");
-	rowNumberWidget.setCommand(new Command() {
-
-	    @Override
-	    public void execute() {
-		dtable.insertRowBefore(rowNumberWidget.getValue());
-	    }
-
-	});
-
 	// Toggle Merging button
 	Button btnToggleMerging = new Button("Toggle merging",
 		new ClickHandler() {
@@ -145,7 +133,6 @@ public class DecisionTableControlsWidget extends Composite {
 
 	VerticalPanel vp3 = new VerticalPanel();
 	vp3.add(columnNumberWidget);
-	vp3.add(rowNumberWidget);
 	panel.add(vp3);
 
 	panel.add(btnAddRow);

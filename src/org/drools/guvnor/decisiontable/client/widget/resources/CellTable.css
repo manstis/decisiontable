@@ -5,6 +5,7 @@
 @def rowHeaderHeight 24px;
 @def spacerHeight 48px;
 @def spacerWidth 32px;
+	
 .cellTable {
 	cursor: default;
 	table-layout: fixed;
@@ -15,9 +16,13 @@
 .cellTableCell {
 	padding: 0px;
 	margin: 0px;
-	width: 100px;
 	text-align: center;
 	outline: none;
+	border-bottom: 1px dashed grey;
+}
+
+.cellTableCellDiv {
+	width: 100px;
 }
 
 .cellTableEvenRow {
@@ -81,12 +86,14 @@
 .selectorAddCell {
 	width: spacerWidth;
 	text-align: center;
+	border-bottom: 1px dashed grey;
 }
 
 .selectorDeleteCell {
 	width: spacerWidth;
 	text-align: center;
 	border-right: 1px solid grey;
+	border-bottom: 1px dashed grey;
 }
 
 .selectorControl {

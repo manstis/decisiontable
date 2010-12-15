@@ -30,6 +30,7 @@ public abstract class DecisionTableSidebarWidget extends Composite {
      */
     public DecisionTableSidebarWidget(DecisionTableWidget dtable) {
 	this.dtable = dtable;
+	style.ensureInjected();
     }
 
     /**
@@ -51,8 +52,12 @@ public abstract class DecisionTableSidebarWidget extends Composite {
      * Add a selector widget to the Sidebar. A selector widget can implement any
      * row-level operation, such as selecting, inserting new (positional) etc.
      * It is intended that this is called as each row to MergableGridWidget is
-     * added. Each selector widget will be placed beside the previous.
+     * added.
+     * 
+     * @param index
+     *            Index of row to which selector relates. The meaning of the
+     *            index is down to the implementation.
      */
-    public abstract void addSelector();
+    public abstract void addSelector(int index);
 
 }

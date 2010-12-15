@@ -25,6 +25,8 @@ public interface CellTableResource extends ClientBundle {
 	String cellTableOddRow();
 
 	String cellTableCell();
+	
+	String cellTableCellDiv();
 
 	String headerTable();
 

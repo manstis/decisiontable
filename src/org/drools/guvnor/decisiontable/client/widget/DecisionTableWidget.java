@@ -333,6 +333,19 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     /**
+     * Delete a row at the specified index.
+     * 
+     * @param index
+     */
+    public void deleteRow(int index) {
+	removeModelMerging();
+	data.remove(index);
+	assertRowCoordinates(index);
+	assertModelMerging();
+	gridWidget.redraw();
+    }
+
+    /**
      * Insert a new row at the specified index.
      * 
      * @param index

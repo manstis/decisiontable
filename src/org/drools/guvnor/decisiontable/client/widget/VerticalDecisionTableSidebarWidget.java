@@ -1,5 +1,8 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
@@ -15,6 +18,13 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * A sidebar for a VericalDecisionTable. This provides a vertical list of
+ * controls to add and remove the associated row from the DecisionTable.
+ * 
+ * @author manstis
+ * 
+ */
 public class VerticalDecisionTableSidebarWidget extends
 	DecisionTableSidebarWidget {
 
@@ -29,8 +39,6 @@ public class VerticalDecisionTableSidebarWidget extends
      */
     public VerticalDecisionTableSidebarWidget(DecisionTableWidget dtable) {
 	super(dtable);
-
-	style.ensureInjected();
 
 	// Construct the Widget
 	scrollPanel = new ScrollPanel();
@@ -66,12 +74,13 @@ public class VerticalDecisionTableSidebarWidget extends
     }
 
     @Override
-    public void addSelector() {
-	selectors.add("hello");
+    public void addSelector(int index) {
+	selectors.add(index);
     }
 
     /**
-     * Simple spacer to ensure scrollable part of sidebar aligns with grid
+     * Simple spacer to ensure scrollable part of sidebar aligns with grid. This
+     * might be a good place to put the "toggle merging" button.
      * 
      * @author manstis
      * 
@@ -98,10 +107,18 @@ public class VerticalDecisionTableSidebarWidget extends
 
     }
 
+    /**
+     * Widget to render selectors beside rows. Two selectors are provided per
+     * row: (1) A "add new row (above selected)" and (2) "delete row".
+     * 
+     * @author manstis
+     * 
+     */
     private class VerticalSelectorWidget extends Widget {
 
 	private TableElement table;
 	private TableSectionElement tbody;
+	private List<Integer> indexes = new ArrayList<Integer>();
 	private int rows;
 
 	private VerticalSelectorWidget() {
@@ -113,9 +130,15 @@ public class VerticalDecisionTableSidebarWidget extends
 	    setElement(table);
 	    rows = 0;
 
+	    // Mouseover and Mouseevents are not sunk to handle the image
+	    // rollover because Mouseout events are not fired when the mouse
+	    // moves quickly from the Element. Rollover is therefore handled
+	    // by CSS. See
+	    // https://groups.google.com/group/google-web-toolkit/browse_thread/thread/3bd429624341035e?hl=en
 	    sinkEvents(Event.getTypeInt("click"));
 	}
 
+	// Reset the widget to an empty TBODY
 	private void clear() {
 	    this.table.removeChild(table.getFirstChild());
 	    this.tbody = Document.get().createTBodyElement();
@@ -123,7 +146,8 @@ public class VerticalDecisionTableSidebarWidget extends
 	    rows = 0;
 	}
 
-	private void add(String text) {
+	// Add a new row
+	private void add(int index) {
 
 	    boolean isEven = rows % 2 == 0;
 	    String trClasses = isEven ? style.cellTableEvenRow() : style
@@ -152,10 +176,18 @@ public class VerticalDecisionTableSidebarWidget extends
 	    tre.appendChild(tce1);
 	    tre.appendChild(tce2);
 	    tbody.appendChild(tre);
+
+	    indexes.add(index);
 	    rows++;
 	}
 
-	@SuppressWarnings("unused")
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.google.gwt.user.client.ui.Widget#onBrowserEvent(com.google.gwt
+	 * .user.client.Event)
+	 */
 	@Override
 	public void onBrowserEvent(Event event) {
 	    // Get the event target
@@ -167,15 +199,29 @@ public class VerticalDecisionTableSidebarWidget extends
 	    Element target = event.getEventTarget().cast();
 
 	    // Find the cell where the event occurred
-	    TableCellElement cell = findNearestParentTableCellElement(target);
-	    if (cell == null) {
+	    TableCellElement tdElement = findNearestParentTableCellElement(target);
+	    if (tdElement == null) {
 		return;
 	    }
+	    int iCol = tdElement.getCellIndex();
 
+	    Element element = tdElement.getParentElement();
+	    if (element == null) {
+		return;
+	    }
+	    TableRowElement trElement = TableRowElement.as(element);
+	    int iRow = trElement.getSectionRowIndex();
+
+	    // Perform action
 	    boolean isClick = eventType.equals("click");
-	    int column = cell.getCellIndex();
 	    if (isClick) {
-		// TODO Perform action!
+		switch (iCol) {
+		case 0:
+		    dtable.insertRowBefore(indexes.get(iRow));
+		    break;
+		case 1:
+		    dtable.deleteRow(indexes.get(iRow));
+		}
 	    }
 
 	}
