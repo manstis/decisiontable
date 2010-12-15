@@ -85,24 +85,73 @@ public class VerticalDecisionTableSidebarWidget extends
      * @author manstis
      * 
      */
-    private static class VerticalSideBarSpacerWidget extends Widget {
+    private class VerticalSideBarSpacerWidget extends Widget {
+
+	// Use a TABLE to ensure alignment with header and grid
+	private TableElement table = Document.get().createTableElement();
 
 	private VerticalSideBarSpacerWidget(int height) {
-	    // Use a TABLE to ensure alignment with header and grid
-	    TableElement table = Document.get().createTableElement();
-	    TableSectionElement tbody = Document.get().createTBodyElement();
-	    TableRowElement tre = Document.get().createTRElement();
-	    TableCellElement tce = Document.get().createTDElement();
 
 	    table.setClassName(style.spacer());
 	    table.setCellPadding(0);
 	    table.setCellSpacing(0);
 
-	    table.appendChild(tbody);
-	    tbody.appendChild(tre);
+	    TableSectionElement tbody = Document.get().createTBodyElement();
+	    TableRowElement tre = Document.get().createTRElement();
+	    TableCellElement tce = Document.get().createTDElement();
+	    DivElement div = Document.get().createDivElement();
+	    div.setInnerHTML(getImageHtml(dtable.isMerged));
+	    div.setClassName(style.selectorToggle());
+
+	    tce.appendChild(div);
 	    tre.appendChild(tce);
+	    tbody.appendChild(tre);
+	    table.appendChild(tbody);
 
 	    setElement(table);
+	    sinkEvents(Event.getTypeInt("click"));
+
+	}
+
+	@Override
+	public void onBrowserEvent(Event event) {
+	    String eventType = event.getType();
+	    if (eventType.equals("click")) {
+		EventTarget eventTarget = event.getEventTarget();
+		if (!Element.is(eventTarget)) {
+		    return;
+		}
+		Element target = event.getEventTarget().cast();
+		if (target == null) {
+		    return;
+		}
+		DivElement div = findNearestParentDivElement(target);
+		if (div == null) {
+		    return;
+		}
+		div.setInnerHTML(getImageHtml(dtable.toggleMerging()));
+	    }
+	}
+
+	// Find the DIV containing the image
+	private DivElement findNearestParentDivElement(Element elem) {
+	    while ((elem != null) && (elem != table)) {
+		String tagName = elem.getTagName();
+		if ("div".equalsIgnoreCase(tagName)) {
+		    return elem.cast();
+		}
+		elem = elem.getParentElement();
+	    }
+	    return null;
+	}
+
+	//Get the image for the current state
+	private String getImageHtml(boolean isMerged) {
+	    if (isMerged) {
+		return TOGGLE_SELECTED;
+	    } else {
+		return TOGGLE_DESELECTED;
+	    }
 	}
 
     }
@@ -177,8 +226,6 @@ public class VerticalDecisionTableSidebarWidget extends
 	    tre.appendChild(tce1);
 	    tre.appendChild(tce2);
 
-
-	    
 	    tbody.appendChild(tre);
 
 	    indexes.add(index);

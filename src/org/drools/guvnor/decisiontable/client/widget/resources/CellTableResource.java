@@ -54,6 +54,8 @@ public interface CellTableResource extends ClientBundle {
 
 	String selectorDeleteImage();
 	
+	String selectorToggle();
+	
     };
 
     @Source("downArrow.png")
@@ -76,6 +78,12 @@ public interface CellTableResource extends ClientBundle {
 
     @Source("mergeUnlink.png")
     ImageResource mergeUnlink();
+
+    @Source("toggleSelected.png")
+    ImageResource toggleSelected();
+
+    @Source("toggleDeselected.png")
+    ImageResource toggleDeselected();
 
     @Source({ "CellTable.css" })
     CellTableStyle cellTableStyle();

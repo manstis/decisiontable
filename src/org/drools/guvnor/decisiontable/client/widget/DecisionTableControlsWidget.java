@@ -110,17 +110,6 @@ public class DecisionTableControlsWidget extends Composite {
 	    }
 	});
 
-	// Toggle Merging button
-	Button btnToggleMerging = new Button("Toggle merging",
-		new ClickHandler() {
-
-		    @Override
-		    public void onClick(ClickEvent event) {
-			dtable.clearSelection();
-			dtable.toggleMerging();
-		    }
-		});
-
 	VerticalPanel vp1 = new VerticalPanel();
 	vp1.add(btnAddMetadataColumn);
 	vp1.add(btnAddActionColumn);
@@ -136,7 +125,6 @@ public class DecisionTableControlsWidget extends Composite {
 	panel.add(vp3);
 
 	panel.add(btnAddRow);
-	panel.add(btnToggleMerging);
 	initWidget(panel);
 
     }

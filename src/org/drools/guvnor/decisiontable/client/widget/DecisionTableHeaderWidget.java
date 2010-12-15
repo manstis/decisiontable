@@ -1,6 +1,7 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource;
+import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource.CellTableStyle;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.ImageResource;
@@ -21,19 +22,20 @@ public abstract class DecisionTableHeaderWidget extends Composite {
     protected Panel panel;
     protected DecisionTableWidget dtable;
 
-    // CSS resources
-    protected CellTableResource resource = GWT.create(CellTableResource.class);
+    // Resources
+    protected static final CellTableResource resource = GWT.create(CellTableResource.class);
+    protected static final CellTableStyle style=resource.cellTableStyle();
 
     // Image resources
-    protected final String DOWN_ARROW = makeImage(resource.downArrow());
-    protected final String SMALL_DOWN_ARROW = makeImage(resource
+    protected static final String DOWN_ARROW = makeImage(resource.downArrow());
+    protected static final String SMALL_DOWN_ARROW = makeImage(resource
 	    .smallDownArrow());
-    protected final String UP_ARROW = makeImage(resource.upArrow());
-    protected final String SMALL_UP_ARROW = makeImage(resource.smallUpArrow());
-    protected final String MERGE_LINK = makeImage(resource.mergeLink());
-    protected final String MERGE_UNLINK = makeImage(resource.mergeUnlink());
+    protected static final String UP_ARROW = makeImage(resource.upArrow());
+    protected static final String SMALL_UP_ARROW = makeImage(resource.smallUpArrow());
+    protected static final String MERGE_LINK = makeImage(resource.mergeLink());
+    protected static final String MERGE_UNLINK = makeImage(resource.mergeUnlink());
 
-    private String makeImage(ImageResource resource) {
+    private static String makeImage(ImageResource resource) {
 	AbstractImagePrototype prototype = AbstractImagePrototype
 		.create(resource);
 	return prototype.getHTML();

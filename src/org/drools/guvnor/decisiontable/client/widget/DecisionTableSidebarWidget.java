@@ -4,6 +4,8 @@ import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource
 import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource.CellTableStyle;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Composite;
 
 /**
@@ -19,9 +21,21 @@ public abstract class DecisionTableSidebarWidget extends Composite {
     protected DecisionTableWidget dtable;
 
     // Resources
-    protected static CellTableResource resource = GWT
+    protected static final CellTableResource resource = GWT
 	    .create(CellTableResource.class);
-    protected static CellTableStyle style = resource.cellTableStyle();
+    protected static final CellTableStyle style = resource.cellTableStyle();
+
+    // Image resources
+    protected static final String TOGGLE_SELECTED = makeImage(resource
+	    .toggleSelected());
+    protected static final String TOGGLE_DESELECTED = makeImage(resource
+	    .toggleDeselected());
+
+    private static String makeImage(ImageResource resource) {
+	AbstractImagePrototype prototype = AbstractImagePrototype
+		.create(resource);
+	return prototype.getHTML();
+    }
 
     /**
      * Construct a "Sidebar" for the provided DecisionTable

@@ -126,12 +126,10 @@ public abstract class DecisionTableWidget extends Composite implements
 	for (Coordinate c : this.selections) {
 	    data.set(c, value);
 	}
-	// Redraw and re-apply our visual trickery
-	// TODO Only a partial redraw is necessary
+	//TODO Partial redraw
 	removeModelMerging();
 	assertModelMerging();
 	gridWidget.redraw();
-
     }
 
     /**
@@ -309,9 +307,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	    col.setColumnIndex(iCol);
 	}
 
-	// Changing the data causes a redraw so we need to re-apply our
-	// visual trickery
-	assertModelMerging();
+	//TODO Partial redraw
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
 
@@ -342,6 +338,8 @@ public abstract class DecisionTableWidget extends Composite implements
 	data.remove(index);
 	assertRowCoordinates(index);
 	assertModelMerging();
+
+	//TODO Partial redraw
 	gridWidget.redraw();
     }
 
@@ -372,9 +370,10 @@ public abstract class DecisionTableWidget extends Composite implements
 	data.add(index, row);
 	assertRowCoordinates(index);
 
-	// Changing the data causes a redraw so we need to re-apply our
-	// visual trickery
+	// New row could break merging
 	assertModelMerging();
+
+	//TODO Partial redraw
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
 
@@ -503,6 +502,10 @@ public abstract class DecisionTableWidget extends Composite implements
 
     // Ensure merging is reflected in the model
     private void assertModelMerging() {
+	if (!isMerged) {
+	    return;
+	}
+
 	final int MAX_ROW = data.size() - 1;
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
@@ -537,6 +540,10 @@ public abstract class DecisionTableWidget extends Composite implements
 
     // Remove merging from model
     private void removeModelMerging() {
+	if (isMerged) {
+	    return;
+	}
+
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
 		CellValue<?> cell = data.get(iRow).get(iCol);
