@@ -18,7 +18,16 @@
 	margin: 0px;
 	text-align: center;
 	outline: none;
-	border-bottom: 1px dashed grey;
+	border-bottom: 1px solid #C8C8C8;
+}
+
+.cellTableCell:HOVER {
+	padding: 0px;
+	margin: 0px;
+	text-align: center;
+	outline: none;
+	border-bottom: 1px solid #C8C8C8;
+	background-color: #ffff99;
 }
 
 .cellTableCellDiv {
@@ -26,7 +35,7 @@
 }
 
 .cellTableEvenRow {
-	background: #c0c0c0;
+	background: #E0E0E0;
 }
 
 .cellTableOddRow {
@@ -86,14 +95,14 @@
 .selectorAddCell {
 	width: spacerWidth;
 	text-align: center;
-	border-bottom: 1px dashed grey;
+	border-bottom: 1px solid #C8C8C8;
 }
 
 .selectorDeleteCell {
 	width: spacerWidth;
 	text-align: center;
 	border-right: 1px solid grey;
-	border-bottom: 1px dashed grey;
+	border-bottom: 1px solid #C8C8C8;
 }
 
 .selectorControl {

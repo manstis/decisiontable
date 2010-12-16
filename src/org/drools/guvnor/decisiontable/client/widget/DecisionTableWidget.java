@@ -329,13 +329,22 @@ public abstract class DecisionTableWidget extends Composite implements
 	data.remove(index);
 	assertRowCoordinates(index);
 
-	// TODO Partial redraw
+	// Partial redraw
 	if (!isMerged) {
+	    // Single row when not merged
 	    assertModelMerging();
 	    gridWidget.deleteRow(index);
 	} else {
+	    // Affected rows when merged
 	    assertModelMerging();
-	    gridWidget.redraw();
+
+	    // Find rows that need to be (re)drawn
+	    gridWidget.deleteRow(index);
+	    if (data.size() > 0) {
+		int minRedrawRow = findMinRedrawRow(index);
+		int maxRedrawRow = findMaxRedrawRow(index);
+		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
+	    }
 	}
 	assertDimensions();
     }
@@ -361,7 +370,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	int maxRedrawRow = index;
 	if (index < data.size()) {
 	    minRedrawRow = findMinRedrawRow(index);
-	    maxRedrawRow = findMaxRedrawRow(index)+1;
+	    maxRedrawRow = findMaxRedrawRow(index) + 1;
 	}
 
 	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
@@ -375,11 +384,16 @@ public abstract class DecisionTableWidget extends Composite implements
 	data.add(index, row);
 	assertRowCoordinates(index);
 
-	// TODO Partial redraw needs to consider merged cells
+	// Partial redraw
 	if (!isMerged) {
+	    // Only new row when not merged
+	    assertModelMerging();
 	    gridWidget.insertRowBefore(index, row);
 	} else {
+	    // Affected rows when merged
 	    assertModelMerging(minRedrawRow, maxRedrawRow);
+
+	    // This row is overwritten by the call to redrawRows()
 	    gridWidget.insertRowBefore(index, row);
 	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	}
@@ -508,13 +522,12 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
     }
 
-    // Ensure merging is reflected in the model
-    @Deprecated
+    // Ensure merging is reflected in the entire model
     private void assertModelMerging() {
 	assertModelMerging(0, data.size() - 1);
     }
 
-    // Ensure merging is reflected in the model
+    // Ensure merging is reflected in the model between the given rows
     private void assertModelMerging(int minRowIndex, int maxRowIndex) {
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
