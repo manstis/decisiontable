@@ -326,6 +326,21 @@ public abstract class DecisionTableWidget extends Composite implements
      * @param index
      */
     public void deleteRow(int index) {
+	if (index < 0) {
+	    throw new IllegalArgumentException(
+		    "Row number cannot be less than zero.");
+	}
+	if (index > data.size() - 1) {
+	    throw new IllegalArgumentException(
+		    "Row number cannot be greater than the number of rows.");
+	}
+
+	int minRedrawRow = findMinRedrawRow(index);
+	int maxRedrawRow = findMaxRedrawRow(index) - 1;
+	if (maxRedrawRow < 0) {
+	    maxRedrawRow = 0;
+	}
+
 	data.remove(index);
 	assertRowCoordinates(index);
 
@@ -341,8 +356,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	    // Find rows that need to be (re)drawn
 	    gridWidget.deleteRow(index);
 	    if (data.size() > 0) {
-		int minRedrawRow = findMinRedrawRow(index);
-		int maxRedrawRow = findMaxRedrawRow(index);
 		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	    }
 	}
@@ -360,9 +373,9 @@ public abstract class DecisionTableWidget extends Composite implements
 	    throw new IllegalArgumentException(
 		    "Row number cannot be less than zero.");
 	}
-	if (index > data.size()) {
+	if (index > data.size() - 1) {
 	    throw new IllegalArgumentException(
-		    "Row number cannot be greater than the number of declared rows.");
+		    "Row number cannot be greater than the number of rows.");
 	}
 
 	// Find rows that need to be (re)drawn

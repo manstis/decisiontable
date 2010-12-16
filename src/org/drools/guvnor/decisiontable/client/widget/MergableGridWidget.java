@@ -156,10 +156,12 @@ public abstract class MergableGridWidget extends Widget {
     /**
      * Redraw a section of the table. Partial redraw
      * 
-     * @param minRedrawRow
-     * @param maxRedrawRow
+     * @param startRedrawRow
+     *            Start row index (inclusive)
+     * @param endRedrawRow
+     *            End row index (inclusive)
      */
-    public abstract void redrawRows(int minRedrawRow, int maxRedrawRow);
+    public abstract void redrawRows(int startRedrawRow, int endRedrawRow);
 
     /*
      * (non-Javadoc)
