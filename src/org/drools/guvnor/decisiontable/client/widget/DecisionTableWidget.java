@@ -328,10 +328,15 @@ public abstract class DecisionTableWidget extends Composite implements
     public void deleteRow(int index) {
 	data.remove(index);
 	assertRowCoordinates(index);
-	assertModelMerging();
 
 	// TODO Partial redraw
-	gridWidget.deleteRow(index);
+	if (!isMerged) {
+	    assertModelMerging();
+	    gridWidget.deleteRow(index);
+	} else {
+	    assertModelMerging();
+	    gridWidget.redraw();
+	}
 	assertDimensions();
     }
 
@@ -351,6 +356,14 @@ public abstract class DecisionTableWidget extends Composite implements
 		    "Row number cannot be greater than the number of declared rows.");
 	}
 
+	// Find rows that need to be (re)drawn
+	int minRedrawRow = index;
+	int maxRedrawRow = index;
+	if (index < data.size()) {
+	    minRedrawRow = findMinRedrawRow(index);
+	    maxRedrawRow = findMaxRedrawRow(index)+1;
+	}
+
 	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
@@ -362,11 +375,14 @@ public abstract class DecisionTableWidget extends Composite implements
 	data.add(index, row);
 	assertRowCoordinates(index);
 
-	// New row could break merging
-	assertModelMerging();
-
 	// TODO Partial redraw needs to consider merged cells
-	gridWidget.insertRowBefore(index, row);
+	if (!isMerged) {
+	    gridWidget.insertRowBefore(index, row);
+	} else {
+	    assertModelMerging(minRedrawRow, maxRedrawRow);
+	    gridWidget.insertRowBefore(index, row);
+	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
+	}
 	assertDimensions();
     }
 
@@ -493,12 +509,16 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     // Ensure merging is reflected in the model
+    @Deprecated
     private void assertModelMerging() {
+	assertModelMerging(0, data.size() - 1);
+    }
 
-	final int MAX_ROW = data.size() - 1;
+    // Ensure merging is reflected in the model
+    private void assertModelMerging(int minRowIndex, int maxRowIndex) {
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
+	    for (int iRow = minRowIndex; iRow < maxRowIndex; iRow++) {
 
 		int rowSpan = 1;
 		CellValue<?> cell1 = data.get(iRow).get(iCol);
@@ -507,7 +527,7 @@ public abstract class DecisionTableWidget extends Composite implements
 		// Don't merge empty cells
 		if (isMerged && !cell1.isEmpty()) {
 		    while (cell1.getValue().equals(cell2.getValue())
-			    && iRow + rowSpan < MAX_ROW) {
+			    && iRow + rowSpan < maxRowIndex) {
 			cell2.setRowSpan(0);
 			rowSpan++;
 			cell2 = data.get(iRow + rowSpan).get(iCol);
@@ -545,6 +565,40 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Set indexes after merging has been corrected
 	// TODO Could this be incorporated into here?
 	assertModelIndexes();
+    }
+
+    private int findMinRedrawRow(int baseRowIndex) {
+	int minRedrawRow = baseRowIndex;
+	List<CellValue<? extends Comparable<?>>> baseRow = data
+		.get(baseRowIndex);
+	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
+	    int iRow = baseRowIndex;
+	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
+	    while (cell.getRowSpan() == 0 && iRow >= 0) {
+		iRow--;
+		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+		cell = row.get(iCol);
+	    }
+	    minRedrawRow = (iRow < minRedrawRow ? iRow : minRedrawRow);
+	}
+	return minRedrawRow;
+    }
+
+    private int findMaxRedrawRow(int baseRowIndex) {
+	int maxRedrawRow = baseRowIndex;
+	List<CellValue<? extends Comparable<?>>> baseRow = data
+		.get(baseRowIndex);
+	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
+	    int iRow = baseRowIndex;
+	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
+	    while (cell.getRowSpan() == 0 && iRow < data.size() - 1) {
+		iRow++;
+		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+		cell = row.get(iCol);
+	    }
+	    maxRedrawRow = (iRow > maxRedrawRow ? iRow : maxRedrawRow);
+	}
+	return maxRedrawRow;
     }
 
     public void sort() {

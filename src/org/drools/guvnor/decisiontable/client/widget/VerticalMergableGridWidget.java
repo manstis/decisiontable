@@ -67,6 +67,17 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
     }
 
+    @Override
+    public void redrawRows(int minRedrawRow, int maxRedrawRow) {
+	for (int iRow = minRedrawRow; iRow <= maxRedrawRow; iRow++) {
+	    TableRowElement newRow = Document.get().createTRElement(); 
+	    List<CellValue<? extends Comparable<?>>> rowData = data.get(iRow);
+	    populateTableRowElement(newRow, rowData);
+	    tbody.replaceChild(newRow, tbody.getChild(iRow));
+	}
+	fixRowStyles(minRedrawRow);
+    }
+
     private TableRowElement populateTableRowElement(TableRowElement tre,
 	    List<CellValue<? extends Comparable<?>>> rowData) {
 

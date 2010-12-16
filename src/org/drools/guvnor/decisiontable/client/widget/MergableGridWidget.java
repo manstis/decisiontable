@@ -149,9 +149,17 @@ public abstract class MergableGridWidget extends Widget {
     public abstract void deleteRow(int index);
 
     /**
-     * Render the data as HTML
+     * Redraw the whole table
      */
     public abstract void redraw();
+
+    /**
+     * Redraw a section of the table. Partial redraw
+     * 
+     * @param minRedrawRow
+     * @param maxRedrawRow
+     */
+    public abstract void redrawRows(int minRedrawRow, int maxRedrawRow);
 
     /*
      * (non-Javadoc)
