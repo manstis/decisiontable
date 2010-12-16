@@ -331,7 +331,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	assertModelMerging();
 
 	// TODO Partial redraw
-	gridWidget.redraw();
+	gridWidget.deleteRow(index);
 	assertDimensions();
     }
 
@@ -365,10 +365,8 @@ public abstract class DecisionTableWidget extends Composite implements
 	// New row could break merging
 	assertModelMerging();
 
-	// TODO Partial redraw
-	gridWidget.setRowData(data);
-	gridWidget.redraw();
-
+	// TODO Partial redraw needs to consider merged cells
+	gridWidget.insertRowBefore(index, row);
 	assertDimensions();
     }
 

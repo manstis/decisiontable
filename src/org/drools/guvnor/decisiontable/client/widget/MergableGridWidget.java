@@ -133,6 +133,22 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
+     * Insert the given row before the provided index. Partial redraw.
+     * 
+     * @param index
+     * @param row
+     */
+    public abstract void insertRowBefore(int index,
+	    List<CellValue<? extends Comparable<?>>> row);
+
+    /**
+     * Delete the row at the given index. Partial redraw.
+     * 
+     * @param index
+     */
+    public abstract void deleteRow(int index);
+
+    /**
      * Render the data as HTML
      */
     public abstract void redraw();

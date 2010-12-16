@@ -67,11 +67,21 @@ public abstract class DecisionTableSidebarWidget extends Composite {
      * row-level operation, such as selecting, inserting new (positional) etc.
      * It is intended that this is called as each row to MergableGridWidget is
      * added.
+     */
+    public abstract void addSelector();
+
+    /**
+     * Insert a Selector before the given index.
      * 
      * @param index
-     *            Index of row to which selector relates. The meaning of the
-     *            index is down to the implementation.
      */
-    public abstract void addSelector(int index);
+    public abstract void insertSelectorBefore(int index);
+
+    /**
+     * Delete a Selector at the given index.
+     * 
+     * @param index
+     */
+    public abstract void deleteSelector(int index);
 
 }

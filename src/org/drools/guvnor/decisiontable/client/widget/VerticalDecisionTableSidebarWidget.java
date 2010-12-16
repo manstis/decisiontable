@@ -1,8 +1,5 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
@@ -74,8 +71,18 @@ public class VerticalDecisionTableSidebarWidget extends
     }
 
     @Override
-    public void addSelector(int index) {
-	selectors.add(index);
+    public void addSelector() {
+	selectors.add();
+    }
+
+    @Override
+    public void insertSelectorBefore(int index) {
+	selectors.insertBefore(index);
+    }
+
+    @Override
+    public void deleteSelector(int index) {
+	selectors.deleteSelector(index);
     }
 
     /**
@@ -167,7 +174,6 @@ public class VerticalDecisionTableSidebarWidget extends
 
 	private TableElement table;
 	private TableSectionElement tbody;
-	private List<Integer> indexes = new ArrayList<Integer>();
 	private int rows;
 
 	private VerticalSelectorWidget() {
@@ -192,22 +198,38 @@ public class VerticalDecisionTableSidebarWidget extends
 	    this.table.removeChild(table.getFirstChild());
 	    this.tbody = Document.get().createTBodyElement();
 	    this.table.appendChild(tbody);
-	    this.indexes.clear();
 	    rows = 0;
 	}
 
-	// Add a new row
-	private void add(int index) {
+	// Insert a new row before the given index
+	private void insertBefore(int iRow) {
+	    TableRowElement newRow = tbody.insertRow(iRow);
+	    newRow.setClassName(getRowStyle(iRow));
+	    newRow.getStyle().setHeight(style.rowHeight(), Unit.PX);
+	    populateTableRowElement(newRow);
+	    fixStyles(iRow);
+	}
 
-	    boolean isEven = rows % 2 == 0;
-	    String trClasses = isEven ? style.cellTableEvenRow() : style
-		    .cellTableOddRow();
+	// Delete a row at the given index
+	private void deleteSelector(int index) {
+	    tbody.deleteRow(index);
+	    fixStyles(index);
+	}
+
+	// Add a new row
+	private void add() {
+	    TableRowElement tre = Document.get().createTRElement();
+	    tre.setClassName(getRowStyle(rows));
+	    tre.getStyle().setHeight(style.rowHeight(), Unit.PX);
+	    populateTableRowElement(tre);
+	    tbody.appendChild(tre);
+	    rows++;
+	}
+
+	private void populateTableRowElement(TableRowElement tre) {
+
 	    String tdAddClasses = style.selectorAddCell();
 	    String tdDeleteClasses = style.selectorDeleteCell();
-
-	    TableRowElement tre = Document.get().createTRElement();
-	    tre.setClassName(trClasses);
-	    tre.getStyle().setHeight(style.rowHeight(), Unit.PX);
 
 	    TableCellElement tce1 = Document.get().createTDElement();
 	    tce1.setClassName(tdAddClasses);
@@ -226,10 +248,22 @@ public class VerticalDecisionTableSidebarWidget extends
 	    tre.appendChild(tce1);
 	    tre.appendChild(tce2);
 
-	    tbody.appendChild(tre);
+	}
 
-	    indexes.add(index);
-	    rows++;
+	private String getRowStyle(int iRow) {
+	    boolean isEven = iRow % 2 == 0;
+	    String trClasses = isEven ? style.cellTableEvenRow() : style
+		    .cellTableOddRow();
+	    return trClasses;
+	}
+
+	private void fixStyles(int iRow) {
+	    while (iRow < tbody.getChildCount()) {
+		Element e = Element.as(tbody.getChild(iRow));
+		TableRowElement tre = TableRowElement.as(e);
+		tre.setClassName(getRowStyle(iRow));
+		iRow++;
+	    }
 	}
 
 	/*
@@ -268,10 +302,10 @@ public class VerticalDecisionTableSidebarWidget extends
 	    if (isClick) {
 		switch (iCol) {
 		case 0:
-		    dtable.insertRowBefore(indexes.get(iRow));
+		    dtable.insertRowBefore(iRow);
 		    break;
 		case 1:
-		    dtable.deleteRow(indexes.get(iRow));
+		    dtable.deleteRow(iRow);
 		}
 	    }
 
