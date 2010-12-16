@@ -26,9 +26,9 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
     @Override
     public void redraw() {
 
-	//Prepare sidebar
+	// Prepare sidebar
 	sideBarWidget.initialise();
-	
+
 	// Could do with a heap load more styles
 	String evenRowStyle = style.cellTableEvenRow();
 	String oddRowStyle = style.cellTableOddRow();
@@ -39,7 +39,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
 	for (int iRow = 0; iRow < data.size(); iRow++) {
 
-	    //Add a selector for each row
+	    // Add a selector for each row
 	    sideBarWidget.addSelector(iRow);
 
 	    boolean isEven = iRow % 2 == 0;

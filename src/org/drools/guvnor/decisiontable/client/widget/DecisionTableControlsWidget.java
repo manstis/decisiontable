@@ -66,15 +66,16 @@ public class DecisionTableControlsWidget extends Composite {
 	});
 
 	// Add Condition column button
-	final FactPicker factPicker=new FactPicker();
+	final FactPicker factPicker = new FactPicker();
 	factPicker.setCommand(new Command() {
 
 	    @Override
 	    public void execute() {
 		dtable.clearSelection();
-		dtable.addColumn(getNewConditionColumn(factPicker.getFactType(), factPicker.getFactField()));
+		dtable.addColumn(getNewConditionColumn(
+			factPicker.getFactType(), factPicker.getFactField()));
 	    }
-	    
+
 	});
 
 	// Add Action column button
@@ -115,7 +116,7 @@ public class DecisionTableControlsWidget extends Composite {
 	vp1.add(btnAddActionColumn);
 	vp1.add(attributeColumnPicker);
 	panel.add(vp1);
-	
+
 	VerticalPanel vp2 = new VerticalPanel();
 	vp2.add(factPicker);
 	panel.add(vp2);
@@ -141,7 +142,8 @@ public class DecisionTableControlsWidget extends Composite {
 	return column;
     }
 
-    private DTColumnConfig getNewConditionColumn(String factType, String factField) {
+    private DTColumnConfig getNewConditionColumn(String factType,
+	    String factField) {
 	ConditionCol column = new ConditionCol();
 	column.setFactType(factType);
 	column.setFactField(factField);
@@ -265,21 +267,21 @@ public class DecisionTableControlsWidget extends Composite {
 
 	private Panel panel = new VerticalPanel();
 	private Button btnEnter = new Button();
-	private TextBox txtFactType=new TextBox();
-	private TextBox txtFactField=new TextBox();
+	private TextBox txtFactType = new TextBox();
+	private TextBox txtFactField = new TextBox();
 
 	private FactPicker() {
 	    this.btnEnter.setText("Add Fact column");
 	    panel.add(btnEnter);
-	    
-	    Panel pnlFactType=new HorizontalPanel();
-	    Label lblFactType=new Label("Fact Type:");
+
+	    Panel pnlFactType = new HorizontalPanel();
+	    Label lblFactType = new Label("Fact Type:");
 	    lblFactType.getElement().getStyle().setDisplay(Display.INLINE);
 	    pnlFactType.add(lblFactType);
 	    pnlFactType.add(txtFactType);
-	    
-	    Panel pnlFactField=new HorizontalPanel();
-	    Label lblFactField=new Label("Fact Field:");
+
+	    Panel pnlFactField = new HorizontalPanel();
+	    Label lblFactField = new Label("Fact Field:");
 	    lblFactField.getElement().getStyle().setDisplay(Display.INLINE);
 	    pnlFactField.add(lblFactField);
 	    pnlFactField.add(txtFactField);
@@ -304,14 +306,12 @@ public class DecisionTableControlsWidget extends Composite {
 	    String value = txtFactType.getText();
 	    return value;
 	}
-	
+
 	private String getFactField() {
-	    String value=txtFactField.getText();
+	    String value = txtFactField.getText();
 	    return value;
 	}
-	
 
     }
 
-    
 }

@@ -23,17 +23,20 @@ public abstract class DecisionTableHeaderWidget extends Composite {
     protected DecisionTableWidget dtable;
 
     // Resources
-    protected static final CellTableResource resource = GWT.create(CellTableResource.class);
-    protected static final CellTableStyle style=resource.cellTableStyle();
+    protected static final CellTableResource resource = GWT
+	    .create(CellTableResource.class);
+    protected static final CellTableStyle style = resource.cellTableStyle();
 
     // Image resources
     protected static final String DOWN_ARROW = makeImage(resource.downArrow());
     protected static final String SMALL_DOWN_ARROW = makeImage(resource
 	    .smallDownArrow());
     protected static final String UP_ARROW = makeImage(resource.upArrow());
-    protected static final String SMALL_UP_ARROW = makeImage(resource.smallUpArrow());
+    protected static final String SMALL_UP_ARROW = makeImage(resource
+	    .smallUpArrow());
     protected static final String MERGE_LINK = makeImage(resource.mergeLink());
-    protected static final String MERGE_UNLINK = makeImage(resource.mergeUnlink());
+    protected static final String MERGE_UNLINK = makeImage(resource
+	    .mergeUnlink());
 
     private static String makeImage(ImageResource resource) {
 	AbstractImagePrototype prototype = AbstractImagePrototype

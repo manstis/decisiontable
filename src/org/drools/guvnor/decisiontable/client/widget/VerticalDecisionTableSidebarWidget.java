@@ -145,7 +145,7 @@ public class VerticalDecisionTableSidebarWidget extends
 	    return null;
 	}
 
-	//Get the image for the current state
+	// Get the image for the current state
 	private String getImageHtml(boolean isMerged) {
 	    if (isMerged) {
 		return TOGGLE_SELECTED;

@@ -126,8 +126,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	for (Coordinate c : this.selections) {
 	    data.set(c, value);
 	}
-	//TODO Partial redraw
-	removeModelMerging();
+	// TODO Partial redraw
 	assertModelMerging();
 	gridWidget.redraw();
     }
@@ -307,18 +306,11 @@ public abstract class DecisionTableWidget extends Composite implements
 	    col.setColumnIndex(iCol);
 	}
 
-	//TODO Partial redraw
+	// TODO Partial redraw
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
 
-	// Header needs to be narrowed when the vertical scrollbar appears
-	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
-	headerWidget.redraw();
-
-	// Sidebar needs to be narrowed when the horizontal scrollbar appears
-	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
-		+ "px");
-
+	assertDimensions();
     }
 
     /**
@@ -334,13 +326,13 @@ public abstract class DecisionTableWidget extends Composite implements
      * @param index
      */
     public void deleteRow(int index) {
-	removeModelMerging();
 	data.remove(index);
 	assertRowCoordinates(index);
 	assertModelMerging();
 
-	//TODO Partial redraw
+	// TODO Partial redraw
 	gridWidget.redraw();
+	assertDimensions();
     }
 
     /**
@@ -373,18 +365,11 @@ public abstract class DecisionTableWidget extends Composite implements
 	// New row could break merging
 	assertModelMerging();
 
-	//TODO Partial redraw
+	// TODO Partial redraw
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
 
-	// Header needs to be narrowed when the vertical scrollbar appears
-	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
-	headerWidget.redraw();
-
-	// Sidebar needs to be narrowed when the horizontal scrollbar appears
-	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
-		+ "px");
-
+	assertDimensions();
     }
 
     /**
@@ -431,6 +416,15 @@ public abstract class DecisionTableWidget extends Composite implements
 	    CellValue<?> cell = data.get(iRow).get(col);
 	    selections.add(cell.getCoordinate());
 	}
+    }
+
+    // The DecisionTableHeaderWidget and DecisionTableSidebarWidget need to be
+    // resized when MergableGridWidget has scrollbars
+    private void assertDimensions() {
+	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
+	headerWidget.redraw();
+	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
+		+ "px");
     }
 
     // Ensure cells in rows have correct physical coordinates
@@ -502,14 +496,12 @@ public abstract class DecisionTableWidget extends Composite implements
 
     // Ensure merging is reflected in the model
     private void assertModelMerging() {
-	if (!isMerged) {
-	    return;
-	}
 
 	final int MAX_ROW = data.size() - 1;
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    for (int iRow = 0; iRow < MAX_ROW; iRow++) {
+
 		int rowSpan = 1;
 		CellValue<?> cell1 = data.get(iRow).get(iCol);
 		CellValue<?> cell2 = data.get(iRow + rowSpan).get(iCol);
@@ -540,9 +532,6 @@ public abstract class DecisionTableWidget extends Composite implements
 
     // Remove merging from model
     private void removeModelMerging() {
-	if (isMerged) {
-	    return;
-	}
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    for (int iRow = 0; iRow < data.size(); iRow++) {
@@ -552,7 +541,6 @@ public abstract class DecisionTableWidget extends Composite implements
 		cell.setHtmlCoordinate(c);
 		cell.setPhysicalCoordinate(c);
 		cell.setRowSpan(1);
-
 	    }
 	}
 

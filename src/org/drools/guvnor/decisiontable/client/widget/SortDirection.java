@@ -5,7 +5,5 @@ package org.drools.guvnor.decisiontable.client.widget;
  */
 public enum SortDirection {
 
-    NONE,
-    ASCENDING,
-    DESCENDING;
+    NONE, ASCENDING, DESCENDING;
 }

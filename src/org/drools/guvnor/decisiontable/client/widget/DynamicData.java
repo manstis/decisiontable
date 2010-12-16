@@ -9,7 +9,8 @@ import java.util.List;
  * @author manstis
  * 
  */
-public class DynamicData extends ArrayList<List<CellValue<? extends Comparable<?>>>> {
+public class DynamicData extends
+	ArrayList<List<CellValue<? extends Comparable<?>>>> {
 
     private static final long serialVersionUID = -3710491920672816057L;
 
