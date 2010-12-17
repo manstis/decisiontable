@@ -188,7 +188,14 @@ public abstract class DecisionTableWidget extends Composite implements
 	    col.setColumnIndex(iCol);
 	}
 
-	gridWidget.redrawColumns(index);
+	// Partial redraw
+	if (!isMerged) {
+	    gridWidget.redrawColumns(index);
+	} else {
+	    assertModelIndexes();
+	    gridWidget.redrawColumns(index);
+	}
+	headerWidget.redraw();
 
 	assertDimensions();
     }
@@ -241,6 +248,8 @@ public abstract class DecisionTableWidget extends Composite implements
 	    gridWidget.insertRowBefore(index);
 	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	}
+
+	headerWidget.redraw();
 	assertDimensions();
     }
 
@@ -506,7 +515,6 @@ public abstract class DecisionTableWidget extends Composite implements
     // resized when MergableGridWidget has scrollbars
     private void assertDimensions() {
 	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
-	headerWidget.redraw();
 	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
 		+ "px");
     }

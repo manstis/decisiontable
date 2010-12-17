@@ -170,14 +170,28 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
     private void redrawTableRowElement(
 	    List<CellValue<? extends Comparable<?>>> rowData,
 	    TableRowElement tre, int index) {
+	
 	for (int iCol = index; iCol < columns.size(); iCol++) {
-	    if (iCol < tre.getCells().getLength()) {
+	    int maxColumnIndex = tre.getCells().getLength() - 1;
+	    int requiredColumnIndex = rowData.get(iCol).getHtmlCoordinate()
+		    .getCol();
+	    if (requiredColumnIndex > maxColumnIndex) {
+		
+		//Make a new TD element
 		TableCellElement newCell = makeTableCellElement(iCol, rowData);
-		TableCellElement oldCell = tre.getCells().getItem(iCol);
-		tre.replaceChild(newCell, oldCell);
+		if (newCell != null) {
+		    tre.appendChild(newCell);
+		}
+
 	    } else {
+
+		//Reuse an existing TD element
 		TableCellElement newCell = makeTableCellElement(iCol, rowData);
-		tre.appendChild(newCell);
+		if (newCell != null) {
+		    TableCellElement oldCell = tre.getCells().getItem(
+			    requiredColumnIndex);
+		    tre.replaceChild(newCell, oldCell);
+		}
 	    }
 	}
 
