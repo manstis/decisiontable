@@ -24,7 +24,7 @@ public class CellValueFactory {
 	STRING() {
 	    @Override
 	    public CellValue<String> getNewCellValue(int iRow, int iCol) {
-		CellValue<String> cv = new CellValue<String>("", iRow, iCol);
+		CellValue<String> cv = new CellValue<String>(null, iRow, iCol);
 		return cv;
 	    }
 

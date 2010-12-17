@@ -255,7 +255,7 @@ public class PopupNumericEditCell extends
 	// Update values
 	String text = textBox.getValue();
 	Integer number = null;
-	if (!text.equals("")) {
+	if (text.length() > 0) {
 	    number = Integer.parseInt(text);
 	}
 	setViewData(key, number);

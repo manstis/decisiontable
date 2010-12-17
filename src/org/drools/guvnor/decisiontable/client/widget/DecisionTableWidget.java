@@ -445,6 +445,13 @@ public abstract class DecisionTableWidget extends Composite implements
 	int baseRowIndex = this.selections.first().getRow();
 	int minRedrawRow = findMinRedrawRow(baseRowIndex);
 	int maxRedrawRow = findMaxRedrawRow(baseRowIndex);
+
+	// When merged cells become unmerged (if their value is
+	// cleared need to ensure the re-draw range is at least
+	// as large as the selection range
+	if (maxRedrawRow < this.selections.last().getRow()) {
+	    maxRedrawRow = this.selections.last().getRow();
+	}
 	gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
     }
 
@@ -578,7 +585,7 @@ public abstract class DecisionTableWidget extends Composite implements
 		    CellValue<?> cell2 = data.get(iRow + rowSpan).get(iCol);
 
 		    // Don't merge empty cells
-		    if (isMerged && !cell1.isEmpty()) {
+		    if (isMerged && !cell1.isEmpty() && !cell2.isEmpty()) {
 			while (cell1.getValue().equals(cell2.getValue())
 				&& iRow + rowSpan < maxRowIndex) {
 			    cell2.setRowSpan(0);

@@ -215,6 +215,9 @@ public class PopupTextEditCell extends AbstractEditableCell<String, String> {
 
 	// Update values
 	String text = textBox.getValue();
+	if(text.length()==0) {
+	    text=null;
+	}
 	setViewData(key, text);
 	setValue(cellParent, oldValue, key);
 	if (valueUpdater != null) {

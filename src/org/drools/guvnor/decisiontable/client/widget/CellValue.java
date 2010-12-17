@@ -42,6 +42,16 @@ public class CellValue<T extends Comparable<T>> implements
 
     @Override
     public int compareTo(CellValue<T> cv) {
+	if (this.value == null) {
+	    if (cv.value == null) {
+		return 0;
+	    }
+	    return 1;
+	} else {
+	    if(cv.value==null) {
+		return -1;
+	    }
+	}
 	return this.value.compareTo(cv.value);
     }
 
@@ -75,7 +85,7 @@ public class CellValue<T extends Comparable<T>> implements
     }
 
     boolean isEmpty() {
-	return this.value == null || this.value.equals("");
+	return this.value == null;
     }
 
     void setCoordinate(Coordinate coordinate) {
