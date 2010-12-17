@@ -25,8 +25,8 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
     }
 
     @Override
-    public void insertRowBefore(int index,
-	    List<CellValue<? extends Comparable<?>>> rowData) {
+    public void insertRowBefore(int index) {
+	List<CellValue<? extends Comparable<?>>> rowData = data.get(index);
 	sideBarWidget.insertSelectorBefore(index);
 	TableRowElement newRow = tbody.insertRow(index);
 	populateTableRowElement(newRow, rowData);
@@ -66,7 +66,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	tbody = nbody;
 
     }
-
+    
     @Override
     public void redrawRows(int startRedrawRow, int endRedrawRow) {
 	if (startRedrawRow < 0) {

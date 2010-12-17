@@ -290,6 +290,7 @@ public abstract class DecisionTableWidget extends Composite implements
      */
     public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
+	//Add column to data
 	for (int iRow = 0; iRow < data.size(); iRow++) {
 	    CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
 		    modelColumn, iRow, index);
@@ -297,10 +298,9 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	assertColumnCoordinates(index);
 
+	//Add column to grid
 	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
 		cellFactory.getCell(modelColumn, this), index);
-
-	// columns.add(index, column);
 	gridWidget.addColumn(index, column);
 
 	// Re-index columns
@@ -309,7 +309,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	    col.setColumnIndex(iCol);
 	}
 
-	// TODO Partial redraw
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
 
@@ -382,6 +381,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	    maxRedrawRow = findMaxRedrawRow(index) + 1;
 	}
 
+	//Add row to data
 	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
@@ -396,13 +396,13 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Partial redraw
 	if (!isMerged) {
 	    // Only new row when not merged
-	    gridWidget.insertRowBefore(index, row);
+	    gridWidget.insertRowBefore(index);
 	} else {
 	    // Affected rows when merged
 	    assertModelMerging(minRedrawRow, maxRedrawRow);
 
 	    // This row is overwritten by the call to redrawRows()
-	    gridWidget.insertRowBefore(index, row);
+	    gridWidget.insertRowBefore(index);
 	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	}
 	assertDimensions();

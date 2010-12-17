@@ -100,7 +100,7 @@ public abstract class MergableGridWidget extends Widget {
      * @param column
      */
     public void addColumn(DynamicEditColumn column) {
-	columns.add(column);
+	addColumn(columns.size(), column);
     }
 
     /**
@@ -112,7 +112,7 @@ public abstract class MergableGridWidget extends Widget {
     public void addColumn(int index, DynamicEditColumn column) {
 	columns.add(index, column);
     }
-
+   
     /**
      * Get a list of columns (Woot, CellTable lacks this!)
      * 
@@ -123,8 +123,7 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
-     * Set the data to be rendered. HasData<?> has this method but it also
-     * forces you to implement paging that we did not need.
+     * Set the data to be rendered. 
      * 
      * @param data
      */
@@ -136,10 +135,8 @@ public abstract class MergableGridWidget extends Widget {
      * Insert the given row before the provided index. Partial redraw.
      * 
      * @param index
-     * @param row
      */
-    public abstract void insertRowBefore(int index,
-	    List<CellValue<? extends Comparable<?>>> row);
+    public abstract void insertRowBefore(int index);
 
     /**
      * Delete the row at the given index. Partial redraw.
