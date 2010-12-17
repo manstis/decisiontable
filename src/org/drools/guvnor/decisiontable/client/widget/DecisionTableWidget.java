@@ -370,7 +370,11 @@ public abstract class DecisionTableWidget extends Composite implements
     public void insertRowBefore(int index) {
 	if (index < 0) {
 	    throw new IllegalArgumentException(
-		    "Row number cannot be less than zero.");
+		    "Row index cannot be less than zero.");
+	}
+	if (index > data.size()) {
+	    throw new IllegalArgumentException(
+		    "Row index cannot exceed size of table.");
 	}
 
 	// Find rows that need to be (re)drawn
@@ -399,7 +403,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	    gridWidget.insertRowBefore(index);
 	} else {
 	    // Affected rows when merged
-	    assertModelMerging(minRedrawRow, maxRedrawRow);
+	    assertModelMerging();
 
 	    // This row is overwritten by the call to redrawRows()
 	    gridWidget.insertRowBefore(index);
@@ -538,11 +542,9 @@ public abstract class DecisionTableWidget extends Composite implements
 
     // Ensure merging is reflected in the entire model
     private void assertModelMerging() {
-	assertModelMerging(0, data.size() - 1);
-    }
 
-    // Ensure merging is reflected in the model between the given rows
-    private void assertModelMerging(int minRowIndex, int maxRowIndex) {
+	final int minRowIndex = 0;
+	final int maxRowIndex = data.size() - 1;
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    for (int iRow = minRowIndex; iRow <= maxRowIndex; iRow++) {
