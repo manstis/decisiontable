@@ -126,9 +126,12 @@ public abstract class DecisionTableWidget extends Composite implements
 	for (Coordinate c : this.selections) {
 	    data.set(c, value);
 	}
-	// TODO Partial redraw
+	// Partial redraw
 	assertModelMerging();
-	gridWidget.redraw();
+	int baseRowIndex=this.selections.first().getRow();
+	int minRedrawRow=findMinRedrawRow(baseRowIndex);
+	int maxRedrawRow=findMaxRedrawRow(baseRowIndex);
+	gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
     }
 
     /**
@@ -340,7 +343,6 @@ public abstract class DecisionTableWidget extends Composite implements
 
 	data.remove(index);
 	assertRowCoordinates(index);
-	assertModelMerging();
 
 	// Partial redraw
 	if (!isMerged) {
@@ -353,7 +355,7 @@ public abstract class DecisionTableWidget extends Composite implements
 		maxRedrawRow = data.size() - 1;
 	    }
 	    if (data.size() > 0) {
-		// gridWidget.redraw();
+		assertModelMerging(minRedrawRow, maxRedrawRow);
 		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	    }
 	}
@@ -394,7 +396,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Partial redraw
 	if (!isMerged) {
 	    // Only new row when not merged
-	    assertModelMerging();
 	    gridWidget.insertRowBefore(index, row);
 	} else {
 	    // Affected rows when merged
@@ -469,7 +470,10 @@ public abstract class DecisionTableWidget extends Composite implements
 	    for (int iCol = 0; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = data.get(iRow).get(
 			iCol);
-		cell.setCoordinate(new Coordinate(iRow, iCol));
+		Coordinate c = new Coordinate(iRow, iCol);
+		cell.setCoordinate(c);
+		cell.setHtmlCoordinate(c);
+		cell.setPhysicalCoordinate(c);
 	    }
 	}
     }
@@ -481,7 +485,10 @@ public abstract class DecisionTableWidget extends Composite implements
 	    for (int iCol = index; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = data.get(iRow).get(
 			iCol);
-		cell.setCoordinate(new Coordinate(iRow, iCol));
+		Coordinate c = new Coordinate(iRow, iCol);
+		cell.setCoordinate(c);
+		cell.setHtmlCoordinate(c);
+		cell.setPhysicalCoordinate(c);
 	    }
 	}
     }
