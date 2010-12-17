@@ -48,12 +48,19 @@ public abstract class DecisionTableSidebarWidget extends Composite {
     }
 
     /**
-     * Set scroll position to enable some degree of synchronisation between
-     * DecisionTable and DecisionTableSidebar
-     * 
-     * @param position
+     * Add a selector widget to the Sidebar. A selector widget can implement any
+     * row-level operation, such as selecting, inserting new (positional) etc.
+     * It is intended that this is called as each row to MergableGridWidget is
+     * added.
      */
-    public abstract void setScrollPosition(int position);
+    public abstract void addSelector();
+
+    /**
+     * Delete a Selector at the given index.
+     * 
+     * @param index
+     */
+    public abstract void deleteSelector(int index);
 
     /**
      * Initialise the sidebar, this normally involves clearing any content and
@@ -63,14 +70,6 @@ public abstract class DecisionTableSidebarWidget extends Composite {
     public abstract void initialise();
 
     /**
-     * Add a selector widget to the Sidebar. A selector widget can implement any
-     * row-level operation, such as selecting, inserting new (positional) etc.
-     * It is intended that this is called as each row to MergableGridWidget is
-     * added.
-     */
-    public abstract void addSelector();
-
-    /**
      * Insert a Selector before the given index.
      * 
      * @param index
@@ -78,10 +77,11 @@ public abstract class DecisionTableSidebarWidget extends Composite {
     public abstract void insertSelectorBefore(int index);
 
     /**
-     * Delete a Selector at the given index.
+     * Set scroll position to enable some degree of synchronisation between
+     * DecisionTable and DecisionTableSidebar
      * 
-     * @param index
+     * @param position
      */
-    public abstract void deleteSelector(int index);
+    public abstract void setScrollPosition(int position);
 
 }

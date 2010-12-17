@@ -34,39 +34,6 @@ public class DynamicEditColumn
     }
 
     @Override
-    public CellValue<?> getValue(List<CellValue<? extends Comparable<?>>> object) {
-	return (CellValue<?>) object.get(columnIndex);
-    }
-
-    public int getColumnIndex() {
-	return this.columnIndex;
-    }
-
-    public void setColumnIndex(int columnIndex) {
-	this.columnIndex = columnIndex;
-    }
-
-    public DTColumnConfig getModelColumn() {
-	return this.modelColumn;
-    }
-
-    public SortDirection getSortDirection() {
-	return this.sortDirection;
-    }
-
-    public void setSortDirection(SortDirection sortDirection) {
-	this.sortDirection = sortDirection;
-    }
-
-    public int getSortIndex() {
-	return sortIndex;
-    }
-
-    public void setSortIndex(int sortIndex) {
-	this.sortIndex = sortIndex;
-    }
-
-    @Override
     public boolean equals(Object o) {
 	if (o == null) {
 	    return false;
@@ -77,6 +44,27 @@ public class DynamicEditColumn
 		&& c.sortIndex == this.sortIndex;
     }
 
+    public int getColumnIndex() {
+	return this.columnIndex;
+    }
+
+    public DTColumnConfig getModelColumn() {
+	return this.modelColumn;
+    }
+
+    public SortDirection getSortDirection() {
+	return this.sortDirection;
+    }
+
+    public int getSortIndex() {
+	return sortIndex;
+    }
+
+    @Override
+    public CellValue<?> getValue(List<CellValue<? extends Comparable<?>>> object) {
+	return (CellValue<?>) object.get(columnIndex);
+    }
+
     @Override
     public int hashCode() {
 	int hash = 7;
@@ -84,6 +72,18 @@ public class DynamicEditColumn
 	hash = 31 * hash + sortDirection.hashCode();
 	hash = 31 * hash + sortIndex;
 	return hash;
+    }
+
+    public void setColumnIndex(int columnIndex) {
+	this.columnIndex = columnIndex;
+    }
+
+    public void setSortDirection(SortDirection sortDirection) {
+	this.sortDirection = sortDirection;
+    }
+
+    public void setSortIndex(int sortIndex) {
+	this.sortIndex = sortIndex;
     }
 
 }

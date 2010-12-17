@@ -30,6 +30,164 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class DecisionTableControlsWidget extends Composite {
 
+    /**
+     * Simple Widget allowing selection from a list and execution of a command
+     * 
+     * @author manstis
+     * 
+     */
+    private static class ColumnPicker extends Composite {
+
+	private Panel panel = new VerticalPanel();
+	private Button btnEnter = new Button();
+	private ListBox lstOptions = new ListBox(false);
+
+	private ColumnPicker(String buttonLabel) {
+	    this.btnEnter.setText(buttonLabel);
+	    this.lstOptions.setVisibleItemCount(1);
+	    panel.add(btnEnter);
+	    panel.add(lstOptions);
+	    initWidget(panel);
+	}
+
+	private String getValue() {
+	    String value = lstOptions
+		    .getItemText(lstOptions.getSelectedIndex());
+	    return value;
+	}
+
+	private void setCommand(final Command command) {
+	    this.btnEnter.addClickHandler(new ClickHandler() {
+
+		@Override
+		public void onClick(ClickEvent event) {
+		    command.execute();
+		}
+
+	    });
+	}
+
+	private void setOptions(String[] items) {
+	    for (String item : items) {
+		this.lstOptions.addItem(item);
+	    }
+	}
+
+    }
+
+    /**
+     * Simple Widget allowing entering of Fact details (Class and Field)
+     * 
+     * @author manstis
+     * 
+     */
+    private static class FactPicker extends Composite {
+
+	private Panel panel = new VerticalPanel();
+	private Button btnEnter = new Button();
+	private TextBox txtFactType = new TextBox();
+	private TextBox txtFactField = new TextBox();
+
+	private FactPicker() {
+	    this.btnEnter.setText("Add Fact column");
+	    panel.add(btnEnter);
+
+	    Panel pnlFactType = new HorizontalPanel();
+	    Label lblFactType = new Label("Fact Type:");
+	    lblFactType.getElement().getStyle().setDisplay(Display.INLINE);
+	    pnlFactType.add(lblFactType);
+	    pnlFactType.add(txtFactType);
+
+	    Panel pnlFactField = new HorizontalPanel();
+	    Label lblFactField = new Label("Fact Field:");
+	    lblFactField.getElement().getStyle().setDisplay(Display.INLINE);
+	    pnlFactField.add(lblFactField);
+	    pnlFactField.add(txtFactField);
+
+	    panel.add(pnlFactType);
+	    panel.add(pnlFactField);
+	    initWidget(panel);
+	}
+
+	private String getFactField() {
+	    String value = txtFactField.getText();
+	    return value;
+	}
+
+	private String getFactType() {
+	    String value = txtFactType.getText();
+	    return value;
+	}
+
+	private void setCommand(final Command command) {
+	    this.btnEnter.addClickHandler(new ClickHandler() {
+
+		@Override
+		public void onClick(ClickEvent event) {
+		    command.execute();
+		}
+
+	    });
+	}
+
+    }
+
+    /**
+     * Control allowing entry of numerical value and button to invoke specified
+     * Command.
+     * 
+     * @author manstis
+     * 
+     */
+    private static class NumberRequestor extends Composite {
+
+	private Panel panel = new VerticalPanel();
+	private Button btnEnter = new Button();
+	private TextBox txtNumber = new TextBox();
+
+	private NumberRequestor(final String buttonLabel) {
+	    this.btnEnter.setText(buttonLabel);
+	    this.txtNumber.setText("0");
+	    this.txtNumber.setWidth("64px");
+	    this.txtNumber.addKeyPressHandler(new KeyPressHandler() {
+
+		private final RegExp pattern = RegExp.compile("\\d+");
+
+		@Override
+		public void onKeyPress(KeyPressEvent event) {
+		    // Only numerical digits allowed
+		    if (!pattern.test(String.valueOf(event.getCharCode()))) {
+			event.preventDefault();
+		    }
+		}
+
+	    });
+	    panel.add(btnEnter);
+	    panel.add(txtNumber);
+	    initWidget(panel);
+	}
+
+	private int getValue() {
+	    String text = txtNumber.getText();
+	    if (text.equals("")) {
+		return 0;
+	    }
+	    return Integer.parseInt(text);
+	}
+
+	private void setCommand(final Command command) {
+	    this.btnEnter.addClickHandler(new ClickHandler() {
+
+		@Override
+		public void onClick(ClickEvent event) {
+		    command.execute();
+		}
+
+	    });
+	}
+
+    }
+
     private Panel panel = new HorizontalPanel();
 
     private static final String[] ATTRIBUTE_OPTIONS = { "salience", "enabled",
@@ -130,9 +288,9 @@ public class DecisionTableControlsWidget extends Composite {
 
     }
 
-    private DTColumnConfig getNewMetadataColumn() {
-	MetadataCol column = new MetadataCol();
-	column.attr = "metadata";
+    private DTColumnConfig getNewActionColumn() {
+	ActionCol column = new ActionCol();
+	column.setHeader("action");
 	return column;
     }
 
@@ -150,168 +308,10 @@ public class DecisionTableControlsWidget extends Composite {
 	return column;
     }
 
-    private DTColumnConfig getNewActionColumn() {
-	ActionCol column = new ActionCol();
-	column.setHeader("action");
+    private DTColumnConfig getNewMetadataColumn() {
+	MetadataCol column = new MetadataCol();
+	column.attr = "metadata";
 	return column;
-    }
-
-    /**
-     * Control allowing entry of numerical value and button to invoke specified
-     * Command.
-     * 
-     * @author manstis
-     * 
-     */
-    private static class NumberRequestor extends Composite {
-
-	private Panel panel = new VerticalPanel();
-	private Button btnEnter = new Button();
-	private TextBox txtNumber = new TextBox();
-
-	private NumberRequestor(final String buttonLabel) {
-	    this.btnEnter.setText(buttonLabel);
-	    this.txtNumber.setText("0");
-	    this.txtNumber.setWidth("64px");
-	    this.txtNumber.addKeyPressHandler(new KeyPressHandler() {
-
-		private final RegExp pattern = RegExp.compile("\\d+");
-
-		@Override
-		public void onKeyPress(KeyPressEvent event) {
-		    // Only numerical digits allowed
-		    if (!pattern.test(String.valueOf(event.getCharCode()))) {
-			event.preventDefault();
-		    }
-		}
-
-	    });
-	    panel.add(btnEnter);
-	    panel.add(txtNumber);
-	    initWidget(panel);
-	}
-
-	private void setCommand(final Command command) {
-	    this.btnEnter.addClickHandler(new ClickHandler() {
-
-		@Override
-		public void onClick(ClickEvent event) {
-		    command.execute();
-		}
-
-	    });
-	}
-
-	private int getValue() {
-	    String text = txtNumber.getText();
-	    if (text.equals("")) {
-		return 0;
-	    }
-	    return Integer.parseInt(text);
-	}
-
-    }
-
-    /**
-     * Simple Widget allowing selection from a list and execution of a command
-     * 
-     * @author manstis
-     * 
-     */
-    private static class ColumnPicker extends Composite {
-
-	private Panel panel = new VerticalPanel();
-	private Button btnEnter = new Button();
-	private ListBox lstOptions = new ListBox(false);
-
-	private ColumnPicker(String buttonLabel) {
-	    this.btnEnter.setText(buttonLabel);
-	    this.lstOptions.setVisibleItemCount(1);
-	    panel.add(btnEnter);
-	    panel.add(lstOptions);
-	    initWidget(panel);
-	}
-
-	private void setOptions(String[] items) {
-	    for (String item : items) {
-		this.lstOptions.addItem(item);
-	    }
-	}
-
-	private void setCommand(final Command command) {
-	    this.btnEnter.addClickHandler(new ClickHandler() {
-
-		@Override
-		public void onClick(ClickEvent event) {
-		    command.execute();
-		}
-
-	    });
-	}
-
-	private String getValue() {
-	    String value = lstOptions
-		    .getItemText(lstOptions.getSelectedIndex());
-	    return value;
-	}
-
-    }
-
-    /**
-     * Simple Widget allowing entering of Fact details (Class and Field)
-     * 
-     * @author manstis
-     * 
-     */
-    private static class FactPicker extends Composite {
-
-	private Panel panel = new VerticalPanel();
-	private Button btnEnter = new Button();
-	private TextBox txtFactType = new TextBox();
-	private TextBox txtFactField = new TextBox();
-
-	private FactPicker() {
-	    this.btnEnter.setText("Add Fact column");
-	    panel.add(btnEnter);
-
-	    Panel pnlFactType = new HorizontalPanel();
-	    Label lblFactType = new Label("Fact Type:");
-	    lblFactType.getElement().getStyle().setDisplay(Display.INLINE);
-	    pnlFactType.add(lblFactType);
-	    pnlFactType.add(txtFactType);
-
-	    Panel pnlFactField = new HorizontalPanel();
-	    Label lblFactField = new Label("Fact Field:");
-	    lblFactField.getElement().getStyle().setDisplay(Display.INLINE);
-	    pnlFactField.add(lblFactField);
-	    pnlFactField.add(txtFactField);
-
-	    panel.add(pnlFactType);
-	    panel.add(pnlFactField);
-	    initWidget(panel);
-	}
-
-	private void setCommand(final Command command) {
-	    this.btnEnter.addClickHandler(new ClickHandler() {
-
-		@Override
-		public void onClick(ClickEvent event) {
-		    command.execute();
-		}
-
-	    });
-	}
-
-	private String getFactType() {
-	    String value = txtFactType.getText();
-	    return value;
-	}
-
-	private String getFactField() {
-	    String value = txtFactField.getText();
-	    return value;
-	}
-
     }
 
 }

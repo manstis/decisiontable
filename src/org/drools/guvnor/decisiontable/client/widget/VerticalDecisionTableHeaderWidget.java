@@ -22,44 +22,6 @@ import com.google.gwt.user.client.ui.Widget;
 public class VerticalDecisionTableHeaderWidget extends
 	DecisionTableHeaderWidget {
 
-    private HeaderWidget widget;
-
-    /**
-     * Construct a "Header" for the provided DecisionTable
-     * 
-     * @param decisionTable
-     */
-    public VerticalDecisionTableHeaderWidget(DecisionTableWidget dtable) {
-	super(dtable);
-
-	// Construct the Widget
-	panel = new ScrollPanel();
-	widget = new HeaderWidget();
-
-	// We don't want scroll bars on the Header
-	panel.getElement().getStyle().setOverflow(Overflow.HIDDEN);
-	panel.add(widget);
-	initWidget(panel);
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.drools.guvnor.decisiontable.client.widget.DecisionTableHeaderWidget
-     * #setScrollPosition(int)
-     */
-    @Override
-    public void setScrollPosition(int position) {
-	((ScrollPanel) this.panel).setHorizontalScrollPosition(position);
-    }
-
-    @Override
-    public void redraw() {
-	widget.redraw();
-    }
-
     /**
      * This is the actual header widget.
      * 
@@ -120,24 +82,6 @@ public class VerticalDecisionTableHeaderWidget extends
 	    }
 	}
 
-	private TableCellElement findNearestParentCell(Element elem) {
-	    while ((elem != null) && (elem != table)) {
-		String tagName = elem.getTagName();
-		if ("td".equalsIgnoreCase(tagName)
-			|| "th".equalsIgnoreCase(tagName)) {
-		    return elem.cast();
-		}
-		elem = elem.getParentElement();
-	    }
-	    return null;
-	}
-
-	private TableRowElement makeTableRowElement() {
-	    TableRowElement trow = Document.get().createTRElement();
-	    trow.setClassName(resource.cellTableStyle().headerRow());
-	    return trow;
-	}
-
 	public void redraw() {
 	    TableRowElement oldRow;
 	    TableRowElement newRow;
@@ -147,6 +91,21 @@ public class VerticalDecisionTableHeaderWidget extends
 	    oldRow = table.getRows().getItem(1);
 	    newRow = makeBottomRowElement();
 	    table.replaceChild(newRow, oldRow);
+	}
+
+	protected TableRowElement makeBottomRowElement() {
+	    TableRowElement trow = makeTableRowElement();
+	    TableCellElement cell = null;
+	    for (DynamicEditColumn column : dtable.getColumns()) {
+		DTColumnConfig modelColumn = column.getModelColumn();
+		if (modelColumn instanceof ConditionCol) {
+		    cell = makeConditionFactFieldTableCellElement(column);
+		    cell.setPropertyInt("row", 1);
+		    cell.setPropertyInt("col", column.getColumnIndex());
+		    trow.appendChild(cell);
+		}
+	    }
+	    return trow;
 	}
 
 	protected TableRowElement makeTopRowElement() {
@@ -179,67 +138,34 @@ public class VerticalDecisionTableHeaderWidget extends
 	    return trow;
 	}
 
-	protected TableRowElement makeBottomRowElement() {
-	    TableRowElement trow = makeTableRowElement();
-	    TableCellElement cell = null;
-	    for (DynamicEditColumn column : dtable.getColumns()) {
-		DTColumnConfig modelColumn = column.getModelColumn();
-		if (modelColumn instanceof ConditionCol) {
-		    cell = makeConditionFactFieldTableCellElement(column);
-		    cell.setPropertyInt("row", 1);
-		    cell.setPropertyInt("col", column.getColumnIndex());
-		    trow.appendChild(cell);
+	private TableCellElement findNearestParentCell(Element elem) {
+	    while ((elem != null) && (elem != table)) {
+		String tagName = elem.getTagName();
+		if ("td".equalsIgnoreCase(tagName)
+			|| "th".equalsIgnoreCase(tagName)) {
+		    return elem.cast();
 		}
+		elem = elem.getParentElement();
 	    }
-	    return trow;
+	    return null;
 	}
 
-	private TableCellElement makeTableCellSortableElement(
-		DynamicEditColumn column) {
-	    TableCellElement tcell = Document.get().createTHElement();
-	    tcell.setClassName(resource.cellTableStyle().headerCellPrimary());
-
-	    DivElement div1 = Document.get().createDivElement();
-	    DivElement div2 = Document.get().createDivElement();
-	    DivElement div3 = Document.get().createDivElement();
-	    div1.setClassName(resource.cellTableStyle().headerContainer());
-	    div2.setClassName(resource.cellTableStyle().headerText());
-	    div3.setClassName(resource.cellTableStyle().headerWidget());
-
-	    div1.appendChild(div2);
-	    div1.appendChild(div3);
-	    div3.setInnerHTML(getSortDirectionIcon(column.getSortDirection(),
-		    column.getSortIndex()));
-
-	    tcell.appendChild(div1);
-	    return tcell;
-
+	private String getSortDirectionIcon(SortDirection sd, int sortIndex) {
+	    String html = "";
+	    switch (sd) {
+	    case ASCENDING:
+		html = (sortIndex == 0 ? UP_ARROW : SMALL_UP_ARROW);
+		break;
+	    case DESCENDING:
+		html = (sortIndex == 0 ? DOWN_ARROW : SMALL_DOWN_ARROW);
+	    }
+	    return html;
 	}
 
-	private TableCellElement makeTableCellFactTypeElement(
-		DynamicEditColumn column) {
-	    TableCellElement tcell = Document.get().createTHElement();
-	    tcell.setClassName(resource.cellTableStyle().headerCellSecondary());
-
-	    DivElement div1 = Document.get().createDivElement();
-	    DivElement div2 = Document.get().createDivElement();
-	    DivElement div3 = Document.get().createDivElement();
-	    div1.setClassName(resource.cellTableStyle().headerContainer());
-	    div2.setClassName(resource.cellTableStyle().headerText());
-	    div3.setClassName(resource.cellTableStyle().headerWidget());
-
-	    div1.appendChild(div2);
-	    div1.appendChild(div3);
-
-	    tcell.appendChild(div1);
-	    return tcell;
-
-	}
-
-	private TableCellElement makeMetadataTableCellElement(
+	private TableCellElement makeActionTableCellElement(
 		DynamicEditColumn column) {
 	    TableCellElement tcell = makeTableCellSortableElement(column);
-	    setText(tcell, ((MetadataCol) column.getModelColumn()).attr);
+	    setText(tcell, ((ActionCol) column.getModelColumn()).getHeader());
 	    tcell.setRowSpan(2);
 	    return tcell;
 	}
@@ -249,6 +175,14 @@ public class VerticalDecisionTableHeaderWidget extends
 	    TableCellElement tcell = makeTableCellSortableElement(column);
 	    setText(tcell, ((AttributeCol) column.getModelColumn()).attr);
 	    tcell.setRowSpan(2);
+	    return tcell;
+	}
+
+	private TableCellElement makeConditionFactFieldTableCellElement(
+		DynamicEditColumn column) {
+	    TableCellElement tcell = makeTableCellSortableElement(column);
+	    setText(tcell,
+		    ((ConditionCol) column.getModelColumn()).getFactField());
 	    return tcell;
 	}
 
@@ -276,20 +210,60 @@ public class VerticalDecisionTableHeaderWidget extends
 	    return tcell;
 	}
 
-	private TableCellElement makeConditionFactFieldTableCellElement(
+	private TableCellElement makeMetadataTableCellElement(
 		DynamicEditColumn column) {
 	    TableCellElement tcell = makeTableCellSortableElement(column);
-	    setText(tcell,
-		    ((ConditionCol) column.getModelColumn()).getFactField());
+	    setText(tcell, ((MetadataCol) column.getModelColumn()).attr);
+	    tcell.setRowSpan(2);
 	    return tcell;
 	}
 
-	private TableCellElement makeActionTableCellElement(
+	private TableCellElement makeTableCellFactTypeElement(
 		DynamicEditColumn column) {
-	    TableCellElement tcell = makeTableCellSortableElement(column);
-	    setText(tcell, ((ActionCol) column.getModelColumn()).getHeader());
-	    tcell.setRowSpan(2);
+	    TableCellElement tcell = Document.get().createTHElement();
+	    tcell.setClassName(resource.cellTableStyle().headerCellSecondary());
+
+	    DivElement div1 = Document.get().createDivElement();
+	    DivElement div2 = Document.get().createDivElement();
+	    DivElement div3 = Document.get().createDivElement();
+	    div1.setClassName(resource.cellTableStyle().headerContainer());
+	    div2.setClassName(resource.cellTableStyle().headerText());
+	    div3.setClassName(resource.cellTableStyle().headerWidget());
+
+	    div1.appendChild(div2);
+	    div1.appendChild(div3);
+
+	    tcell.appendChild(div1);
 	    return tcell;
+
+	}
+
+	private TableCellElement makeTableCellSortableElement(
+		DynamicEditColumn column) {
+	    TableCellElement tcell = Document.get().createTHElement();
+	    tcell.setClassName(resource.cellTableStyle().headerCellPrimary());
+
+	    DivElement div1 = Document.get().createDivElement();
+	    DivElement div2 = Document.get().createDivElement();
+	    DivElement div3 = Document.get().createDivElement();
+	    div1.setClassName(resource.cellTableStyle().headerContainer());
+	    div2.setClassName(resource.cellTableStyle().headerText());
+	    div3.setClassName(resource.cellTableStyle().headerWidget());
+
+	    div1.appendChild(div2);
+	    div1.appendChild(div3);
+	    div3.setInnerHTML(getSortDirectionIcon(column.getSortDirection(),
+		    column.getSortIndex()));
+
+	    tcell.appendChild(div1);
+	    return tcell;
+
+	}
+
+	private TableRowElement makeTableRowElement() {
+	    TableRowElement trow = Document.get().createTRElement();
+	    trow.setClassName(resource.cellTableStyle().headerRow());
+	    return trow;
 	}
 
 	private void setText(TableCellElement cell, String text) {
@@ -297,18 +271,48 @@ public class VerticalDecisionTableHeaderWidget extends
 		    .setInnerText(text);
 	}
 
-	private String getSortDirectionIcon(SortDirection sd, int sortIndex) {
-	    String html = "";
-	    switch (sd) {
-	    case ASCENDING:
-		html = (sortIndex == 0 ? UP_ARROW : SMALL_UP_ARROW);
-		break;
-	    case DESCENDING:
-		html = (sortIndex == 0 ? DOWN_ARROW : SMALL_DOWN_ARROW);
-	    }
-	    return html;
-	}
+    }
 
+    private HeaderWidget widget;
+
+    /**
+     * Construct a "Header" for the provided DecisionTable
+     * 
+     * @param decisionTable
+     */
+    public VerticalDecisionTableHeaderWidget(DecisionTableWidget dtable) {
+	super(dtable);
+
+	// Construct the Widget
+	panel = new ScrollPanel();
+	widget = new HeaderWidget();
+
+	// We don't want scroll bars on the Header
+	panel.getElement().getStyle().setOverflow(Overflow.HIDDEN);
+	panel.add(widget);
+	initWidget(panel);
+
+    }
+
+    public void mergableHeaderClicked(DynamicEditColumn column) {
+	Window.alert("clicked");
+    }
+
+    @Override
+    public void redraw() {
+	widget.redraw();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.drools.guvnor.decisiontable.client.widget.DecisionTableHeaderWidget
+     * #setScrollPosition(int)
+     */
+    @Override
+    public void setScrollPosition(int position) {
+	((ScrollPanel) this.panel).setHorizontalScrollPosition(position);
     }
 
     public void sortableHeaderClicked(DynamicEditColumn header) {
@@ -337,10 +341,6 @@ public class VerticalDecisionTableHeaderWidget extends
 		}
 	    }
 	}
-    }
-
-    public void mergableHeaderClicked(DynamicEditColumn column) {
-	Window.alert("clicked");
     }
 
 }

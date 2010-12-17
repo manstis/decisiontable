@@ -40,54 +40,54 @@ public class CellValue<T extends Comparable<T>> implements
 	this.mapDataToHtml = new Coordinate(row, col);
     }
 
-    @SuppressWarnings("unchecked")
-    public void setValue(Object value) {
-	this.value = (T) value;
+    @Override
+    public int compareTo(CellValue<T> cv) {
+	return this.value.compareTo(cv.value);
     }
 
     public T getValue() {
 	return this.value;
     }
 
-    boolean isEmpty() {
-	return this.value == null || this.value.equals("");
+    public void setHtmlCoordinate(Coordinate c) {
+	this.mapDataToHtml = c;
     }
 
-    void setRowSpan(int rowSpan) {
-	this.rowSpan = rowSpan;
-    }
-
-    int getRowSpan() {
-	return this.rowSpan;
+    @SuppressWarnings("unchecked")
+    public void setValue(Object value) {
+	this.value = (T) value;
     }
 
     Coordinate getCoordinate() {
 	return this.coordinate;
     }
 
-    void setCoordinate(Coordinate coordinate) {
-	this.coordinate = coordinate;
+    Coordinate getHtmlCoordinate() {
+	return new Coordinate(this.mapDataToHtml);
     }
 
     Coordinate getPhysicalCoordinate() {
 	return new Coordinate(this.mapHtmlToData);
     }
 
+    int getRowSpan() {
+	return this.rowSpan;
+    }
+
+    boolean isEmpty() {
+	return this.value == null || this.value.equals("");
+    }
+
+    void setCoordinate(Coordinate coordinate) {
+	this.coordinate = coordinate;
+    }
+
     void setPhysicalCoordinate(Coordinate c) {
 	this.mapHtmlToData = c;
     }
 
-    Coordinate getHtmlCoordinate() {
-	return new Coordinate(this.mapDataToHtml);
-    }
-
-    public void setHtmlCoordinate(Coordinate c) {
-	this.mapDataToHtml = c;
-    }
-
-    @Override
-    public int compareTo(CellValue<T> cv) {
-	return this.value.compareTo(cv.value);
+    void setRowSpan(int rowSpan) {
+	this.rowSpan = rowSpan;
     }
 
 }

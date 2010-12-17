@@ -25,64 +25,169 @@ import com.google.gwt.user.client.ui.Widget;
 public class VerticalDecisionTableSidebarWidget extends
 	DecisionTableSidebarWidget {
 
-    private ScrollPanel scrollPanel;
-    private VerticalPanel container;
-    private VerticalSelectorWidget selectors;
-
     /**
-     * Construct a "Sidebar" for the provided DecisionTable
+     * Widget to render selectors beside rows. Two selectors are provided per
+     * row: (1) A "add new row (above selected)" and (2) "delete row".
      * 
-     * @param decisionTable
+     * @author manstis
+     * 
      */
-    public VerticalDecisionTableSidebarWidget(DecisionTableWidget dtable) {
-	super(dtable);
+    private class VerticalSelectorWidget extends Widget {
 
-	// Construct the Widget
-	scrollPanel = new ScrollPanel();
-	container = new VerticalPanel();
-	selectors = new VerticalSelectorWidget();
+	private TableElement table;
+	private TableSectionElement tbody;
+	private int rows;
 
-	container.add(new VerticalSideBarSpacerWidget(
-		style.rowHeaderHeight() * 2));
-	container.add(scrollPanel);
-	scrollPanel.add(selectors);
+	private VerticalSelectorWidget() {
+	    this.table = Document.get().createTableElement();
+	    this.table.setCellPadding(0);
+	    this.table.setCellSpacing(0);
+	    this.tbody = Document.get().createTBodyElement();
+	    this.table.appendChild(tbody);
+	    setElement(table);
+	    rows = 0;
 
-	// We don't want scroll bars on the Sidebar
-	scrollPanel.getElement().getStyle().setOverflow(Overflow.HIDDEN);
+	    // Mouseover and Mouseevents are not sunk to handle the image
+	    // rollover because Mouseout events are not fired when the mouse
+	    // moves quickly from the Element. Rollover is therefore handled
+	    // by CSS. See
+	    // https://groups.google.com/group/google-web-toolkit/browse_thread/thread/3bd429624341035e?hl=en
+	    sinkEvents(Event.getTypeInt("click"));
+	}
 
-	initWidget(container);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.google.gwt.user.client.ui.Widget#onBrowserEvent(com.google.gwt
+	 * .user.client.Event)
+	 */
+	@Override
+	public void onBrowserEvent(Event event) {
+	    // Get the event target
+	    String eventType = event.getType();
+	    EventTarget eventTarget = event.getEventTarget();
+	    if (!Element.is(eventTarget)) {
+		return;
+	    }
+	    Element target = event.getEventTarget().cast();
 
-    }
+	    // Find the cell where the event occurred
+	    TableCellElement tdElement = findNearestParentTableCellElement(target);
+	    if (tdElement == null) {
+		return;
+	    }
+	    int iCol = tdElement.getCellIndex();
 
-    @Override
-    public void setHeight(String height) {
-	super.setHeight(height);
-	this.scrollPanel.setHeight(height);
-    }
+	    Element element = tdElement.getParentElement();
+	    if (element == null) {
+		return;
+	    }
+	    TableRowElement trElement = TableRowElement.as(element);
+	    int iRow = trElement.getSectionRowIndex();
 
-    @Override
-    public void setScrollPosition(int position) {
-	this.scrollPanel.setScrollPosition(position);
-    }
+	    // Perform action
+	    boolean isClick = eventType.equals("click");
+	    if (isClick) {
+		switch (iCol) {
+		case 0:
+		    dtable.insertRowBefore(iRow);
+		    break;
+		case 1:
+		    dtable.deleteRow(iRow);
+		}
+	    }
 
-    @Override
-    public void initialise() {
-	selectors.clear();
-    }
+	}
 
-    @Override
-    public void addSelector() {
-	selectors.add();
-    }
+	// Add a new row
+	private void add() {
+	    TableRowElement tre = Document.get().createTRElement();
+	    tre.setClassName(getRowStyle(rows));
+	    tre.getStyle().setHeight(style.rowHeight(), Unit.PX);
+	    populateTableRowElement(tre);
+	    tbody.appendChild(tre);
+	    rows++;
+	}
 
-    @Override
-    public void insertSelectorBefore(int index) {
-	selectors.insertBefore(index);
-    }
+	// Reset the widget to an empty TBODY
+	private void clear() {
+	    this.table.removeChild(table.getFirstChild());
+	    this.tbody = Document.get().createTBodyElement();
+	    this.table.appendChild(tbody);
+	    rows = 0;
+	}
 
-    @Override
-    public void deleteSelector(int index) {
-	selectors.deleteSelector(index);
+	// Delete a row at the given index
+	private void deleteSelector(int index) {
+	    tbody.deleteRow(index);
+	    fixStyles(index);
+	}
+
+	// Find the TD that contains the element
+	private TableCellElement findNearestParentTableCellElement(Element elem) {
+	    while ((elem != null) && (elem != table)) {
+		String tagName = elem.getTagName();
+		if ("td".equalsIgnoreCase(tagName)) {
+		    return elem.cast();
+		}
+		elem = elem.getParentElement();
+	    }
+	    return null;
+	}
+
+	// Row styles need to be re-applied after inserting and deleting rows
+	private void fixStyles(int iRow) {
+	    while (iRow < tbody.getChildCount()) {
+		Element e = Element.as(tbody.getChild(iRow));
+		TableRowElement tre = TableRowElement.as(e);
+		tre.setClassName(getRowStyle(iRow));
+		iRow++;
+	    }
+	}
+
+	// Get style applicable to row
+	private String getRowStyle(int iRow) {
+	    boolean isEven = iRow % 2 == 0;
+	    String trClasses = isEven ? style.cellTableEvenRow() : style
+		    .cellTableOddRow();
+	    return trClasses;
+	}
+
+	// Insert a new row before the given index
+	private void insertBefore(int iRow) {
+	    TableRowElement newRow = tbody.insertRow(iRow);
+	    newRow.setClassName(getRowStyle(iRow));
+	    newRow.getStyle().setHeight(style.rowHeight(), Unit.PX);
+	    populateTableRowElement(newRow);
+	    fixStyles(iRow);
+	}
+
+	// Create a row for the sidebar
+	private void populateTableRowElement(TableRowElement tre) {
+
+	    String tdAddClasses = style.selectorAddCell();
+	    String tdDeleteClasses = style.selectorDeleteCell();
+
+	    TableCellElement tce1 = Document.get().createTDElement();
+	    tce1.setClassName(tdAddClasses);
+	    DivElement divAdd = Document.get().createDivElement();
+	    divAdd.setClassName(style.selectorAddImage());
+	    divAdd.setInnerHTML("&nbsp");
+	    tce1.appendChild(divAdd);
+
+	    TableCellElement tce2 = Document.get().createTDElement();
+	    tce2.setClassName(tdDeleteClasses);
+	    DivElement divDelete = Document.get().createDivElement();
+	    divDelete.setClassName(style.selectorDeleteImage());
+	    divDelete.setInnerHTML("&nbsp;");
+	    tce2.appendChild(divDelete);
+
+	    tre.appendChild(tce1);
+	    tre.appendChild(tce2);
+
+	}
+
     }
 
     /**
@@ -163,166 +268,66 @@ public class VerticalDecisionTableSidebarWidget extends
 
     }
 
+    private ScrollPanel scrollPanel;
+
+    private VerticalPanel container;
+
+    private VerticalSelectorWidget selectors;
+
     /**
-     * Widget to render selectors beside rows. Two selectors are provided per
-     * row: (1) A "add new row (above selected)" and (2) "delete row".
+     * Construct a "Sidebar" for the provided DecisionTable
      * 
-     * @author manstis
-     * 
+     * @param decisionTable
      */
-    private class VerticalSelectorWidget extends Widget {
+    public VerticalDecisionTableSidebarWidget(DecisionTableWidget dtable) {
+	super(dtable);
 
-	private TableElement table;
-	private TableSectionElement tbody;
-	private int rows;
+	// Construct the Widget
+	scrollPanel = new ScrollPanel();
+	container = new VerticalPanel();
+	selectors = new VerticalSelectorWidget();
 
-	private VerticalSelectorWidget() {
-	    this.table = Document.get().createTableElement();
-	    this.table.setCellPadding(0);
-	    this.table.setCellSpacing(0);
-	    this.tbody = Document.get().createTBodyElement();
-	    this.table.appendChild(tbody);
-	    setElement(table);
-	    rows = 0;
+	container.add(new VerticalSideBarSpacerWidget(
+		style.rowHeaderHeight() * 2));
+	container.add(scrollPanel);
+	scrollPanel.add(selectors);
 
-	    // Mouseover and Mouseevents are not sunk to handle the image
-	    // rollover because Mouseout events are not fired when the mouse
-	    // moves quickly from the Element. Rollover is therefore handled
-	    // by CSS. See
-	    // https://groups.google.com/group/google-web-toolkit/browse_thread/thread/3bd429624341035e?hl=en
-	    sinkEvents(Event.getTypeInt("click"));
-	}
+	// We don't want scroll bars on the Sidebar
+	scrollPanel.getElement().getStyle().setOverflow(Overflow.HIDDEN);
 
-	// Reset the widget to an empty TBODY
-	private void clear() {
-	    this.table.removeChild(table.getFirstChild());
-	    this.tbody = Document.get().createTBodyElement();
-	    this.table.appendChild(tbody);
-	    rows = 0;
-	}
+	initWidget(container);
 
-	// Insert a new row before the given index
-	private void insertBefore(int iRow) {
-	    TableRowElement newRow = tbody.insertRow(iRow);
-	    newRow.setClassName(getRowStyle(iRow));
-	    newRow.getStyle().setHeight(style.rowHeight(), Unit.PX);
-	    populateTableRowElement(newRow);
-	    fixStyles(iRow);
-	}
+    }
 
-	// Delete a row at the given index
-	private void deleteSelector(int index) {
-	    tbody.deleteRow(index);
-	    fixStyles(index);
-	}
+    @Override
+    public void addSelector() {
+	selectors.add();
+    }
 
-	// Add a new row
-	private void add() {
-	    TableRowElement tre = Document.get().createTRElement();
-	    tre.setClassName(getRowStyle(rows));
-	    tre.getStyle().setHeight(style.rowHeight(), Unit.PX);
-	    populateTableRowElement(tre);
-	    tbody.appendChild(tre);
-	    rows++;
-	}
+    @Override
+    public void deleteSelector(int index) {
+	selectors.deleteSelector(index);
+    }
 
-	private void populateTableRowElement(TableRowElement tre) {
+    @Override
+    public void initialise() {
+	selectors.clear();
+    }
 
-	    String tdAddClasses = style.selectorAddCell();
-	    String tdDeleteClasses = style.selectorDeleteCell();
+    @Override
+    public void insertSelectorBefore(int index) {
+	selectors.insertBefore(index);
+    }
 
-	    TableCellElement tce1 = Document.get().createTDElement();
-	    tce1.setClassName(tdAddClasses);
-	    DivElement divAdd = Document.get().createDivElement();
-	    divAdd.setClassName(style.selectorAddImage());
-	    divAdd.setInnerHTML("&nbsp");
-	    tce1.appendChild(divAdd);
+    @Override
+    public void setHeight(String height) {
+	super.setHeight(height);
+	this.scrollPanel.setHeight(height);
+    }
 
-	    TableCellElement tce2 = Document.get().createTDElement();
-	    tce2.setClassName(tdDeleteClasses);
-	    DivElement divDelete = Document.get().createDivElement();
-	    divDelete.setClassName(style.selectorDeleteImage());
-	    divDelete.setInnerHTML("&nbsp;");
-	    tce2.appendChild(divDelete);
-
-	    tre.appendChild(tce1);
-	    tre.appendChild(tce2);
-
-	}
-
-	private String getRowStyle(int iRow) {
-	    boolean isEven = iRow % 2 == 0;
-	    String trClasses = isEven ? style.cellTableEvenRow() : style
-		    .cellTableOddRow();
-	    return trClasses;
-	}
-
-	private void fixStyles(int iRow) {
-	    while (iRow < tbody.getChildCount()) {
-		Element e = Element.as(tbody.getChild(iRow));
-		TableRowElement tre = TableRowElement.as(e);
-		tre.setClassName(getRowStyle(iRow));
-		iRow++;
-	    }
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.google.gwt.user.client.ui.Widget#onBrowserEvent(com.google.gwt
-	 * .user.client.Event)
-	 */
-	@Override
-	public void onBrowserEvent(Event event) {
-	    // Get the event target
-	    String eventType = event.getType();
-	    EventTarget eventTarget = event.getEventTarget();
-	    if (!Element.is(eventTarget)) {
-		return;
-	    }
-	    Element target = event.getEventTarget().cast();
-
-	    // Find the cell where the event occurred
-	    TableCellElement tdElement = findNearestParentTableCellElement(target);
-	    if (tdElement == null) {
-		return;
-	    }
-	    int iCol = tdElement.getCellIndex();
-
-	    Element element = tdElement.getParentElement();
-	    if (element == null) {
-		return;
-	    }
-	    TableRowElement trElement = TableRowElement.as(element);
-	    int iRow = trElement.getSectionRowIndex();
-
-	    // Perform action
-	    boolean isClick = eventType.equals("click");
-	    if (isClick) {
-		switch (iCol) {
-		case 0:
-		    dtable.insertRowBefore(iRow);
-		    break;
-		case 1:
-		    dtable.deleteRow(iRow);
-		}
-	    }
-
-	}
-
-	// Find the TD that contains the element
-	private TableCellElement findNearestParentTableCellElement(Element elem) {
-	    while ((elem != null) && (elem != table)) {
-		String tagName = elem.getTagName();
-		if ("td".equalsIgnoreCase(tagName)) {
-		    return elem.cast();
-		}
-		elem = elem.getParentElement();
-	    }
-	    return null;
-	}
-
+    @Override
+    public void setScrollPosition(int position) {
+	this.scrollPanel.setScrollPosition(position);
     }
 
 }

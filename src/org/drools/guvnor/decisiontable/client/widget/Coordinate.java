@@ -11,29 +11,16 @@ public class Coordinate {
     private int col;
     private String displayString;
 
-    Coordinate(int row, int col) {
-	this.row = row;
-	this.col = col;
-	this.displayString = "(R" + row + ",C" + col + ")";
-    }
-
     Coordinate(Coordinate c) {
 	this.row = c.row;
 	this.col = c.col;
 	this.displayString = "(R" + c.row + ",C" + c.col + ")";
     }
 
-    public int getRow() {
-	return this.row;
-    }
-
-    public int getCol() {
-	return this.col;
-    }
-
-    @Override
-    public String toString() {
-	return displayString;
+    Coordinate(int row, int col) {
+	this.row = row;
+	this.col = col;
+	this.displayString = "(R" + row + ",C" + col + ")";
     }
 
     @Override
@@ -45,11 +32,24 @@ public class Coordinate {
 	return c.col == col && c.row == row;
     }
 
+    public int getCol() {
+	return this.col;
+    }
+
+    public int getRow() {
+	return this.row;
+    }
+
     @Override
     public int hashCode() {
 	int hash = row;
 	hash = 31 * hash + col;
 	return hash;
+    }
+
+    @Override
+    public String toString() {
+	return displayString;
     }
 
 }

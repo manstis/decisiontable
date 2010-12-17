@@ -611,6 +611,73 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
     }
 
+    // ************** DEBUG
+    @SuppressWarnings("unused")
+    private void dumpIndexes() {
+	System.out.println("coordinates");
+	System.out.println("-----------");
+	for (int iRow = 0; iRow < data.size(); iRow++) {
+	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    for (int iCol = 0; iCol < row.size(); iCol++) {
+		CellValue<? extends Comparable<?>> cell = row.get(iCol);
+
+		Coordinate c = cell.getCoordinate();
+		int rowSpan = cell.getRowSpan();
+
+		System.out.print(c.toString());
+		System.out.print("-S" + rowSpan + " ");
+	    }
+	    System.out.print("\n");
+	}
+
+	System.out.println();
+	System.out.println("htmlToDataMap");
+	System.out.println("-------------");
+	for (int iRow = 0; iRow < data.size(); iRow++) {
+	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    for (int iCol = 0; iCol < row.size(); iCol++) {
+		CellValue<? extends Comparable<?>> cell = row.get(iCol);
+
+		Coordinate c = cell.getPhysicalCoordinate();
+		int rowSpan = cell.getRowSpan();
+
+		System.out.print(c.toString());
+		System.out.print("-S" + rowSpan + " ");
+	    }
+	    System.out.print("\n");
+	}
+
+	System.out.println();
+	System.out.println("dataToHtmlMap");
+	System.out.println("-------------");
+	for (int iRow = 0; iRow < data.size(); iRow++) {
+	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    for (int iCol = 0; iCol < row.size(); iCol++) {
+		CellValue<? extends Comparable<?>> cell = row.get(iCol);
+
+		Coordinate c = cell.getHtmlCoordinate();
+		int rowSpan = cell.getRowSpan();
+
+		System.out.print(c.toString());
+		System.out.print("-S" + rowSpan + " ");
+	    }
+	    System.out.print("\n");
+	}
+
+    }
+
+    // ************** DEBUG
+    @SuppressWarnings("unused")
+    private void dumpSelections(String title) {
+	System.out.println(title);
+	System.out.println();
+	for (Coordinate c : selections) {
+	    CellValue<?> cell = data.get(c.getRow()).get(c.getCol());
+	    System.out.println(cell.getCoordinate().toString());
+	}
+	System.out.println();
+    }
+
     // Ensure Coordinates are the extents of merged cell
     private void extendSelection(Coordinate coordinate) {
 	CellValue<?> startCell = data.get(coordinate);
@@ -755,73 +822,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	    CellValue<?> cell = data.get(iRow).get(col);
 	    selections.add(cell.getCoordinate());
 	}
-    }
-
-    // ************** DEBUG
-    @SuppressWarnings("unused")
-    private void dumpIndexes() {
-	System.out.println("coordinates");
-	System.out.println("-----------");
-	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
-	    for (int iCol = 0; iCol < row.size(); iCol++) {
-		CellValue<? extends Comparable<?>> cell = row.get(iCol);
-
-		Coordinate c = cell.getCoordinate();
-		int rowSpan = cell.getRowSpan();
-
-		System.out.print(c.toString());
-		System.out.print("-S" + rowSpan + " ");
-	    }
-	    System.out.print("\n");
-	}
-
-	System.out.println();
-	System.out.println("htmlToDataMap");
-	System.out.println("-------------");
-	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
-	    for (int iCol = 0; iCol < row.size(); iCol++) {
-		CellValue<? extends Comparable<?>> cell = row.get(iCol);
-
-		Coordinate c = cell.getPhysicalCoordinate();
-		int rowSpan = cell.getRowSpan();
-
-		System.out.print(c.toString());
-		System.out.print("-S" + rowSpan + " ");
-	    }
-	    System.out.print("\n");
-	}
-
-	System.out.println();
-	System.out.println("dataToHtmlMap");
-	System.out.println("-------------");
-	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
-	    for (int iCol = 0; iCol < row.size(); iCol++) {
-		CellValue<? extends Comparable<?>> cell = row.get(iCol);
-
-		Coordinate c = cell.getHtmlCoordinate();
-		int rowSpan = cell.getRowSpan();
-
-		System.out.print(c.toString());
-		System.out.print("-S" + rowSpan + " ");
-	    }
-	    System.out.print("\n");
-	}
-
-    }
-
-    // ************** DEBUG
-    @SuppressWarnings("unused")
-    private void dumpSelections(String title) {
-	System.out.println(title);
-	System.out.println();
-	for (Coordinate c : selections) {
-	    CellValue<?> cell = data.get(c.getRow()).get(c.getCol());
-	    System.out.println(cell.getCoordinate().toString());
-	}
-	System.out.println();
     }
 
 }
