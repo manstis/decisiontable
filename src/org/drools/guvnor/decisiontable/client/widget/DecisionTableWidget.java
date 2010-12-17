@@ -336,26 +336,24 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 
 	int minRedrawRow = findMinRedrawRow(index);
-	int maxRedrawRow = findMaxRedrawRow(index) - 1;
-	if (maxRedrawRow < 0) {
-	    maxRedrawRow = 0;
-	}
+	int maxRedrawRow = findMaxRedrawRow(index) + 1;
 
 	data.remove(index);
 	assertRowCoordinates(index);
+	assertModelMerging();
 
 	// Partial redraw
 	if (!isMerged) {
 	    // Single row when not merged
-	    assertModelMerging();
 	    gridWidget.deleteRow(index);
 	} else {
 	    // Affected rows when merged
-	    assertModelMerging();
-
-	    // Find rows that need to be (re)drawn
 	    gridWidget.deleteRow(index);
+	    if (maxRedrawRow > data.size() - 1) {
+		maxRedrawRow = data.size() - 1;
+	    }
 	    if (data.size() > 0) {
+		// gridWidget.redraw();
 		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	    }
 	}
@@ -372,10 +370,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	if (index < 0) {
 	    throw new IllegalArgumentException(
 		    "Row number cannot be less than zero.");
-	}
-	if (index > data.size() - 1) {
-	    throw new IllegalArgumentException(
-		    "Row number cannot be greater than the number of rows.");
 	}
 
 	// Find rows that need to be (re)drawn
@@ -544,27 +538,32 @@ public abstract class DecisionTableWidget extends Composite implements
     private void assertModelMerging(int minRowIndex, int maxRowIndex) {
 
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    for (int iRow = minRowIndex; iRow < maxRowIndex; iRow++) {
+	    for (int iRow = minRowIndex; iRow <= maxRowIndex; iRow++) {
 
 		int rowSpan = 1;
 		CellValue<?> cell1 = data.get(iRow).get(iCol);
-		CellValue<?> cell2 = data.get(iRow + rowSpan).get(iCol);
+		if (iRow + rowSpan < data.size()) {
 
-		// Don't merge empty cells
-		if (isMerged && !cell1.isEmpty()) {
-		    while (cell1.getValue().equals(cell2.getValue())
-			    && iRow + rowSpan < maxRowIndex) {
-			cell2.setRowSpan(0);
-			rowSpan++;
-			cell2 = data.get(iRow + rowSpan).get(iCol);
+		    CellValue<?> cell2 = data.get(iRow + rowSpan).get(iCol);
+
+		    // Don't merge empty cells
+		    if (isMerged && !cell1.isEmpty()) {
+			while (cell1.getValue().equals(cell2.getValue())
+				&& iRow + rowSpan < maxRowIndex) {
+			    cell2.setRowSpan(0);
+			    rowSpan++;
+			    cell2 = data.get(iRow + rowSpan).get(iCol);
+			}
+			if (cell1.getValue().equals(cell2.getValue())) {
+			    cell2.setRowSpan(0);
+			    rowSpan++;
+			}
 		    }
-		    if (cell1.getValue().equals(cell2.getValue())) {
-			cell2.setRowSpan(0);
-			rowSpan++;
-		    }
+		    cell1.setRowSpan(rowSpan);
+		    iRow = iRow + rowSpan - 1;
+		} else {
+		    cell1.setRowSpan(rowSpan);
 		}
-		cell1.setRowSpan(rowSpan);
-		iRow = iRow + rowSpan - 1;
 	    }
 	}
 
@@ -594,13 +593,20 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     private int findMinRedrawRow(int baseRowIndex) {
+	if (baseRowIndex < 0) {
+	    return 0;
+	}
+	if (baseRowIndex > data.size()) {
+	    return data.size() - 1;
+	}
+
 	int minRedrawRow = baseRowIndex;
 	List<CellValue<? extends Comparable<?>>> baseRow = data
 		.get(baseRowIndex);
 	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
 	    int iRow = baseRowIndex;
 	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
-	    while (cell.getRowSpan() == 0 && iRow >= 0) {
+	    while (cell.getRowSpan() != 1 && iRow > 0) {
 		iRow--;
 		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
 		cell = row.get(iCol);
@@ -611,13 +617,20 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     private int findMaxRedrawRow(int baseRowIndex) {
+	if (baseRowIndex < 0) {
+	    return 0;
+	}
+	if (baseRowIndex > data.size()) {
+	    return data.size() - 1;
+	}
+
 	int maxRedrawRow = baseRowIndex;
 	List<CellValue<? extends Comparable<?>>> baseRow = data
 		.get(baseRowIndex);
 	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
 	    int iRow = baseRowIndex;
 	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
-	    while (cell.getRowSpan() == 0 && iRow < data.size() - 1) {
+	    while (cell.getRowSpan() != 1 && iRow < data.size() - 1) {
 		iRow++;
 		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
 		cell = row.get(iCol);
