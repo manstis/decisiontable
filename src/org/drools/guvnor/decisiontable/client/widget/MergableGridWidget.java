@@ -112,7 +112,7 @@ public abstract class MergableGridWidget extends Widget {
     public void addColumn(int index, DynamicEditColumn column) {
 	columns.add(index, column);
     }
-   
+
     /**
      * Get a list of columns (Woot, CellTable lacks this!)
      * 
@@ -123,7 +123,7 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
-     * Set the data to be rendered. 
+     * Set the data to be rendered.
      * 
      * @param data
      */

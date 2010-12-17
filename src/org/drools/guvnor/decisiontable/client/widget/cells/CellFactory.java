@@ -94,8 +94,8 @@ public class CellFactory {
      *            The SelectionManager used to update cells' content
      * @return A Cell
      */
-    public DecisionTableCellValueAdaptor<? extends Comparable<?>> getCell(DTColumnConfig column,
-	    DecisionTableWidget dtable) {
+    public DecisionTableCellValueAdaptor<? extends Comparable<?>> getCell(
+	    DTColumnConfig column, DecisionTableWidget dtable) {
 
 	String[] keys = new String[3];
 
@@ -124,7 +124,8 @@ public class CellFactory {
     }
 
     // Try the keys to find a renderer in the cache
-    private DecisionTableCellValueAdaptor<? extends Comparable<?>> lookupCell(String[] keys) {
+    private DecisionTableCellValueAdaptor<? extends Comparable<?>> lookupCell(
+	    String[] keys) {
 	DecisionTableCellValueAdaptor<? extends Comparable<?>> cell = DEFAULT_CELL;
 	for (String key : keys) {
 	    if (key != null) {

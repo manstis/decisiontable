@@ -15,17 +15,17 @@ public interface CellTableResource extends ClientBundle {
     public interface CellTableStyle extends CssResource {
 
 	int rowHeight();
-	
+
 	int rowHeaderHeight();
 
 	String cellTable();
-	
+
 	String cellTableEvenRow();
 
 	String cellTableOddRow();
 
 	String cellTableCell();
-	
+
 	String cellTableCellDiv();
 
 	String headerTable();
@@ -41,21 +41,21 @@ public interface CellTableResource extends ClientBundle {
 	String headerText();
 
 	String headerWidget();
-	
+
 	String spacer();
-	
+
 	String selectorAddCell();
-	
+
 	String selectorDeleteCell();
 
 	String selectorControl();
-	
+
 	String selectorAddImage();
 
 	String selectorDeleteImage();
-	
+
 	String selectorToggle();
-	
+
     };
 
     @Source("downArrow.png")

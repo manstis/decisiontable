@@ -54,7 +54,8 @@ public class CellValueFactory {
 	BOOLEAN() {
 	    @Override
 	    public CellValue<Boolean> getNewCellValue(int iRow, int iCol) {
-		CellValue<Boolean> cv = new CellValue<Boolean>(Boolean.TRUE, iRow, iCol);
+		CellValue<Boolean> cv = new CellValue<Boolean>(Boolean.TRUE,
+			iRow, iCol);
 		return cv;
 	    }
 

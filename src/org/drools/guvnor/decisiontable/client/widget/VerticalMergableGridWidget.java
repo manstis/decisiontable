@@ -66,7 +66,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	tbody = nbody;
 
     }
-    
+
     @Override
     public void redrawRows(int startRedrawRow, int endRedrawRow) {
 	if (startRedrawRow < 0) {

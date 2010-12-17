@@ -128,9 +128,9 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	// Partial redraw
 	assertModelMerging();
-	int baseRowIndex=this.selections.first().getRow();
-	int minRedrawRow=findMinRedrawRow(baseRowIndex);
-	int maxRedrawRow=findMaxRedrawRow(baseRowIndex);
+	int baseRowIndex = this.selections.first().getRow();
+	int minRedrawRow = findMinRedrawRow(baseRowIndex);
+	int maxRedrawRow = findMaxRedrawRow(baseRowIndex);
 	gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
     }
 
@@ -290,7 +290,7 @@ public abstract class DecisionTableWidget extends Composite implements
      */
     public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
 
-	//Add column to data
+	// Add column to data
 	for (int iRow = 0; iRow < data.size(); iRow++) {
 	    CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
 		    modelColumn, iRow, index);
@@ -298,7 +298,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	assertColumnCoordinates(index);
 
-	//Add column to grid
+	// Add column to grid
 	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
 		cellFactory.getCell(modelColumn, this), index);
 	gridWidget.addColumn(index, column);
@@ -337,9 +337,6 @@ public abstract class DecisionTableWidget extends Composite implements
 		    "Row number cannot be greater than the number of rows.");
 	}
 
-	int minRedrawRow = findMinRedrawRow(index);
-	int maxRedrawRow = findMaxRedrawRow(index) + 1;
-
 	data.remove(index);
 	assertRowCoordinates(index);
 
@@ -350,11 +347,14 @@ public abstract class DecisionTableWidget extends Composite implements
 	} else {
 	    // Affected rows when merged
 	    gridWidget.deleteRow(index);
-	    if (maxRedrawRow > data.size() - 1) {
-		maxRedrawRow = data.size() - 1;
-	    }
+
 	    if (data.size() > 0) {
-		assertModelMerging(minRedrawRow, maxRedrawRow);
+		assertModelMerging();
+		int minRedrawRow = findMinRedrawRow(index - 1);
+		int maxRedrawRow = findMaxRedrawRow(index - 1) + 1;
+		if (maxRedrawRow > data.size() - 1) {
+		    maxRedrawRow = data.size() - 1;
+		}
 		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	    }
 	}
@@ -381,7 +381,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	    maxRedrawRow = findMaxRedrawRow(index) + 1;
 	}
 
-	//Add row to data
+	// Add row to data
 	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
