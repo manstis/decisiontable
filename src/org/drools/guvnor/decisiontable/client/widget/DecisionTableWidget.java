@@ -45,6 +45,20 @@ public abstract class DecisionTableWidget extends Composite implements
     protected DynamicData data;
     protected GuidedDecisionTable model;
 
+    // Selections store the actual grid data selected (irrespective of
+    // merged cells). So a merged cell spanning 2 rows is stored as 2
+    // selections. Selections are ordered by row number so we can
+    // iterate top to bottom.
+    private TreeSet<Coordinate> selections = new TreeSet<Coordinate>(
+	    new Comparator<Coordinate>() {
+
+		@Override
+		public int compare(Coordinate o1, Coordinate o2) {
+		    return o1.getRow() - o2.getRow();
+		}
+
+	    });
+
     /**
      * Construct at empty Decision Table
      */
@@ -67,51 +81,31 @@ public abstract class DecisionTableWidget extends Composite implements
 	initWidget(mainPanel);
     }
 
-    public List<DynamicEditColumn> getColumns() {
-	return gridWidget.getColumns();
+    /**
+     * Add a new column to the right of the table
+     * 
+     * @param title
+     *            A title for the column
+     */
+    public void addColumn(DTColumnConfig modelColumn) {
+	int index = 0;
+	if (modelColumn instanceof MetadataCol) {
+	    index = findMetadataColumnIndex();
+	} else if (modelColumn instanceof AttributeCol) {
+	    index = findAttributeColumnIndex();
+	} else if (modelColumn instanceof ConditionCol) {
+	    index = findConditionColumnIndex();
+	} else if (modelColumn instanceof ActionCol) {
+	    index = findActionColumnIndex();
+	}
+	insertColumnBefore(modelColumn, index);
     }
-
-    @Override
-    public void setHeight(String height) {
-	super.setHeight(height);
-	mainPanel.setHeight(height);
-	scrollPanel.setHeight(height);
-	sidebarWidget.setHeight(height);
-    }
-
-    @Override
-    public void setWidth(String width) {
-	super.setWidth(width);
-	mainPanel.setWidth(width);
-	scrollPanel.setWidth(width);
-	headerWidget.setWidth(width);
-    }
-
-    // Selections store the actual grid data selected (irrespective of
-    // merged cells). So a merged cell spanning 2 rows is stored as 2
-    // selections. Selections are ordered by row number so we can
-    // iterate top to bottom.
-    private TreeSet<Coordinate> selections = new TreeSet<Coordinate>(
-	    new Comparator<Coordinate>() {
-
-		@Override
-		public int compare(Coordinate o1, Coordinate o2) {
-		    return o1.getRow() - o2.getRow();
-		}
-
-	    });
 
     /**
-     * Select a single cell. If the cell is merged the selection is extended to
-     * include all merged cells.
-     * 
-     * @param start
-     *            The physical coordinate of the cell
+     * Add a new row to the bottom of the table
      */
-    public void startSelecting(Coordinate start) {
-	clearSelection();
-	CellValue<?> startCell = data.get(start);
-	extendSelection(startCell.getCoordinate());
+    public void addRow() {
+	insertRowBefore(data.size());
     }
 
     /**
@@ -121,17 +115,133 @@ public abstract class DecisionTableWidget extends Composite implements
 	selections.clear();
     }
 
-    @Override
-    public void update(Object value) {
-	for (Coordinate c : this.selections) {
-	    data.set(c, value);
+    /**
+     * Delete a row at the specified index.
+     * 
+     * @param index
+     */
+    public void deleteRow(int index) {
+	if (index < 0) {
+	    throw new IllegalArgumentException(
+		    "Row number cannot be less than zero.");
 	}
+	if (index > data.size() - 1) {
+	    throw new IllegalArgumentException(
+		    "Row number cannot be greater than the number of rows.");
+	}
+
+	data.remove(index);
+	assertRowCoordinates(index);
+
 	// Partial redraw
-	assertModelMerging();
-	int baseRowIndex = this.selections.first().getRow();
-	int minRedrawRow = findMinRedrawRow(baseRowIndex);
-	int maxRedrawRow = findMaxRedrawRow(baseRowIndex);
-	gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
+	if (!isMerged) {
+	    // Single row when not merged
+	    gridWidget.deleteRow(index);
+	} else {
+	    // Affected rows when merged
+	    gridWidget.deleteRow(index);
+
+	    if (data.size() > 0) {
+		assertModelMerging();
+		int minRedrawRow = findMinRedrawRow(index - 1);
+		int maxRedrawRow = findMaxRedrawRow(index - 1) + 1;
+		if (maxRedrawRow > data.size() - 1) {
+		    maxRedrawRow = data.size() - 1;
+		}
+		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
+	    }
+	}
+	assertDimensions();
+    }
+
+    public List<DynamicEditColumn> getColumns() {
+	return gridWidget.getColumns();
+    }
+
+    /**
+     * Insert a new column at the specified index.
+     * 
+     * @param title
+     *            A title for the column
+     * 
+     * @param index
+     *            The (zero-based) index of the column
+     */
+    public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
+
+	// Add column to data
+	for (int iRow = 0; iRow < data.size(); iRow++) {
+	    CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
+		    modelColumn, iRow, index);
+	    data.get(iRow).add(index, cell);
+	}
+	assertColumnCoordinates(index);
+
+	// Add column to grid
+	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
+		cellFactory.getCell(modelColumn, this), index);
+	gridWidget.addColumn(index, column);
+
+	// Re-index columns
+	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
+	    DynamicEditColumn col = gridWidget.getColumns().get(iCol);
+	    col.setColumnIndex(iCol);
+	}
+
+	gridWidget.redrawColumns(index);
+
+	assertDimensions();
+    }
+
+    /**
+     * Insert a new row at the specified index.
+     * 
+     * @param index
+     *            The (zero-based) index of the row
+     */
+    public void insertRowBefore(int index) {
+	if (index < 0) {
+	    throw new IllegalArgumentException(
+		    "Row index cannot be less than zero.");
+	}
+	if (index > data.size()) {
+	    throw new IllegalArgumentException(
+		    "Row index cannot exceed size of table.");
+	}
+
+	// Find rows that need to be (re)drawn
+	int minRedrawRow = index;
+	int maxRedrawRow = index;
+	if (index < data.size()) {
+	    minRedrawRow = findMinRedrawRow(index);
+	    maxRedrawRow = findMaxRedrawRow(index) + 1;
+	}
+
+	// Add row to data
+	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
+	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
+	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
+		    .getModelColumn();
+	    CellValue<? extends Comparable<?>> data = CellValueFactory
+		    .getInstance().makeCellValue(column, index, iCol);
+	    row.add(data);
+	}
+	data.add(index, row);
+	assertRowCoordinates(index);
+
+	// Partial redraw
+	if (!isMerged) {
+	    // Only new row when not merged
+	    gridWidget.insertRowBefore(index);
+	} else {
+	    // Affected rows when merged
+	    assertModelMerging();
+
+	    // This row is overwritten by the call to redrawRows()
+	    gridWidget.insertRowBefore(index);
+	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
+	}
+	assertDimensions();
     }
 
     /**
@@ -208,208 +318,94 @@ public abstract class DecisionTableWidget extends Composite implements
 
     }
 
-    /**
-     * Add a new column to the right of the table
-     * 
-     * @param title
-     *            A title for the column
-     */
-    public void addColumn(DTColumnConfig modelColumn) {
-	int index = 0;
-	if (modelColumn instanceof MetadataCol) {
-	    index = findMetadataColumnIndex();
-	} else if (modelColumn instanceof AttributeCol) {
-	    index = findAttributeColumnIndex();
-	} else if (modelColumn instanceof ConditionCol) {
-	    index = findConditionColumnIndex();
-	} else if (modelColumn instanceof ActionCol) {
-	    index = findActionColumnIndex();
-	}
-	insertColumnBefore(modelColumn, index);
+    @Override
+    public void setHeight(String height) {
+	super.setHeight(height);
+	mainPanel.setHeight(height);
+	scrollPanel.setHeight(height);
+	sidebarWidget.setHeight(height);
     }
 
-    // Find the right-most index for a Metadata column
-    private int findMetadataColumnIndex() {
+    @Override
+    public void setWidth(String width) {
+	super.setWidth(width);
+	mainPanel.setWidth(width);
+	scrollPanel.setWidth(width);
+	headerWidget.setWidth(width);
+    }
+
+    public void sort() {
+	final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[gridWidget
+		.getColumns().size()];
 	int index = 0;
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    if (column instanceof MetadataCol) {
-		index = iCol;
+	for (DynamicEditColumn column : gridWidget.getColumns()) {
+	    int sortIndex = column.getSortIndex();
+	    if (sortIndex != -1) {
+		sortOrderList[sortIndex] = column;
+		index++;
 	    }
 	}
-	return index + 1;
-    }
+	final int sortedColumnCount = index;
 
-    // Find the right-most index for a Attribute column
-    private int findAttributeColumnIndex() {
-	int index = 0;
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    if (column instanceof MetadataCol) {
-		index = iCol;
-	    } else if (column instanceof AttributeCol) {
-		index = iCol;
-	    }
-	}
-	return index + 1;
-    }
+	Collections.sort(data,
+		new Comparator<List<CellValue<? extends Comparable<?>>>>() {
 
-    // Find the right-most index for a Condition column
-    private int findConditionColumnIndex() {
-	int index = 0;
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    if (column instanceof MetadataCol) {
-		index = iCol;
-	    } else if (column instanceof AttributeCol) {
-		index = iCol;
-	    } else if (column instanceof ConditionCol) {
-		index = iCol;
-	    }
-	}
-	return index + 1;
-    }
+		    @SuppressWarnings({ "rawtypes", "unchecked" })
+		    public int compare(
+			    List<CellValue<? extends Comparable<?>>> leftRow,
+			    List<CellValue<? extends Comparable<?>>> rightRow) {
+			int comparison = 0;
+			for (int index = 0; index < sortedColumnCount; index++) {
+			    DynamicEditColumn sortableHeader = sortOrderList[index];
+			    Comparable leftColumnValue = leftRow
+				    .get(sortableHeader.getColumnIndex());
+			    Comparable rightColumnValue = rightRow
+				    .get(sortableHeader.getColumnIndex());
+			    comparison = (leftColumnValue == rightColumnValue) ? 0
+				    : (leftColumnValue == null) ? -1
+					    : (rightColumnValue == null) ? 1
+						    : leftColumnValue
+							    .compareTo(rightColumnValue);
+			    if (comparison != 0) {
+				switch (sortableHeader.getSortDirection()) {
+				case ASCENDING:
+				    break;
+				case DESCENDING:
+				    comparison = -comparison;
+				    break;
+				default:
+				    throw new IllegalStateException(
+					    "Sorting can only be enabled for ASCENDING or"
+						    + " DESCENDING, not sortDirection ("
+						    + sortableHeader
+							    .getSortDirection()
+						    + ") .");
+				}
+				return comparison;
+			    }
+			}
+			return comparison;
+		    }
+		});
 
-    // Find the right-most index for an Action column
-    private int findActionColumnIndex() {
-	int index = gridWidget.getColumns().size();
-	return index;
-    }
-
-    /**
-     * Insert a new column at the specified index.
-     * 
-     * @param title
-     *            A title for the column
-     * 
-     * @param index
-     *            The (zero-based) index of the column
-     */
-    public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
-
-	// Add column to data
-	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
-		    modelColumn, iRow, index);
-	    data.get(iRow).add(index, cell);
-	}
-	assertColumnCoordinates(index);
-
-	// Add column to grid
-	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
-		cellFactory.getCell(modelColumn, this), index);
-	gridWidget.addColumn(index, column);
-
-	// Re-index columns
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DynamicEditColumn col = gridWidget.getColumns().get(iCol);
-	    col.setColumnIndex(iCol);
-	}
-
+	removeModelMerging();
+	assertModelMerging();
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
 
-	assertDimensions();
     }
 
     /**
-     * Add a new row to the bottom of the table
-     */
-    public void addRow() {
-	insertRowBefore(data.size());
-    }
-
-    /**
-     * Delete a row at the specified index.
+     * Select a single cell. If the cell is merged the selection is extended to
+     * include all merged cells.
      * 
-     * @param index
+     * @param start
+     *            The physical coordinate of the cell
      */
-    public void deleteRow(int index) {
-	if (index < 0) {
-	    throw new IllegalArgumentException(
-		    "Row number cannot be less than zero.");
-	}
-	if (index > data.size() - 1) {
-	    throw new IllegalArgumentException(
-		    "Row number cannot be greater than the number of rows.");
-	}
-
-	data.remove(index);
-	assertRowCoordinates(index);
-
-	// Partial redraw
-	if (!isMerged) {
-	    // Single row when not merged
-	    gridWidget.deleteRow(index);
-	} else {
-	    // Affected rows when merged
-	    gridWidget.deleteRow(index);
-
-	    if (data.size() > 0) {
-		assertModelMerging();
-		int minRedrawRow = findMinRedrawRow(index - 1);
-		int maxRedrawRow = findMaxRedrawRow(index - 1) + 1;
-		if (maxRedrawRow > data.size() - 1) {
-		    maxRedrawRow = data.size() - 1;
-		}
-		gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
-	    }
-	}
-	assertDimensions();
-    }
-
-    /**
-     * Insert a new row at the specified index.
-     * 
-     * @param index
-     *            The (zero-based) index of the row
-     */
-    public void insertRowBefore(int index) {
-	if (index < 0) {
-	    throw new IllegalArgumentException(
-		    "Row index cannot be less than zero.");
-	}
-	if (index > data.size()) {
-	    throw new IllegalArgumentException(
-		    "Row index cannot exceed size of table.");
-	}
-
-	// Find rows that need to be (re)drawn
-	int minRedrawRow = index;
-	int maxRedrawRow = index;
-	if (index < data.size()) {
-	    minRedrawRow = findMinRedrawRow(index);
-	    maxRedrawRow = findMaxRedrawRow(index) + 1;
-	}
-
-	// Add row to data
-	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    CellValue<? extends Comparable<?>> data = CellValueFactory
-		    .getInstance().makeCellValue(column, index, iCol);
-	    row.add(data);
-	}
-	data.add(index, row);
-	assertRowCoordinates(index);
-
-	// Partial redraw
-	if (!isMerged) {
-	    // Only new row when not merged
-	    gridWidget.insertRowBefore(index);
-	} else {
-	    // Affected rows when merged
-	    assertModelMerging();
-
-	    // This row is overwritten by the call to redrawRows()
-	    gridWidget.insertRowBefore(index);
-	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
-	}
-	assertDimensions();
+    public void startSelecting(Coordinate start) {
+	clearSelection();
+	CellValue<?> startCell = data.get(start);
+	extendSelection(startCell.getCoordinate());
     }
 
     /**
@@ -430,57 +426,66 @@ public abstract class DecisionTableWidget extends Composite implements
 	return isMerged;
     }
 
-    // Ensure Coordinates are the extents of merged cell
-    private void extendSelection(Coordinate coordinate) {
-	CellValue<?> startCell = data.get(coordinate);
-	CellValue<?> endCell = startCell;
-	while (startCell.getRowSpan() == 0) {
-	    startCell = data.get(startCell.getCoordinate().getRow() - 1).get(
-		    startCell.getCoordinate().getCol());
+    @Override
+    public void update(Object value) {
+	for (Coordinate c : this.selections) {
+	    data.set(c, value);
 	}
-
-	if (startCell.getRowSpan() > 1) {
-	    endCell = data
-		    .get(endCell.getCoordinate().getRow()
-			    + endCell.getRowSpan() - 1).get(
-			    endCell.getCoordinate().getCol());
-	}
-	selectRange(startCell, endCell);
+	// Partial redraw
+	assertModelMerging();
+	int baseRowIndex = this.selections.first().getRow();
+	int minRedrawRow = findMinRedrawRow(baseRowIndex);
+	int maxRedrawRow = findMaxRedrawRow(baseRowIndex);
+	gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
     }
 
-    // Select a range of cells between the two coordinates.
-    private void selectRange(CellValue<?> startCell, CellValue<?> endCell) {
-	int col = startCell.getCoordinate().getCol();
-	for (int iRow = startCell.getCoordinate().getRow(); iRow <= endCell
-		.getCoordinate().getRow(); iRow++) {
-	    CellValue<?> cell = data.get(iRow).get(col);
-	    selections.add(cell.getCoordinate());
-	}
-    }
+    /**
+     * Gets the Widgets inner panel to which the DecisionTable and Header will
+     * be added. This allows subclasses to have some control over the internal
+     * layout of the Decision Table.
+     * 
+     * @return
+     */
+    protected abstract Panel getBodyPanel();
 
-    // The DecisionTableHeaderWidget and DecisionTableSidebarWidget need to be
-    // resized when MergableGridWidget has scrollbars
-    private void assertDimensions() {
-	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
-	headerWidget.redraw();
-	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
-		+ "px");
-    }
+    /**
+     * Gets the Widget responsible for rendering the DecisionTables "grid".
+     * 
+     * @return
+     */
+    protected abstract MergableGridWidget getGridWidget();
 
-    // Ensure cells in rows have correct physical coordinates
-    private void assertRowCoordinates(int index) {
-	for (int iRow = index; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
-	    for (int iCol = 0; iCol < row.size(); iCol++) {
-		CellValue<? extends Comparable<?>> cell = data.get(iRow).get(
-			iCol);
-		Coordinate c = new Coordinate(iRow, iCol);
-		cell.setCoordinate(c);
-		cell.setHtmlCoordinate(c);
-		cell.setPhysicalCoordinate(c);
-	    }
-	}
-    }
+    /**
+     * Gets the Widget responsible for rendering the DecisionTables "header".
+     * 
+     * @return
+     */
+    protected abstract DecisionTableHeaderWidget getHeaderWidget();
+
+    /**
+     * Gets the Widget's outer most panel to which other content will be added.
+     * This allows subclasses to have some control over the general layout of
+     * the Decision Table.
+     * 
+     * @return
+     */
+    protected abstract Panel getMainPanel();
+
+    /**
+     * The DecisionTable is nested inside a ScrollPanel. This allows
+     * ScrollEvents to be hooked up to other defendant controls (e.g. the
+     * Header).
+     * 
+     * @return
+     */
+    protected abstract ScrollHandler getScrollHandler();
+
+    /**
+     * Gets the Widget responsible for rendering the DecisionTables "side-bar".
+     * 
+     * @return
+     */
+    protected abstract DecisionTableSidebarWidget getSidebarWidget();
 
     // Ensure cells in columns have correct physical coordinates
     private void assertColumnCoordinates(int index) {
@@ -495,6 +500,15 @@ public abstract class DecisionTableWidget extends Composite implements
 		cell.setPhysicalCoordinate(c);
 	    }
 	}
+    }
+
+    // The DecisionTableHeaderWidget and DecisionTableSidebarWidget need to be
+    // resized when MergableGridWidget has scrollbars
+    private void assertDimensions() {
+	headerWidget.setWidth(scrollPanel.getElement().getClientWidth() + "px");
+	headerWidget.redraw();
+	sidebarWidget.setHeight(scrollPanel.getElement().getClientHeight()
+		+ "px");
     }
 
     // Here lays a can of worms! Each cell in the Decision Table
@@ -582,47 +596,75 @@ public abstract class DecisionTableWidget extends Composite implements
 
     }
 
-    // Remove merging from model
-    private void removeModelMerging() {
-
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    for (int iRow = 0; iRow < data.size(); iRow++) {
-		CellValue<?> cell = data.get(iRow).get(iCol);
+    // Ensure cells in rows have correct physical coordinates
+    private void assertRowCoordinates(int index) {
+	for (int iRow = index; iRow < data.size(); iRow++) {
+	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    for (int iCol = 0; iCol < row.size(); iCol++) {
+		CellValue<? extends Comparable<?>> cell = data.get(iRow).get(
+			iCol);
 		Coordinate c = new Coordinate(iRow, iCol);
 		cell.setCoordinate(c);
 		cell.setHtmlCoordinate(c);
 		cell.setPhysicalCoordinate(c);
-		cell.setRowSpan(1);
 	    }
 	}
-
-	// Set indexes after merging has been corrected
-	// TODO Could this be incorporated into here?
-	assertModelIndexes();
     }
 
-    private int findMinRedrawRow(int baseRowIndex) {
-	if (baseRowIndex < 0) {
-	    return 0;
-	}
-	if (baseRowIndex > data.size()) {
-	    return data.size() - 1;
+    // Ensure Coordinates are the extents of merged cell
+    private void extendSelection(Coordinate coordinate) {
+	CellValue<?> startCell = data.get(coordinate);
+	CellValue<?> endCell = startCell;
+	while (startCell.getRowSpan() == 0) {
+	    startCell = data.get(startCell.getCoordinate().getRow() - 1).get(
+		    startCell.getCoordinate().getCol());
 	}
 
-	int minRedrawRow = baseRowIndex;
-	List<CellValue<? extends Comparable<?>>> baseRow = data
-		.get(baseRowIndex);
-	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
-	    int iRow = baseRowIndex;
-	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
-	    while (cell.getRowSpan() != 1 && iRow > 0) {
-		iRow--;
-		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
-		cell = row.get(iCol);
-	    }
-	    minRedrawRow = (iRow < minRedrawRow ? iRow : minRedrawRow);
+	if (startCell.getRowSpan() > 1) {
+	    endCell = data
+		    .get(endCell.getCoordinate().getRow()
+			    + endCell.getRowSpan() - 1).get(
+			    endCell.getCoordinate().getCol());
 	}
-	return minRedrawRow;
+	selectRange(startCell, endCell);
+    }
+
+    // Find the right-most index for an Action column
+    private int findActionColumnIndex() {
+	int index = gridWidget.getColumns().size();
+	return index;
+    }
+
+    // Find the right-most index for a Attribute column
+    private int findAttributeColumnIndex() {
+	int index = 0;
+	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
+	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
+		    .getModelColumn();
+	    if (column instanceof MetadataCol) {
+		index = iCol;
+	    } else if (column instanceof AttributeCol) {
+		index = iCol;
+	    }
+	}
+	return index + 1;
+    }
+
+    // Find the right-most index for a Condition column
+    private int findConditionColumnIndex() {
+	int index = 0;
+	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
+	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
+		    .getModelColumn();
+	    if (column instanceof MetadataCol) {
+		index = iCol;
+	    } else if (column instanceof AttributeCol) {
+		index = iCol;
+	    } else if (column instanceof ConditionCol) {
+		index = iCol;
+	    }
+	}
+	return index + 1;
     }
 
     private int findMaxRedrawRow(int baseRowIndex) {
@@ -649,117 +691,73 @@ public abstract class DecisionTableWidget extends Composite implements
 	return maxRedrawRow;
     }
 
-    public void sort() {
-	final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[gridWidget
-		.getColumns().size()];
+    // Find the right-most index for a Metadata column
+    private int findMetadataColumnIndex() {
 	int index = 0;
-	for (DynamicEditColumn column : gridWidget.getColumns()) {
-	    int sortIndex = column.getSortIndex();
-	    if (sortIndex != -1) {
-		sortOrderList[sortIndex] = column;
-		index++;
+	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
+	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
+		    .getModelColumn();
+	    if (column instanceof MetadataCol) {
+		index = iCol;
 	    }
 	}
-	final int sortedColumnCount = index;
-
-	Collections.sort(data,
-		new Comparator<List<CellValue<? extends Comparable<?>>>>() {
-
-		    @SuppressWarnings({ "rawtypes", "unchecked" })
-		    public int compare(
-			    List<CellValue<? extends Comparable<?>>> leftRow,
-			    List<CellValue<? extends Comparable<?>>> rightRow) {
-			int comparison = 0;
-			for (int index = 0; index < sortedColumnCount; index++) {
-			    DynamicEditColumn sortableHeader = sortOrderList[index];
-			    Comparable leftColumnValue = leftRow
-				    .get(sortableHeader.getColumnIndex());
-			    Comparable rightColumnValue = rightRow
-				    .get(sortableHeader.getColumnIndex());
-			    comparison = (leftColumnValue == rightColumnValue) ? 0
-				    : (leftColumnValue == null) ? -1
-					    : (rightColumnValue == null) ? 1
-						    : leftColumnValue
-							    .compareTo(rightColumnValue);
-			    if (comparison != 0) {
-				switch (sortableHeader.getSortDirection()) {
-				case ASCENDING:
-				    break;
-				case DESCENDING:
-				    comparison = -comparison;
-				    break;
-				default:
-				    throw new IllegalStateException(
-					    "Sorting can only be enabled for ASCENDING or"
-						    + " DESCENDING, not sortDirection ("
-						    + sortableHeader
-							    .getSortDirection()
-						    + ") .");
-				}
-				return comparison;
-			    }
-			}
-			return comparison;
-		    }
-		});
-
-	removeModelMerging();
-	assertModelMerging();
-	gridWidget.setRowData(data);
-	gridWidget.redraw();
-
+	return index + 1;
     }
 
-    /**
-     * Gets the Widget's outer most panel to which other content will be added.
-     * This allows subclasses to have some control over the general layout of
-     * the Decision Table.
-     * 
-     * @return
-     */
-    protected abstract Panel getMainPanel();
+    private int findMinRedrawRow(int baseRowIndex) {
+	if (baseRowIndex < 0) {
+	    return 0;
+	}
+	if (baseRowIndex > data.size()) {
+	    return data.size() - 1;
+	}
 
-    /**
-     * Gets the Widgets inner panel to which the DecisionTable and Header will
-     * be added. This allows subclasses to have some control over the internal
-     * layout of the Decision Table.
-     * 
-     * @return
-     */
-    protected abstract Panel getBodyPanel();
+	int minRedrawRow = baseRowIndex;
+	List<CellValue<? extends Comparable<?>>> baseRow = data
+		.get(baseRowIndex);
+	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
+	    int iRow = baseRowIndex;
+	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
+	    while (cell.getRowSpan() != 1 && iRow > 0) {
+		iRow--;
+		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+		cell = row.get(iCol);
+	    }
+	    minRedrawRow = (iRow < minRedrawRow ? iRow : minRedrawRow);
+	}
+	return minRedrawRow;
+    }
 
-    /**
-     * Gets the Widget responsible for rendering the DecisionTables "grid".
-     * 
-     * @return
-     */
-    protected abstract MergableGridWidget getGridWidget();
+    // Remove merging from model
+    private void removeModelMerging() {
 
-    /**
-     * Gets the Widget responsible for rendering the DecisionTables "header".
-     * 
-     * @return
-     */
-    protected abstract DecisionTableHeaderWidget getHeaderWidget();
+	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
+	    for (int iRow = 0; iRow < data.size(); iRow++) {
+		CellValue<?> cell = data.get(iRow).get(iCol);
+		Coordinate c = new Coordinate(iRow, iCol);
+		cell.setCoordinate(c);
+		cell.setHtmlCoordinate(c);
+		cell.setPhysicalCoordinate(c);
+		cell.setRowSpan(1);
+	    }
+	}
 
-    /**
-     * Gets the Widget responsible for rendering the DecisionTables "side-bar".
-     * 
-     * @return
-     */
-    protected abstract DecisionTableSidebarWidget getSidebarWidget();
+	// Set indexes after merging has been corrected
+	// TODO Could this be incorporated into here?
+	assertModelIndexes();
+    }
 
-    /**
-     * The DecisionTable is nested inside a ScrollPanel. This allows
-     * ScrollEvents to be hooked up to other defendant controls (e.g. the
-     * Header).
-     * 
-     * @return
-     */
-    protected abstract ScrollHandler getScrollHandler();
+    // Select a range of cells between the two coordinates.
+    private void selectRange(CellValue<?> startCell, CellValue<?> endCell) {
+	int col = startCell.getCoordinate().getCol();
+	for (int iRow = startCell.getCoordinate().getRow(); iRow <= endCell
+		.getCoordinate().getRow(); iRow++) {
+	    CellValue<?> cell = data.get(iRow).get(col);
+	    selections.add(cell.getCoordinate());
+	}
+    }
 
     // ************** DEBUG
-
     @SuppressWarnings("unused")
     private void dumpIndexes() {
 	System.out.println("coordinates");
@@ -814,6 +812,7 @@ public abstract class DecisionTableWidget extends Composite implements
 
     }
 
+    // ************** DEBUG
     @SuppressWarnings("unused")
     private void dumpSelections(String title) {
 	System.out.println(title);

@@ -79,22 +79,6 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
-     * Delete all columns
-     */
-    public void removeAllColumns() {
-	columns.clear();
-    }
-
-    /**
-     * Remove a column at a specific index
-     * 
-     * @param index
-     */
-    public void removeColumn(int index) {
-	columns.remove(index);
-    };
-
-    /**
      * Add a column at the end of the list of columns
      * 
      * @param column
@@ -111,7 +95,14 @@ public abstract class MergableGridWidget extends Widget {
      */
     public void addColumn(int index, DynamicEditColumn column) {
 	columns.add(index, column);
-    }
+    };
+
+    /**
+     * Delete the row at the given index. Partial redraw.
+     * 
+     * @param index
+     */
+    public abstract void deleteRow(int index);
 
     /**
      * Get a list of columns (Woot, CellTable lacks this!)
@@ -123,42 +114,11 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
-     * Set the data to be rendered.
-     * 
-     * @param data
-     */
-    public void setRowData(List<List<CellValue<? extends Comparable<?>>>> data) {
-	this.data = data;
-    }
-
-    /**
      * Insert the given row before the provided index. Partial redraw.
      * 
      * @param index
      */
     public abstract void insertRowBefore(int index);
-
-    /**
-     * Delete the row at the given index. Partial redraw.
-     * 
-     * @param index
-     */
-    public abstract void deleteRow(int index);
-
-    /**
-     * Redraw the whole table
-     */
-    public abstract void redraw();
-
-    /**
-     * Redraw a section of the table. Partial redraw
-     * 
-     * @param startRedrawRow
-     *            Start row index (inclusive)
-     * @param endRedrawRow
-     *            End row index (inclusive)
-     */
-    public abstract void redrawRows(int startRedrawRow, int endRedrawRow);
 
     /*
      * (non-Javadoc)
@@ -213,6 +173,54 @@ public abstract class MergableGridWidget extends Widget {
 	    Element parent = getCellParent(tableCell);
 	    cellWidget.onBrowserEvent(parent, physicalCell, null, event, null);
 	}
+    }
+
+    /**
+     * Redraw the whole table
+     */
+    public abstract void redraw();
+
+    /**
+     * Redraw table columns from index to the end. Partial redraw
+     * 
+     * @param startRedrawIndex
+     *            Start column index (inclusive)
+     */
+    public abstract void redrawColumns(int startRedrawIndex);
+
+    /**
+     * Redraw a section of the table. Partial redraw
+     * 
+     * @param startRedrawIndex
+     *            Start row index (inclusive)
+     * @param endRedrawIndex
+     *            End row index (inclusive)
+     */
+    public abstract void redrawRows(int startRedrawIndex, int endRedrawIndex);
+
+    /**
+     * Delete all columns
+     */
+    public void removeAllColumns() {
+	columns.clear();
+    }
+
+    /**
+     * Remove a column at a specific index
+     * 
+     * @param index
+     */
+    public void removeColumn(int index) {
+	columns.remove(index);
+    }
+    
+    /**
+     * Set the data to be rendered.
+     * 
+     * @param data
+     */
+    public void setRowData(List<List<CellValue<? extends Comparable<?>>>> data) {
+	this.data = data;
     }
 
     // Find the cell that contains the element. Note that the TD element is not
