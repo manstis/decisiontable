@@ -73,6 +73,11 @@ public abstract class DecisionTableHeaderWidget extends Composite {
     public abstract void insertColumnBefore(int index, DynamicEditColumn column);
 
     /**
+     * Redraw entire header
+     */
+    public abstract void redraw();
+
+    /**
      * Set scroll position to enable some degree of synchronisation between
      * DecisionTable and DecisionTableHeader
      * 

@@ -229,31 +229,33 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
 	// Column to render the column
 	DynamicEditColumn column = columns.get(iCol);
+	if (column.isVisible()) {
 
-	CellValue<? extends Comparable<?>> cellData = rowData.get(iCol);
-	int rowSpan = cellData.getRowSpan();
-	if (rowSpan > 0) {
+	    CellValue<? extends Comparable<?>> cellData = rowData.get(iCol);
+	    int rowSpan = cellData.getRowSpan();
+	    if (rowSpan > 0) {
 
-	    // Use Elements rather than Templates as it's easier to set
-	    // attributes that need to be dynamic
-	    tce = Document.get().createTDElement();
-	    DivElement div = Document.get().createDivElement();
-	    tce.setClassName(cellStyle);
-	    div.setClassName(divStyle);
+		// Use Elements rather than Templates as it's easier to set
+		// attributes that need to be dynamic
+		tce = Document.get().createTDElement();
+		DivElement div = Document.get().createDivElement();
+		tce.setClassName(cellStyle);
+		div.setClassName(divStyle);
 
-	    // A dynamic attribute!
-	    tce.getStyle().setHeight(style.rowHeight() * rowSpan, Unit.PX);
-	    tce.setRowSpan(rowSpan);
+		// A dynamic attribute!
+		tce.getStyle().setHeight(style.rowHeight() * rowSpan, Unit.PX);
+		tce.setRowSpan(rowSpan);
 
-	    // Render the cell and set inner HTML
-	    SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
-	    if (rowData != null) {
-		column.render(rowData, null, cellBuilder);
+		// Render the cell and set inner HTML
+		SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
+		if (rowData != null) {
+		    column.render(rowData, null, cellBuilder);
+		}
+		div.setInnerHTML(cellBuilder.toSafeHtml().asString());
+
+		// Construct the table
+		tce.appendChild(div);
 	    }
-	    div.setInnerHTML(cellBuilder.toSafeHtml().asString());
-
-	    // Construct the table
-	    tce.appendChild(div);
 	}
 	return tce;
 

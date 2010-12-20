@@ -9,6 +9,9 @@ import org.drools.ide.common.client.modeldriven.dt.MetadataCol;
 import com.google.gwt.dom.client.Style.Display;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.KeyPressEvent;
+import com.google.gwt.event.dom.client.KeyPressHandler;
+import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -129,6 +132,62 @@ public class DecisionTableControlsWidget extends Composite {
 
     }
 
+    /**
+     * Control allowing entry of numerical value and button to invoke specified
+     * Command.
+     * 
+     * @author manstis
+     * 
+     */
+    private static class NumberRequestor extends Composite {
+
+	private Panel panel = new VerticalPanel();
+	private Button btnEnter = new Button();
+	private TextBox txtNumber = new TextBox();
+
+	private NumberRequestor(final String buttonLabel) {
+	    this.btnEnter.setText(buttonLabel);
+	    this.txtNumber.setText("0");
+	    this.txtNumber.setWidth("64px");
+	    this.txtNumber.addKeyPressHandler(new KeyPressHandler() {
+
+		private final RegExp pattern = RegExp.compile("\\d+");
+
+		@Override
+		public void onKeyPress(KeyPressEvent event) {
+		    // Only numerical digits allowed
+		    if (!pattern.test(String.valueOf(event.getCharCode()))) {
+			event.preventDefault();
+		    }
+		}
+
+	    });
+	    panel.add(btnEnter);
+	    panel.add(txtNumber);
+	    initWidget(panel);
+	}
+
+	private int getValue() {
+	    String text = txtNumber.getText();
+	    if (text.equals("")) {
+		return 0;
+	    }
+	    return Integer.parseInt(text);
+	}
+
+	private void setCommand(final Command command) {
+	    this.btnEnter.addClickHandler(new ClickHandler() {
+
+		@Override
+		public void onClick(ClickEvent event) {
+		    command.execute();
+		}
+
+	    });
+	}
+
+    }
+
     private Panel panel = new HorizontalPanel();
 
     private static final String[] ATTRIBUTE_OPTIONS = { "salience", "enabled",
@@ -199,23 +258,29 @@ public class DecisionTableControlsWidget extends Composite {
 	});
 
 	// Hide column button
-	Button btnHideColumn = new Button("Hide column 2", new ClickHandler() {
+	final NumberRequestor hideColumnWidget = new NumberRequestor(
+		"Hide column:");
+	hideColumnWidget.setCommand(new Command() {
 
 	    @Override
-	    public void onClick(ClickEvent event) {
-		dtable.clearSelection();
-		dtable.hideColumn(1);
+	    public void execute() {
+		dtable.hideColumn(hideColumnWidget.getValue());
+		dtable.redraw();
 	    }
+
 	});
-	
+
 	// Show column button
-	Button btnShowColumn = new Button("Show column 2", new ClickHandler() {
+	final NumberRequestor showColumnWidget = new NumberRequestor(
+		"Show column:");
+	showColumnWidget.setCommand(new Command() {
 
 	    @Override
-	    public void onClick(ClickEvent event) {
-		dtable.clearSelection();
-		dtable.showColumn(1);
+	    public void execute() {
+		dtable.showColumn(showColumnWidget.getValue());
+		dtable.redraw();
 	    }
+
 	});
 
 	VerticalPanel vp1 = new VerticalPanel();
@@ -228,9 +293,13 @@ public class DecisionTableControlsWidget extends Composite {
 	vp2.add(factPicker);
 	panel.add(vp2);
 
+	VerticalPanel vp3 = new VerticalPanel();
+	vp3.add(hideColumnWidget);
+	vp3.add(showColumnWidget);
+	panel.add(vp3);
+
 	panel.add(btnAddRow);
-	panel.add(btnHideColumn);
-	panel.add(btnShowColumn);
+
 	initWidget(panel);
 
     }

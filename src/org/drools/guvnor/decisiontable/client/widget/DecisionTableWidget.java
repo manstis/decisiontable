@@ -116,9 +116,16 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     public void hideColumn(int index) {
+	this.gridWidget.setColumnVisibility(index, false);
     }
 
     public void showColumn(int index) {
+	this.gridWidget.setColumnVisibility(index, true);
+    }
+    
+    public void redraw() {
+	this.headerWidget.redraw();
+	this.gridWidget.redraw();	
     }
 
     /**

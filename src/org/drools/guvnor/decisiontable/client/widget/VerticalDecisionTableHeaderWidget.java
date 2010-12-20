@@ -98,8 +98,10 @@ public class VerticalDecisionTableHeaderWidget extends
 	    int offset = 0;
 	    for (int iCol = 0; iCol < index; iCol++) {
 		DynamicEditColumn column = columns.get(iCol);
-		if (!(column.getModelColumn() instanceof ConditionCol)) {
-		    offset++;
+		if (column.isVisible()) {
+		    if (column.getModelColumn() instanceof ConditionCol) {
+			offset++;
+		    }
 		}
 	    }
 	    return offset;
@@ -133,7 +135,7 @@ public class VerticalDecisionTableHeaderWidget extends
 	    return TableRowElement.as(rowElement);
 	}
 
-	// Create a two-two empty table
+	// Create a two row empty table
 	private void initialise() {
 	    if (this.tbody == null) {
 		this.tbody = Document.get().createTBodyElement();
@@ -151,34 +153,7 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	// Insert a column at the given index
 	private void insertColumnBefore(int index, DynamicEditColumn column) {
-
-	    DTColumnConfig modelColumn = column.getModelColumn();
-	    if (modelColumn instanceof MetadataCol) {
-		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
-		populateMetadataTableCellElement(tce, column);
-
-	    } else if (modelColumn instanceof AttributeCol) {
-		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
-		populateAttributeTableCellElement(tce, column);
-
-	    } else if (modelColumn instanceof ConditionCol) {
-		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
-		populateConditionFactTypeTableCellElement(tce, column);
-
-		tre = getTableRowElement(1);
-		int offset = getFactFieldColumnOffset(index);
-		tce = tre.insertCell(index - offset);
-		populateConditionFactFieldTableCellElement(tce, column);
-
-	    } else if (modelColumn instanceof ActionCol) {
-		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
-		populateActionTableCellElement(tce, column);
-
-	    }
+	    populateColumn(index, column);
 	    columns.add(index, column);
 	    reindexColumns();
 	}
@@ -224,6 +199,38 @@ public class VerticalDecisionTableHeaderWidget extends
 	    populateTableCellPrimaryElement(tce, column);
 	    setText(tce, ((AttributeCol) column.getModelColumn()).attr);
 	    tce.setRowSpan(2);
+	}
+
+	// Populate a column
+	private void populateColumn(int index, DynamicEditColumn column) {
+
+	    DTColumnConfig modelColumn = column.getModelColumn();
+	    if (modelColumn instanceof MetadataCol) {
+		TableRowElement tre = getTableRowElement(0);
+		TableCellElement tce = tre.insertCell(index);
+		populateMetadataTableCellElement(tce, column);
+
+	    } else if (modelColumn instanceof AttributeCol) {
+		TableRowElement tre = getTableRowElement(0);
+		TableCellElement tce = tre.insertCell(index);
+		populateAttributeTableCellElement(tce, column);
+
+	    } else if (modelColumn instanceof ConditionCol) {
+		TableRowElement tre = getTableRowElement(0);
+		TableCellElement tce = tre.insertCell(index);
+		populateConditionFactTypeTableCellElement(tce, column);
+
+		tre = getTableRowElement(1);
+		int offset = getFactFieldColumnOffset(index);
+		tce = tre.insertCell(offset);
+		populateConditionFactFieldTableCellElement(tce, column);
+
+	    } else if (modelColumn instanceof ActionCol) {
+		TableRowElement tre = getTableRowElement(0);
+		TableCellElement tce = tre.insertCell(index);
+		populateActionTableCellElement(tce, column);
+
+	    }
 	}
 
 	// Populate a TableCellElement for an Condition Fact Field column
@@ -285,26 +292,57 @@ public class VerticalDecisionTableHeaderWidget extends
 	    tce.appendChild(div1);
 	}
 
+	// Redraw entire header
+	private void redraw() {
+	    if (this.tbody == null) {
+		this.tbody = Document.get().createTBodyElement();
+		this.table.appendChild(this.tbody);
+	    } else {
+		TableSectionElement newBody = Document.get()
+			.createTBodyElement();
+		table.replaceChild(newBody, tbody);
+		this.tbody = newBody;
+	    }
+	    tbody.appendChild(makeTableRowElement());
+	    tbody.appendChild(makeTableRowElement());
+
+	    int visibleColumnIndex = 0;
+	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+		DynamicEditColumn column = columns.get(iCol);
+		if (column.isVisible()) {
+		    populateColumn(visibleColumnIndex, column);
+		    visibleColumnIndex++;
+		}
+	    }
+	    reindexColumns();
+	}
+
 	// When a new column is inserted the metadata containing indexing needs
 	// to be updated
 	private void reindexColumns() {
+
+	    int visibleColumnIndex = 0;
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+
 		DynamicEditColumn column = columns.get(iCol);
-
 		DTColumnConfig modelColumn = column.getModelColumn();
-		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = getTableCellElement(tre, iCol);
-		tce.setPropertyInt("row", 0);
-		tce.setPropertyInt("col", iCol);
-		if (modelColumn instanceof ConditionCol) {
-		    tre = getTableRowElement(1);
-		    int offset = getFactFieldColumnOffset(iCol);
-		    tce = getTableCellElement(tre, iCol - offset);
-		    tce.setPropertyInt("row", 1);
+
+		if (column.isVisible()) {
+
+		    TableRowElement tre = getTableRowElement(0);
+		    TableCellElement tce = getTableCellElement(tre,
+			    visibleColumnIndex);
+		    tce.setPropertyInt("row", 0);
 		    tce.setPropertyInt("col", iCol);
-
+		    if (modelColumn instanceof ConditionCol) {
+			tre = getTableRowElement(1);
+			int offset = getFactFieldColumnOffset(iCol);
+			tce = getTableCellElement(tre, offset);
+			tce.setPropertyInt("row", 1);
+			tce.setPropertyInt("col", iCol);
+		    }
+		    visibleColumnIndex++;
 		}
-
 	    }
 	}
 
@@ -327,19 +365,23 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	// Update all sort icons when a column is sorted
 	private void updateSortIcons() {
+	    int visibleColumnIndex = 0;
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn column = columns.get(iCol);
-		DTColumnConfig modelColumn = column.getModelColumn();
-		if (!(modelColumn instanceof ConditionCol)) {
-		    TableRowElement tre = getTableRowElement(0);
-		    TableCellElement tce = getTableCellElement(tre, iCol);
-		    updateSortIcon(tce, column);
-		} else {
-		    TableRowElement tre = getTableRowElement(1);
-		    int offset = getFactFieldColumnOffset(iCol);
-		    TableCellElement tce = getTableCellElement(tre, iCol
-			    - offset);
-		    updateSortIcon(tce, column);
+		if (column.isVisible()) {
+		    DTColumnConfig modelColumn = column.getModelColumn();
+		    if (!(modelColumn instanceof ConditionCol)) {
+			TableRowElement tre = getTableRowElement(0);
+			TableCellElement tce = getTableCellElement(tre,
+				visibleColumnIndex);
+			updateSortIcon(tce, column);
+		    } else {
+			TableRowElement tre = getTableRowElement(1);
+			int offset = getFactFieldColumnOffset(iCol);
+			TableCellElement tce = getTableCellElement(tre, offset);
+			updateSortIcon(tce, column);
+		    }
+		    visibleColumnIndex++;
 		}
 	    }
 	}
@@ -390,6 +432,18 @@ public class VerticalDecisionTableHeaderWidget extends
     @Override
     public void insertColumnBefore(int index, DynamicEditColumn column) {
 	widget.insertColumnBefore(index, column);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.drools.guvnor.decisiontable.client.widget.DecisionTableHeaderWidget
+     * #redraw()
+     */
+    @Override
+    public void redraw() {
+	widget.redraw();
     }
 
     /*

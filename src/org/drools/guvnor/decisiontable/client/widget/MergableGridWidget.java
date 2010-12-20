@@ -232,6 +232,25 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
+     * Change the visibility of a column
+     * 
+     * @param index
+     *            Column index
+     * @param isVisible
+     */
+    public void setColumnVisibility(int index, boolean isVisible) {
+	if (index < 0) {
+	    throw new IllegalArgumentException(
+		    "Start Column index cannot be less than zero.");
+	}
+	if (index > columns.size() - 1) {
+	    throw new IllegalArgumentException(
+		    "Start Column index cannot be greater than the number of defined columns.");
+	}
+	columns.get(index).setIsVisible(isVisible);
+    }
+
+    /**
      * Set the data to be rendered.
      * 
      * @param data
