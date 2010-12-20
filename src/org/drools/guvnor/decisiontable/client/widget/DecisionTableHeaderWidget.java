@@ -1,5 +1,8 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource;
 import org.drools.guvnor.decisiontable.client.widget.resources.CellTableResource.CellTableStyle;
 
@@ -21,6 +24,7 @@ public abstract class DecisionTableHeaderWidget extends Composite {
 
     protected Panel panel;
     protected DecisionTableWidget dtable;
+    protected List<DynamicEditColumn> columns = new ArrayList<DynamicEditColumn>();
 
     // Resources
     protected static final CellTableResource resource = GWT
@@ -54,9 +58,19 @@ public abstract class DecisionTableHeaderWidget extends Composite {
     }
 
     /**
-     * Redraw the "Header"
+     * Initialise the Header, this normally involves clearing any content and
+     * setting up any formatting requirements before calls to addColumn are
+     * made. I.E. ensure the Header is empty before items are added to it.
      */
-    public abstract void redraw();
+    public abstract void initialise();
+
+    /**
+     * Insert a Column before the given index.
+     * 
+     * @param index
+     * @param column
+     */
+    public abstract void insertColumnBefore(int index, DynamicEditColumn column);
 
     /**
      * Set scroll position to enable some degree of synchronisation between

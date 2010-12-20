@@ -54,7 +54,8 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
      * insertRowBefore(int)
      */
     @Override
-    public void insertRowBefore(int index) {
+    public void insertRowBefore(int index,
+	    List<CellValue<? extends Comparable<?>>> rowData) {
 	if (index < 0) {
 	    throw new IllegalArgumentException(
 		    "Index cannot be less than zero.");
@@ -63,8 +64,10 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	    throw new IllegalArgumentException(
 		    "Index cannot be greater than the number of rows.");
 	}
+	if (rowData == null) {
+	    throw new IllegalArgumentException("Row data cannot be null");
+	}
 
-	List<CellValue<? extends Comparable<?>>> rowData = data.get(index);
 	sideBarWidget.insertSelectorBefore(index);
 	TableRowElement newRow = tbody.insertRow(index);
 	populateTableRowElement(newRow, rowData);
@@ -170,14 +173,14 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
     private void redrawTableRowElement(
 	    List<CellValue<? extends Comparable<?>>> rowData,
 	    TableRowElement tre, int index) {
-	
+
 	for (int iCol = index; iCol < columns.size(); iCol++) {
 	    int maxColumnIndex = tre.getCells().getLength() - 1;
 	    int requiredColumnIndex = rowData.get(iCol).getHtmlCoordinate()
 		    .getCol();
 	    if (requiredColumnIndex > maxColumnIndex) {
-		
-		//Make a new TD element
+
+		// Make a new TD element
 		TableCellElement newCell = makeTableCellElement(iCol, rowData);
 		if (newCell != null) {
 		    tre.appendChild(newCell);
@@ -185,7 +188,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
 	    } else {
 
-		//Reuse an existing TD element
+		// Reuse an existing TD element
 		TableCellElement newCell = makeTableCellElement(iCol, rowData);
 		if (newCell != null) {
 		    TableCellElement oldCell = tre.getCells().getItem(

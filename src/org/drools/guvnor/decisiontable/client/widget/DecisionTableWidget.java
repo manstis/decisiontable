@@ -154,10 +154,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	assertDimensions();
     }
 
-    public List<DynamicEditColumn> getColumns() {
-	return gridWidget.getColumns();
-    }
-
     /**
      * Insert a new column at the specified index.
      * 
@@ -177,25 +173,19 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	assertColumnCoordinates(index);
 
-	// Add column to grid
+	// Create new column for grid
 	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
 		cellFactory.getCell(modelColumn, this), index);
-	gridWidget.addColumn(index, column);
-
-	// Re-index columns
-	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DynamicEditColumn col = gridWidget.getColumns().get(iCol);
-	    col.setColumnIndex(iCol);
-	}
 
 	// Partial redraw
 	if (!isMerged) {
+	    gridWidget.insertColumnBefore(index, column);
 	    gridWidget.redrawColumns(index);
 	} else {
 	    assertModelIndexes();
+	    gridWidget.insertColumnBefore(index, column);
 	    gridWidget.redrawColumns(index);
 	}
-	headerWidget.redraw();
 
 	assertDimensions();
     }
@@ -239,17 +229,16 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Partial redraw
 	if (!isMerged) {
 	    // Only new row when not merged
-	    gridWidget.insertRowBefore(index);
+	    gridWidget.insertRowBefore(index, row);
 	} else {
 	    // Affected rows when merged
 	    assertModelMerging();
 
 	    // This row is overwritten by the call to redrawRows()
-	    gridWidget.insertRowBefore(index);
+	    gridWidget.insertRowBefore(index, row);
 	    gridWidget.redrawRows(minRedrawRow, maxRedrawRow);
 	}
 
-	headerWidget.redraw();
 	assertDimensions();
     }
 
@@ -321,9 +310,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
-
-	// Draw the header
-	headerWidget.redraw();
 
     }
 

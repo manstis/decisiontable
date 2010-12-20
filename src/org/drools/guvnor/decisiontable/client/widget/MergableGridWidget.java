@@ -44,6 +44,7 @@ public abstract class MergableGridWidget extends Widget {
     // to record when a cell has been clicked as the DecisionTable manages
     // writing values back to merged cells...
     protected DecisionTableWidget dtable;
+    protected DecisionTableHeaderWidget headerWidget;
     protected DecisionTableSidebarWidget sideBarWidget;
 
     /**
@@ -58,6 +59,7 @@ public abstract class MergableGridWidget extends Widget {
 
 	this.dtable = dtable;
 	this.sideBarWidget = dtable.getSidebarWidget();
+	this.headerWidget = dtable.getHeaderWidget();
 
 	style.ensureInjected();
 
@@ -84,7 +86,7 @@ public abstract class MergableGridWidget extends Widget {
      * @param column
      */
     public void addColumn(DynamicEditColumn column) {
-	addColumn(columns.size(), column);
+	insertColumnBefore(columns.size(), column);
     }
 
     /**
@@ -93,8 +95,17 @@ public abstract class MergableGridWidget extends Widget {
      * @param index
      * @param column
      */
-    public void addColumn(int index, DynamicEditColumn column) {
+    public void insertColumnBefore(int index, DynamicEditColumn column) {
 	columns.add(index, column);
+
+	// Re-index columns
+	for (int iCol = 0; iCol < columns.size(); iCol++) {
+	    DynamicEditColumn col = columns.get(iCol);
+	    col.setColumnIndex(iCol);
+	}
+
+	headerWidget.insertColumnBefore(index, column);
+
     };
 
     /**
@@ -117,8 +128,13 @@ public abstract class MergableGridWidget extends Widget {
      * Insert the given row before the provided index. Partial redraw.
      * 
      * @param index
+     *            The index of the row before which the new row should be
+     *            inserted
+     * @param rowData
+     *            The row of data to insert
      */
-    public abstract void insertRowBefore(int index);
+    public abstract void insertRowBefore(int index,
+	    List<CellValue<? extends Comparable<?>>> rowData);
 
     /*
      * (non-Javadoc)
@@ -203,6 +219,7 @@ public abstract class MergableGridWidget extends Widget {
      */
     public void removeAllColumns() {
 	columns.clear();
+	headerWidget.initialise();
     }
 
     /**
@@ -213,7 +230,7 @@ public abstract class MergableGridWidget extends Widget {
     public void removeColumn(int index) {
 	columns.remove(index);
     }
-    
+
     /**
      * Set the data to be rendered.
      * 
