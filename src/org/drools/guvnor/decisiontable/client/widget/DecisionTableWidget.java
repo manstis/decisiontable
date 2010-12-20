@@ -115,6 +115,12 @@ public abstract class DecisionTableWidget extends Composite implements
 	selections.clear();
     }
 
+    public void hideColumn(int index) {
+    }
+
+    public void showColumn(int index) {
+    }
+
     /**
      * Delete a row at the specified index.
      * 

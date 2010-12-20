@@ -198,6 +198,26 @@ public class DecisionTableControlsWidget extends Composite {
 	    }
 	});
 
+	// Hide column button
+	Button btnHideColumn = new Button("Hide column 2", new ClickHandler() {
+
+	    @Override
+	    public void onClick(ClickEvent event) {
+		dtable.clearSelection();
+		dtable.hideColumn(1);
+	    }
+	});
+	
+	// Show column button
+	Button btnShowColumn = new Button("Show column 2", new ClickHandler() {
+
+	    @Override
+	    public void onClick(ClickEvent event) {
+		dtable.clearSelection();
+		dtable.showColumn(1);
+	    }
+	});
+
 	VerticalPanel vp1 = new VerticalPanel();
 	vp1.add(btnAddMetadataColumn);
 	vp1.add(btnAddActionColumn);
@@ -209,6 +229,8 @@ public class DecisionTableControlsWidget extends Composite {
 	panel.add(vp2);
 
 	panel.add(btnAddRow);
+	panel.add(btnHideColumn);
+	panel.add(btnShowColumn);
 	initWidget(panel);
 
     }

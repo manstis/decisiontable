@@ -70,19 +70,10 @@ public class VerticalDecisionTableHeaderWidget extends
 	    }
 
 	    if (type.equals("click")) {
-		int row = cell.getPropertyInt("row");
-		int col = cell.getPropertyInt("col");
-		DynamicEditColumn column = columns.get(col);
-		switch (row) {
-		case 0:
-		    if (!(column.getModelColumn() instanceof ConditionCol)) {
-			sortableHeaderClicked(column);
-		    }
-		    break;
-		case 1:
-		    if (column.getModelColumn() instanceof ConditionCol) {
-			sortableHeaderClicked(column);
-		    }
+		if (isInteractiveCell(cell)) {
+		    int col = cell.getPropertyInt("col");
+		    DynamicEditColumn column = columns.get(col);
+		    sortableHeaderClicked(column);
 		}
 	    }
 	}
@@ -101,12 +92,13 @@ public class VerticalDecisionTableHeaderWidget extends
 	}
 
 	// The second row of cells in the header is only populated for Action
-	// columns. We therefore need to offset the column index by the number 
+	// columns. We therefore need to offset the column index by the number
 	// of cells that do not require a second row.
 	private int getFactFieldColumnOffset(int index) {
 	    int offset = 0;
 	    for (int iCol = 0; iCol < index; iCol++) {
-		if (!(columns.get(iCol).getModelColumn() instanceof ConditionCol)) {
+		DynamicEditColumn column = columns.get(iCol);
+		if (!(column.getModelColumn() instanceof ConditionCol)) {
 		    offset++;
 		}
 	    }
@@ -159,6 +151,7 @@ public class VerticalDecisionTableHeaderWidget extends
 
 	// Insert a column at the given index
 	private void insertColumnBefore(int index, DynamicEditColumn column) {
+
 	    DTColumnConfig modelColumn = column.getModelColumn();
 	    if (modelColumn instanceof MetadataCol) {
 		TableRowElement tre = getTableRowElement(0);
@@ -188,6 +181,26 @@ public class VerticalDecisionTableHeaderWidget extends
 	    }
 	    columns.add(index, column);
 	    reindexColumns();
+	}
+
+	// Check whether a cell is interactive
+	private boolean isInteractiveCell(TableCellElement tce) {
+	    int row = tce.getPropertyInt("row");
+	    int col = tce.getPropertyInt("col");
+
+	    DynamicEditColumn column = columns.get(col);
+	    switch (row) {
+	    case 0:
+		if (!(column.getModelColumn() instanceof ConditionCol)) {
+		    return true;
+		}
+		break;
+	    case 1:
+		if (column.getModelColumn() instanceof ConditionCol) {
+		    return true;
+		}
+	    }
+	    return false;
 	}
 
 	// Make a new TableRowElement
@@ -277,6 +290,7 @@ public class VerticalDecisionTableHeaderWidget extends
 	private void reindexColumns() {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 		DynamicEditColumn column = columns.get(iCol);
+
 		DTColumnConfig modelColumn = column.getModelColumn();
 		TableRowElement tre = getTableRowElement(0);
 		TableCellElement tce = getTableCellElement(tre, iCol);
@@ -290,6 +304,7 @@ public class VerticalDecisionTableHeaderWidget extends
 		    tce.setPropertyInt("col", iCol);
 
 		}
+
 	    }
 	}
 
