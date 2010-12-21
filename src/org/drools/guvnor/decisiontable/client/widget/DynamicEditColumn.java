@@ -1,7 +1,5 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import java.util.List;
-
 import org.drools.guvnor.decisiontable.client.widget.cells.DecisionTableCellValueAdaptor;
 import org.drools.ide.common.client.modeldriven.dt.DTColumnConfig;
 
@@ -18,10 +16,11 @@ import com.google.gwt.user.cellview.client.Column;
  */
 public class DynamicEditColumn
 	extends
-	Column<List<CellValue<? extends Comparable<?>>>, CellValue<? extends Comparable<?>>> {
+	Column<DynamicDataRow, CellValue<? extends Comparable<?>>> {
 
     private int columnIndex = 0;
     private DTColumnConfig modelColumn;
+    private Boolean isVisible=new Boolean(true);
     private SortDirection sortDirection = SortDirection.NONE;
     private int sortIndex = -1;
 
@@ -40,12 +39,17 @@ public class DynamicEditColumn
 	}
 	DynamicEditColumn c = (DynamicEditColumn) o;
 	return c.columnIndex == this.columnIndex
+	&& c.isVisible == this.isVisible
 		&& c.sortDirection == this.sortDirection
 		&& c.sortIndex == this.sortIndex;
     }
 
     public int getColumnIndex() {
 	return this.columnIndex;
+    }
+
+    public Boolean getIsVisible() {
+        return isVisible;
     }
 
     public DTColumnConfig getModelColumn() {
@@ -61,7 +65,7 @@ public class DynamicEditColumn
     }
 
     @Override
-    public CellValue<?> getValue(List<CellValue<? extends Comparable<?>>> object) {
+    public CellValue<?> getValue(DynamicDataRow object) {
 	return (CellValue<?>) object.get(columnIndex);
     }
 
@@ -69,6 +73,7 @@ public class DynamicEditColumn
     public int hashCode() {
 	int hash = 7;
 	hash = 31 * hash + columnIndex;
+	hash = 31 * hash + isVisible.hashCode(); 
 	hash = 31 * hash + sortDirection.hashCode();
 	hash = 31 * hash + sortIndex;
 	return hash;
@@ -76,6 +81,10 @@ public class DynamicEditColumn
 
     public void setColumnIndex(int columnIndex) {
 	this.columnIndex = columnIndex;
+    }
+
+    public void setIsVisible(Boolean isVisible) {
+        this.isVisible = isVisible;
     }
 
     public void setSortDirection(SortDirection sortDirection) {

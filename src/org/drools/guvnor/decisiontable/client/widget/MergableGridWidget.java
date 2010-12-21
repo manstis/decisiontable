@@ -29,7 +29,7 @@ public abstract class MergableGridWidget extends Widget {
 
     // Data to render
     protected List<DynamicEditColumn> columns = new ArrayList<DynamicEditColumn>();
-    protected List<List<CellValue<? extends Comparable<?>>>> data = new ArrayList<List<CellValue<? extends Comparable<?>>>>();
+    protected List<DynamicDataRow> data = new ArrayList<DynamicDataRow>();
 
     // TABLE elements
     protected TableElement table;
@@ -90,29 +90,11 @@ public abstract class MergableGridWidget extends Widget {
     }
 
     /**
-     * Add a column at a specific index
-     * 
-     * @param index
-     * @param column
-     */
-    public void insertColumnBefore(int index, DynamicEditColumn column) {
-	columns.add(index, column);
-	
-	// Re-index columns
-	for (int iCol = 0; iCol < columns.size(); iCol++) {
-	    DynamicEditColumn col = columns.get(iCol);
-	    col.setColumnIndex(iCol);
-	}
-	
-	headerWidget.insertColumnBefore(index, column);
-    };
-
-    /**
      * Delete the row at the given index. Partial redraw.
      * 
      * @param index
      */
-    public abstract void deleteRow(int index);
+    public abstract void deleteRow(int index);;
 
     /**
      * Get a list of columns (Woot, CellTable lacks this!)
@@ -121,6 +103,24 @@ public abstract class MergableGridWidget extends Widget {
      */
     public List<DynamicEditColumn> getColumns() {
 	return this.columns;
+    }
+
+    /**
+     * Add a column at a specific index
+     * 
+     * @param index
+     * @param column
+     */
+    public void insertColumnBefore(int index, DynamicEditColumn column) {
+	columns.add(index, column);
+
+	// Re-index columns
+	for (int iCol = 0; iCol < columns.size(); iCol++) {
+	    DynamicEditColumn col = columns.get(iCol);
+	    col.setColumnIndex(iCol);
+	}
+
+	headerWidget.insertColumnBefore(index, column);
     }
 
     /**
@@ -133,7 +133,7 @@ public abstract class MergableGridWidget extends Widget {
      *            The row of data to insert
      */
     public abstract void insertRowBefore(int index,
-	    List<CellValue<? extends Comparable<?>>> rowData);
+	    DynamicDataRow rowData);
 
     /*
      * (non-Javadoc)
@@ -170,7 +170,7 @@ public abstract class MergableGridWidget extends Widget {
 	String eventType = event.getType();
 
 	// Convert HTML coordinates to physical coordinates
-	List<CellValue<? extends Comparable<?>>> htmlRow = data.get(iRow);
+	DynamicDataRow htmlRow = data.get(iRow);
 	CellValue<? extends Comparable<?>> htmlCell = htmlRow.get(iCol);
 	Coordinate c = htmlCell.getPhysicalCoordinate();
 	CellValue<? extends Comparable<?>> physicalCell = data.get(c.getRow())
@@ -230,30 +230,16 @@ public abstract class MergableGridWidget extends Widget {
 	columns.remove(index);
     }
 
-    /**
-     * Change the visibility of a column
-     * 
-     * @param index
-     *            Column index
-     * @param isVisible
-     */
     public void setColumnVisibility(int index, boolean isVisible) {
-	if (index < 0) {
-	    throw new IllegalArgumentException(
-		    "Start Column index cannot be less than zero.");
-	}
-	if (index > columns.size() - 1) {
-	    throw new IllegalArgumentException(
-		    "Start Column index cannot be greater than the number of defined columns.");
-	}
+	this.columns.get(index).setIsVisible(isVisible);
     }
-
+    
     /**
      * Set the data to be rendered.
      * 
      * @param data
      */
-    public void setRowData(List<List<CellValue<? extends Comparable<?>>>> data) {
+    public void setRowData(List<DynamicDataRow> data) {
 	this.data = data;
     }
 

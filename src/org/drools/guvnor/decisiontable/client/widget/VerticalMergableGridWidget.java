@@ -1,7 +1,5 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import java.util.List;
-
 import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
@@ -54,8 +52,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
      * insertRowBefore(int)
      */
     @Override
-    public void insertRowBefore(int index,
-	    List<CellValue<? extends Comparable<?>>> rowData) {
+    public void insertRowBefore(int index, DynamicDataRow rowData) {
 	if (index < 0) {
 	    throw new IllegalArgumentException(
 		    "Index cannot be less than zero.");
@@ -96,7 +93,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	    TableRowElement tre = Document.get().createTRElement();
 	    tre.setClassName(getRowStyle(iRow));
 
-	    List<CellValue<? extends Comparable<?>>> rowData = data.get(iRow);
+	    DynamicDataRow rowData = data.get(iRow);
 	    populateTableRowElement(tre, rowData);
 	    nbody.appendChild(tre);
 	}
@@ -125,7 +122,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	}
 	for (int iRow = 0; iRow < data.size(); iRow++) {
 	    TableRowElement tre = tbody.getRows().getItem(iRow);
-	    List<CellValue<? extends Comparable<?>>> rowData = data.get(iRow);
+	    DynamicDataRow rowData = data.get(iRow);
 	    redrawTableRowElement(rowData, tre, startRedrawIndex);
 	}
     }
@@ -162,42 +159,11 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
 	for (int iRow = startRedrawIndex; iRow <= endRedrawIndex; iRow++) {
 	    TableRowElement newRow = Document.get().createTRElement();
-	    List<CellValue<? extends Comparable<?>>> rowData = data.get(iRow);
+	    DynamicDataRow rowData = data.get(iRow);
 	    populateTableRowElement(newRow, rowData);
 	    tbody.replaceChild(newRow, tbody.getChild(iRow));
 	}
 	fixRowStyles(startRedrawIndex);
-    }
-
-    // Redraw a row adding new cells if necessary
-    private void redrawTableRowElement(
-	    List<CellValue<? extends Comparable<?>>> rowData,
-	    TableRowElement tre, int index) {
-
-	for (int iCol = index; iCol < columns.size(); iCol++) {
-	    int maxColumnIndex = tre.getCells().getLength() - 1;
-	    int requiredColumnIndex = rowData.get(iCol).getHtmlCoordinate()
-		    .getCol();
-	    if (requiredColumnIndex > maxColumnIndex) {
-
-		// Make a new TD element
-		TableCellElement newCell = makeTableCellElement(iCol, rowData);
-		if (newCell != null) {
-		    tre.appendChild(newCell);
-		}
-
-	    } else {
-
-		// Reuse an existing TD element
-		TableCellElement newCell = makeTableCellElement(iCol, rowData);
-		if (newCell != null) {
-		    TableCellElement oldCell = tre.getCells().getItem(
-			    requiredColumnIndex);
-		    tre.replaceChild(newCell, oldCell);
-		}
-	    }
-	}
-
     }
 
     // Row styles need to be re-applied after inserting and deleting rows
@@ -221,7 +187,7 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
     // Build a TableCellElement
     private TableCellElement makeTableCellElement(int iCol,
-	    List<CellValue<? extends Comparable<?>>> rowData) {
+	    DynamicDataRow rowData) {
 
 	String cellStyle = style.cellTableCell();
 	String divStyle = style.cellTableCellDiv();
@@ -230,47 +196,92 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 	// Column to render the column
 	DynamicEditColumn column = columns.get(iCol);
 
-	    CellValue<? extends Comparable<?>> cellData = rowData.get(iCol);
-	    int rowSpan = cellData.getRowSpan();
-	    if (rowSpan > 0) {
+	CellValue<? extends Comparable<?>> cellData = rowData.get(iCol);
+	int rowSpan = cellData.getRowSpan();
+	if (rowSpan > 0) {
 
-		// Use Elements rather than Templates as it's easier to set
-		// attributes that need to be dynamic
-		tce = Document.get().createTDElement();
-		DivElement div = Document.get().createDivElement();
-		tce.setClassName(cellStyle);
-		div.setClassName(divStyle);
+	    // Use Elements rather than Templates as it's easier to set
+	    // attributes that need to be dynamic
+	    tce = Document.get().createTDElement();
+	    DivElement div = Document.get().createDivElement();
+	    tce.setClassName(cellStyle);
+	    div.setClassName(divStyle);
 
-		// A dynamic attribute!
-		tce.getStyle().setHeight(style.rowHeight() * rowSpan, Unit.PX);
-		tce.setRowSpan(rowSpan);
+	    // A dynamic attribute!
+	    tce.getStyle().setHeight(style.rowHeight() * rowSpan, Unit.PX);
+	    tce.setRowSpan(rowSpan);
 
-		// Render the cell and set inner HTML
-		SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
-		if (rowData != null) {
-		    column.render(rowData, null, cellBuilder);
-		}
-		div.setInnerHTML(cellBuilder.toSafeHtml().asString());
-
-		// Construct the table
-		tce.appendChild(div);
+	    // Render the cell and set inner HTML
+	    SafeHtmlBuilder cellBuilder = new SafeHtmlBuilder();
+	    if (rowData != null) {
+		column.render(rowData, null, cellBuilder);
 	    }
+	    div.setInnerHTML(cellBuilder.toSafeHtml().asString());
+
+	    // Construct the table
+	    tce.appendChild(div);
+	}
 	return tce;
 
     }
 
-    // Populate the content of a TableRowElement
+    // Populate the content of a TableRowElement. This is used to populate
+    // new, empty, TableRowElements with complete rows for insertion into an
+    // HTML table based upon visible columns
     private TableRowElement populateTableRowElement(TableRowElement tre,
-	    List<CellValue<? extends Comparable<?>>> rowData) {
+	    DynamicDataRow rowData) {
 
 	for (int iCol = 0; iCol < columns.size(); iCol++) {
-	    TableCellElement tce = makeTableCellElement(iCol, rowData);
-	    if (tce != null) {
-		tre.appendChild(tce);
+	    if (columns.get(iCol).getIsVisible()) {
+		TableCellElement tce = makeTableCellElement(iCol, rowData);
+		if (tce != null) {
+		    tre.appendChild(tce);
+		}
 	    }
 	}
 
 	return tre;
+
+    }
+
+    // Redraw a row adding new cells if necessary. This is used to populate part
+    // of a row from the given index onwards, when a new column has been
+    // inserted. It is important the indexes on the underlying data have
+    // been set correctly before calling as they are used to determine the
+    // correct HTML element in which to render a cell.
+    private void redrawTableRowElement(DynamicDataRow rowData,
+	    TableRowElement tre, int index) {
+
+	for (int iCol = index; iCol < columns.size(); iCol++) {
+
+	    DynamicEditColumn column = columns.get(iCol);
+	    if (column.getIsVisible()) {
+
+		int maxColumnIndex = tre.getCells().getLength() - 1;
+		int requiredColumnIndex = rowData.get(iCol).getHtmlCoordinate()
+			.getCol();
+		if (requiredColumnIndex > maxColumnIndex) {
+
+		    // Make a new TD element
+		    TableCellElement newCell = makeTableCellElement(iCol,
+			    rowData);
+		    if (newCell != null) {
+			tre.appendChild(newCell);
+		    }
+
+		} else {
+
+		    // Reuse an existing TD element
+		    TableCellElement newCell = makeTableCellElement(iCol,
+			    rowData);
+		    if (newCell != null) {
+			TableCellElement oldCell = tre.getCells().getItem(
+				requiredColumnIndex);
+			tre.replaceChild(newCell, oldCell);
+		    }
+		}
+	    }
+	}
 
     }
 

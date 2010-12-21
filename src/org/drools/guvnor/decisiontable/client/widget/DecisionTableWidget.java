@@ -1,9 +1,7 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.TreeSet;
 
 import org.drools.guvnor.decisiontable.client.widget.cells.CellFactory;
@@ -155,7 +153,10 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     public void hideColumn(int index) {
-	this.gridWidget.setColumnVisibility(index, false);
+	gridWidget.setColumnVisibility(index, false);
+	assertModelIndexes();
+	gridWidget.redraw();
+	headerWidget.redraw();
     }
 
     /**
@@ -183,7 +184,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 
 	// Add row to data
-	List<CellValue<? extends Comparable<?>>> row = new ArrayList<CellValue<? extends Comparable<?>>>();
+	DynamicDataRow row = new DynamicDataRow();
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
 	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
 		    .getModelColumn();
@@ -210,11 +211,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	assertDimensions();
     }
 
-    public void redraw() {
-	this.headerWidget.redraw();
-	this.gridWidget.redraw();
-    }
-
     /**
      * Set the Decision Table's data. This removes all existing columns from the
      * Decision Table and re-creates them based upon the provided data.
@@ -229,7 +225,6 @@ public abstract class DecisionTableWidget extends Composite implements
 
 	if (dataSize > 0) {
 
-	    // Clear existing columns
 	    gridWidget.removeAllColumns();
 
 	    // Initialise CellTable's Metadata columns
@@ -269,7 +264,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	    this.data = new DynamicData();
 	    for (int iRow = 0; iRow < dataSize; iRow++) {
 		String[] row = model.getData()[iRow];
-		ArrayList<CellValue<? extends Comparable<?>>> cellRow = new ArrayList<CellValue<? extends Comparable<?>>>();
+		DynamicDataRow cellRow = new DynamicDataRow();
 		for (iCol = 0; iCol < row.length; iCol++) {
 		    DTColumnConfig column = gridWidget.getColumns().get(iCol)
 			    .getModelColumn();
@@ -283,6 +278,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	gridWidget.setRowData(data);
 	gridWidget.redraw();
+	headerWidget.redraw();
 
     }
 
@@ -303,9 +299,15 @@ public abstract class DecisionTableWidget extends Composite implements
     }
 
     public void showColumn(int index) {
-	this.gridWidget.setColumnVisibility(index, true);
+	gridWidget.setColumnVisibility(index, true);
+	assertModelIndexes();
+	gridWidget.redraw();
+	headerWidget.redraw();
     }
 
+    /**
+     * Sort data based upon information stored in Columns
+     */
     public void sort() {
 	final DynamicEditColumn[] sortOrderList = new DynamicEditColumn[gridWidget
 		.getColumns().size()];
@@ -319,46 +321,42 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 	final int sortedColumnCount = index;
 
-	Collections.sort(data,
-		new Comparator<List<CellValue<? extends Comparable<?>>>>() {
+	Collections.sort(data, new Comparator<DynamicDataRow>() {
 
-		    @SuppressWarnings({ "rawtypes", "unchecked" })
-		    public int compare(
-			    List<CellValue<? extends Comparable<?>>> leftRow,
-			    List<CellValue<? extends Comparable<?>>> rightRow) {
-			int comparison = 0;
-			for (int index = 0; index < sortedColumnCount; index++) {
-			    DynamicEditColumn sortableHeader = sortOrderList[index];
-			    Comparable leftColumnValue = leftRow
-				    .get(sortableHeader.getColumnIndex());
-			    Comparable rightColumnValue = rightRow
-				    .get(sortableHeader.getColumnIndex());
-			    comparison = (leftColumnValue == rightColumnValue) ? 0
-				    : (leftColumnValue == null) ? -1
-					    : (rightColumnValue == null) ? 1
-						    : leftColumnValue
-							    .compareTo(rightColumnValue);
-			    if (comparison != 0) {
-				switch (sortableHeader.getSortDirection()) {
-				case ASCENDING:
-				    break;
-				case DESCENDING:
-				    comparison = -comparison;
-				    break;
-				default:
-				    throw new IllegalStateException(
-					    "Sorting can only be enabled for ASCENDING or"
-						    + " DESCENDING, not sortDirection ("
-						    + sortableHeader
-							    .getSortDirection()
-						    + ") .");
-				}
-				return comparison;
-			    }
+	    @SuppressWarnings({ "rawtypes", "unchecked" })
+	    public int compare(DynamicDataRow leftRow, DynamicDataRow rightRow) {
+		int comparison = 0;
+		for (int index = 0; index < sortedColumnCount; index++) {
+		    DynamicEditColumn sortableHeader = sortOrderList[index];
+		    Comparable leftColumnValue = leftRow.get(sortableHeader
+			    .getColumnIndex());
+		    Comparable rightColumnValue = rightRow.get(sortableHeader
+			    .getColumnIndex());
+		    comparison = (leftColumnValue == rightColumnValue) ? 0
+			    : (leftColumnValue == null) ? -1
+				    : (rightColumnValue == null) ? 1
+					    : leftColumnValue
+						    .compareTo(rightColumnValue);
+		    if (comparison != 0) {
+			switch (sortableHeader.getSortDirection()) {
+			case ASCENDING:
+			    break;
+			case DESCENDING:
+			    comparison = -comparison;
+			    break;
+			default:
+			    throw new IllegalStateException(
+				    "Sorting can only be enabled for ASCENDING or"
+					    + " DESCENDING, not sortDirection ("
+					    + sortableHeader.getSortDirection()
+					    + ") .");
 			}
 			return comparison;
 		    }
-		});
+		}
+		return comparison;
+	    }
+	});
 
 	removeModelMerging();
 	assertModelMerging();
@@ -469,7 +467,7 @@ public abstract class DecisionTableWidget extends Composite implements
     // Ensure cells in columns have correct physical coordinates
     private void assertColumnCoordinates(int index) {
 	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    DynamicDataRow row = data.get(iRow);
 	    for (int iCol = index; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = data.get(iRow).get(
 			iCol);
@@ -500,34 +498,38 @@ public abstract class DecisionTableWidget extends Composite implements
     private void assertModelIndexes() {
 
 	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    DynamicDataRow row = data.get(iRow);
 	    int colCount = 0;
 	    for (int iCol = 0; iCol < row.size(); iCol++) {
 
-		CellValue<? extends Comparable<?>> indexCell = row.get(iCol);
-
 		int newRow = 0;
 		int newCol = 0;
-		if (indexCell.getRowSpan() != 0) {
-		    newRow = iRow;
-		    newCol = colCount++;
+		CellValue<? extends Comparable<?>> indexCell = row.get(iCol);
 
-		    CellValue<? extends Comparable<?>> cell = data.get(newRow)
-			    .get(newCol);
-		    cell.setPhysicalCoordinate(new Coordinate(iRow, iCol));
+		// Don't index hidden columns; indexing is used to
+		// map between HTML elements and the data behind
+		DynamicEditColumn column = gridWidget.getColumns().get(iCol);
+		if (column.getIsVisible()) {
 
-		} else {
-		    List<CellValue<? extends Comparable<?>>> priorRow = data
-			    .get(iRow - 1);
-		    CellValue<? extends Comparable<?>> priorCell = priorRow
-			    .get(iCol);
-		    Coordinate priorHtmlCoordinate = priorCell
-			    .getHtmlCoordinate();
-		    newRow = priorHtmlCoordinate.getRow();
-		    newCol = priorHtmlCoordinate.getCol();
+		    if (indexCell.getRowSpan() != 0) {
+			newRow = iRow;
+			newCol = colCount++;
+
+			CellValue<? extends Comparable<?>> cell = data.get(
+				newRow).get(newCol);
+			cell.setPhysicalCoordinate(new Coordinate(iRow, iCol));
+
+		    } else {
+			DynamicDataRow priorRow = data.get(iRow - 1);
+			CellValue<? extends Comparable<?>> priorCell = priorRow
+				.get(iCol);
+			Coordinate priorHtmlCoordinate = priorCell
+				.getHtmlCoordinate();
+			newRow = priorHtmlCoordinate.getRow();
+			newCol = priorHtmlCoordinate.getCol();
+		    }
 		}
 		indexCell.setHtmlCoordinate(new Coordinate(newRow, newCol));
-
 	    }
 	}
     }
@@ -577,7 +579,7 @@ public abstract class DecisionTableWidget extends Composite implements
     // Ensure cells in rows have correct physical coordinates
     private void assertRowCoordinates(int index) {
 	for (int iRow = index; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    DynamicDataRow row = data.get(iRow);
 	    for (int iCol = 0; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = data.get(iRow).get(
 			iCol);
@@ -595,7 +597,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	System.out.println("coordinates");
 	System.out.println("-----------");
 	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    DynamicDataRow row = data.get(iRow);
 	    for (int iCol = 0; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = row.get(iCol);
 
@@ -612,7 +614,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	System.out.println("htmlToDataMap");
 	System.out.println("-------------");
 	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    DynamicDataRow row = data.get(iRow);
 	    for (int iCol = 0; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = row.get(iCol);
 
@@ -629,7 +631,7 @@ public abstract class DecisionTableWidget extends Composite implements
 	System.out.println("dataToHtmlMap");
 	System.out.println("-------------");
 	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+	    DynamicDataRow row = data.get(iRow);
 	    for (int iCol = 0; iCol < row.size(); iCol++) {
 		CellValue<? extends Comparable<?>> cell = row.get(iCol);
 
@@ -712,23 +714,25 @@ public abstract class DecisionTableWidget extends Composite implements
 	return index + 1;
     }
 
+    // Given a base row find the maximum row that needs to be re-rendered based
+    // upon each columns merged cells; where each merged cell passes through the
+    // base row
     private int findMaxRedrawRow(int baseRowIndex) {
-	if (baseRowIndex < 0) {
-	    return 0;
-	}
-	if (baseRowIndex > data.size()) {
-	    return data.size() - 1;
-	}
+//	if (baseRowIndex < 0) {
+//	    return 0;
+//	}
+//	if (baseRowIndex > data.size()) {
+//	    return data.size() - 1;
+//	}
 
 	int maxRedrawRow = baseRowIndex;
-	List<CellValue<? extends Comparable<?>>> baseRow = data
-		.get(baseRowIndex);
+	DynamicDataRow baseRow = data.get(baseRowIndex);
 	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
 	    int iRow = baseRowIndex;
 	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
 	    while (cell.getRowSpan() != 1 && iRow < data.size() - 1) {
 		iRow++;
-		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+		DynamicDataRow row = data.get(iRow);
 		cell = row.get(iCol);
 	    }
 	    maxRedrawRow = (iRow > maxRedrawRow ? iRow : maxRedrawRow);
@@ -749,23 +753,25 @@ public abstract class DecisionTableWidget extends Composite implements
 	return index + 1;
     }
 
+    // Given a base row find the minimum row that needs to be re-rendered based
+    // upon each columns merged cells; where each merged cell passes through the
+    // base row
     private int findMinRedrawRow(int baseRowIndex) {
-	if (baseRowIndex < 0) {
-	    return 0;
-	}
-	if (baseRowIndex > data.size()) {
-	    return data.size() - 1;
-	}
+//	if (baseRowIndex < 0) {
+//	    return 0;
+//	}
+//	if (baseRowIndex > data.size()) {
+//	    return data.size() - 1;
+//	}
 
 	int minRedrawRow = baseRowIndex;
-	List<CellValue<? extends Comparable<?>>> baseRow = data
-		.get(baseRowIndex);
+	DynamicDataRow baseRow = data.get(baseRowIndex);
 	for (int iCol = 0; iCol < baseRow.size(); iCol++) {
 	    int iRow = baseRowIndex;
 	    CellValue<? extends Comparable<?>> cell = baseRow.get(iCol);
 	    while (cell.getRowSpan() != 1 && iRow > 0) {
 		iRow--;
-		List<CellValue<? extends Comparable<?>>> row = data.get(iRow);
+		DynamicDataRow row = data.get(iRow);
 		cell = row.get(iCol);
 	    }
 	    minRedrawRow = (iRow < minRedrawRow ? iRow : minRedrawRow);
@@ -787,14 +793,15 @@ public abstract class DecisionTableWidget extends Composite implements
 	// Create new column for grid
 	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
 		cellFactory.getCell(modelColumn, this), index);
-	
+
 	// Partial redraw
 	if (!isMerged) {
 	    gridWidget.insertColumnBefore(index, column);
+	    assertModelIndexes();
 	    gridWidget.redrawColumns(index);
 	} else {
-	    assertModelIndexes();
 	    gridWidget.insertColumnBefore(index, column);
+	    assertModelIndexes();
 	    gridWidget.redrawColumns(index);
 	}
 

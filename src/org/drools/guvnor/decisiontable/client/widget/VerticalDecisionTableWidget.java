@@ -16,20 +16,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class VerticalDecisionTableWidget extends DecisionTableWidget {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
-     * getMainPanel()
-     */
-    @Override
-    protected Panel getMainPanel() {
-	if (this.mainPanel == null) {
-	    this.mainPanel = new HorizontalPanel();
-	}
-	return this.mainPanel;
-    }
-
     @Override
     protected Panel getBodyPanel() {
 	if (this.bodyPanel == null) {
@@ -64,14 +50,14 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
      * (non-Javadoc)
      * 
      * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
-     * getSidebarWidget()
+     * getMainPanel()
      */
     @Override
-    protected DecisionTableSidebarWidget getSidebarWidget() {
-	if (this.sidebarWidget == null) {
-	    this.sidebarWidget = new VerticalDecisionTableSidebarWidget(this);
+    protected Panel getMainPanel() {
+	if (this.mainPanel == null) {
+	    this.mainPanel = new HorizontalPanel();
 	}
-	return this.sidebarWidget;
+	return this.mainPanel;
     }
 
     /*
@@ -92,6 +78,20 @@ public class VerticalDecisionTableWidget extends DecisionTableWidget {
 			.setScrollPosition(scrollPanel.getScrollPosition());
 	    }
 	};
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.drools.guvnor.decisiontable.client.widget.DecisionTableWidget#
+     * getSidebarWidget()
+     */
+    @Override
+    protected DecisionTableSidebarWidget getSidebarWidget() {
+	if (this.sidebarWidget == null) {
+	    this.sidebarWidget = new VerticalDecisionTableSidebarWidget(this);
+	}
+	return this.sidebarWidget;
     }
 
 }

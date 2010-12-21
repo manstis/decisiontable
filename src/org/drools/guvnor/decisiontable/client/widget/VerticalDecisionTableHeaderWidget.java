@@ -91,20 +91,6 @@ public class VerticalDecisionTableHeaderWidget extends
 	    return null;
 	}
 
-	// The second row of cells in the header is only populated for Action
-	// columns. We therefore need to offset the column index by the number
-	// of cells that do not require a second row.
-	private int getFactFieldColumnOffset(int index) {
-	    int offset = 0;
-	    for (int iCol = 0; iCol < index; iCol++) {
-		DynamicEditColumn column = columns.get(iCol);
-		if (column.getModelColumn() instanceof ConditionCol) {
-		    offset++;
-		}
-	    }
-	    return offset;
-	}
-
 	// Get the InnerHTML to render the applicable icon
 	private String getSortDirectionIcon(SortDirection sd, int sortIndex) {
 	    String html = "";
@@ -131,6 +117,38 @@ public class VerticalDecisionTableHeaderWidget extends
 	    Node rowNode = tbody.getChild(iRow);
 	    Element rowElement = Element.as(rowNode);
 	    return TableRowElement.as(rowElement);
+	}
+
+	// Get the HTML column index for a given data column taking hidden
+	// columns into consideration; e.g. data column 2 becomes HTML column
+	// 0 if columns 0 and 1 are hidden.
+	private int getVisibleColumnIndex(int row, int index) {
+	    int visibleColumnIndex = 0;
+	    switch (row) {
+	    case 0:
+		for (int iCol = 0; iCol < index; iCol++) {
+		    DynamicEditColumn column = columns.get(iCol);
+		    if (column.getIsVisible()) {
+			visibleColumnIndex++;
+		    }
+		}
+		break;
+
+	    case 1:
+		for (int iCol = 0; iCol < index; iCol++) {
+		    DynamicEditColumn column = columns.get(iCol);
+		    if (column.getModelColumn() instanceof ConditionCol) {
+			if (column.getIsVisible()) {
+			    visibleColumnIndex++;
+			}
+		    }
+		}
+		break;
+
+	    default:
+		throw new IllegalArgumentException("Row index must be 0 or 1");
+	    }
+	    return visibleColumnIndex;
 	}
 
 	// Create a two row empty table
@@ -202,32 +220,38 @@ public class VerticalDecisionTableHeaderWidget extends
 	// Populate a column
 	private void populateColumn(int index, DynamicEditColumn column) {
 
-	    // Second row index
-	    int offset = getFactFieldColumnOffset(index);
+	    if (!column.getIsVisible()) {
+		return;
+	    }
 
+	    // Get HTML column indexes for data
+	    int visibleColumnIndexRow0 = getVisibleColumnIndex(0, index);
+	    int visibleColumnIndexRow1 = getVisibleColumnIndex(1, index);
+
+	    // Make applicable HTML Table cell
 	    DTColumnConfig modelColumn = column.getModelColumn();
 	    if (modelColumn instanceof MetadataCol) {
 		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
+		TableCellElement tce = tre.insertCell(visibleColumnIndexRow0);
 		populateMetadataTableCellElement(tce, column);
 
 	    } else if (modelColumn instanceof AttributeCol) {
 		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
+		TableCellElement tce = tre.insertCell(visibleColumnIndexRow0);
 		populateAttributeTableCellElement(tce, column);
 
 	    } else if (modelColumn instanceof ConditionCol) {
 		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
+		TableCellElement tce = tre.insertCell(visibleColumnIndexRow0);
 		populateConditionFactTypeTableCellElement(tce, column);
 
 		tre = getTableRowElement(1);
-		tce = tre.insertCell(offset);
+		tce = tre.insertCell(visibleColumnIndexRow1);
 		populateConditionFactFieldTableCellElement(tce, column);
 
 	    } else if (modelColumn instanceof ActionCol) {
 		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = tre.insertCell(index);
+		TableCellElement tce = tre.insertCell(visibleColumnIndexRow0);
 		populateActionTableCellElement(tce, column);
 
 	    }
@@ -313,27 +337,38 @@ public class VerticalDecisionTableHeaderWidget extends
 	    reindexColumns();
 	}
 
-	// When a new column is inserted the metadata containing indexing needs
-	// to be updated
+	// Update indexes to reflect change in columns. Indexes are used
+	// to determine whether the column is interactive and to assist sorting.
+	// Using HTML properties is not the best place to store this information
+	// but it serves its purpose until I get to refactor.
 	private void reindexColumns() {
 
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
 
 		DynamicEditColumn column = columns.get(iCol);
-		DTColumnConfig modelColumn = column.getModelColumn();
 
-		TableRowElement tre = getTableRowElement(0);
-		TableCellElement tce = getTableCellElement(tre, iCol);
-		tce.setPropertyInt("row", 0);
-		tce.setPropertyInt("col", iCol);
-		if (modelColumn instanceof ConditionCol) {
-		    tre = getTableRowElement(1);
-		    int offset = getFactFieldColumnOffset(iCol);
-		    tce = getTableCellElement(tre, offset);
-		    tce.setPropertyInt("row", 1);
+		int visibleColumnIndexRow0 = getVisibleColumnIndex(0, iCol);
+		int visibleColumnIndexRow1 = getVisibleColumnIndex(1, iCol);
+
+		if (column.getIsVisible()) {
+
+		    DTColumnConfig modelColumn = column.getModelColumn();
+
+		    TableRowElement tre = getTableRowElement(0);
+		    TableCellElement tce = getTableCellElement(tre,
+			    visibleColumnIndexRow0);
+		    tce.setPropertyInt("row", 0);
 		    tce.setPropertyInt("col", iCol);
+
+		    if (modelColumn instanceof ConditionCol) {
+			tre = getTableRowElement(1);
+			tce = getTableCellElement(tre, visibleColumnIndexRow1);
+			tce.setPropertyInt("row", 1);
+			tce.setPropertyInt("col", iCol);
+		    }
 		}
 	    }
+
 	}
 
 	// Set the InnerText on a TableCellElement allowing for the general
@@ -356,17 +391,24 @@ public class VerticalDecisionTableHeaderWidget extends
 	// Update all sort icons when a column is sorted
 	private void updateSortIcons() {
 	    for (int iCol = 0; iCol < columns.size(); iCol++) {
+
+		int visibleColumnIndexRow0 = getVisibleColumnIndex(0, iCol);
+		int visibleColumnIndexRow1 = getVisibleColumnIndex(1, iCol);
+
 		DynamicEditColumn column = columns.get(iCol);
-		DTColumnConfig modelColumn = column.getModelColumn();
-		if (!(modelColumn instanceof ConditionCol)) {
-		    TableRowElement tre = getTableRowElement(0);
-		    TableCellElement tce = getTableCellElement(tre, iCol);
-		    updateSortIcon(tce, column);
-		} else {
-		    TableRowElement tre = getTableRowElement(1);
-		    int offset = getFactFieldColumnOffset(iCol);
-		    TableCellElement tce = getTableCellElement(tre, offset);
-		    updateSortIcon(tce, column);
+		if (column.getIsVisible()) {
+		    DTColumnConfig modelColumn = column.getModelColumn();
+		    if (!(modelColumn instanceof ConditionCol)) {
+			TableRowElement tre = getTableRowElement(0);
+			TableCellElement tce = getTableCellElement(tre,
+				visibleColumnIndexRow0);
+			updateSortIcon(tce, column);
+		    } else {
+			TableRowElement tre = getTableRowElement(1);
+			TableCellElement tce = getTableCellElement(tre,
+				visibleColumnIndexRow1);
+			updateSortIcon(tce, column);
+		    }
 		}
 	    }
 	}

@@ -265,7 +265,6 @@ public class DecisionTableControlsWidget extends Composite {
 	    @Override
 	    public void execute() {
 		dtable.hideColumn(hideColumnWidget.getValue());
-		dtable.redraw();
 	    }
 
 	});
@@ -278,7 +277,6 @@ public class DecisionTableControlsWidget extends Composite {
 	    @Override
 	    public void execute() {
 		dtable.showColumn(showColumnWidget.getValue());
-		dtable.redraw();
 	    }
 
 	});

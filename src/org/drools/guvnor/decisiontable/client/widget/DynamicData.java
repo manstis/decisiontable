@@ -1,7 +1,6 @@
 package org.drools.guvnor.decisiontable.client.widget;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple container for rows of data.
@@ -10,7 +9,7 @@ import java.util.List;
  * 
  */
 public class DynamicData extends
-	ArrayList<List<CellValue<? extends Comparable<?>>>> {
+	ArrayList<DynamicDataRow> {
 
     private static final long serialVersionUID = -3710491920672816057L;
 
