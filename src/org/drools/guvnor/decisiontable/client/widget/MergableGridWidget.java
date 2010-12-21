@@ -97,15 +97,14 @@ public abstract class MergableGridWidget extends Widget {
      */
     public void insertColumnBefore(int index, DynamicEditColumn column) {
 	columns.add(index, column);
-
+	
 	// Re-index columns
 	for (int iCol = 0; iCol < columns.size(); iCol++) {
 	    DynamicEditColumn col = columns.get(iCol);
 	    col.setColumnIndex(iCol);
 	}
-
+	
 	headerWidget.insertColumnBefore(index, column);
-
     };
 
     /**
@@ -247,7 +246,6 @@ public abstract class MergableGridWidget extends Widget {
 	    throw new IllegalArgumentException(
 		    "Start Column index cannot be greater than the number of defined columns.");
 	}
-	columns.get(index).setIsVisible(isVisible);
     }
 
     /**

@@ -229,7 +229,6 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 
 	// Column to render the column
 	DynamicEditColumn column = columns.get(iCol);
-	if (column.isVisible()) {
 
 	    CellValue<? extends Comparable<?>> cellData = rowData.get(iCol);
 	    int rowSpan = cellData.getRowSpan();
@@ -256,7 +255,6 @@ public class VerticalMergableGridWidget extends MergableGridWidget {
 		// Construct the table
 		tce.appendChild(div);
 	    }
-	}
 	return tce;
 
     }

@@ -22,7 +22,6 @@ public class DynamicEditColumn
 
     private int columnIndex = 0;
     private DTColumnConfig modelColumn;
-    private Boolean isVisible=new Boolean(true);
     private SortDirection sortDirection = SortDirection.NONE;
     private int sortIndex = -1;
 
@@ -42,7 +41,6 @@ public class DynamicEditColumn
 	DynamicEditColumn c = (DynamicEditColumn) o;
 	return c.columnIndex == this.columnIndex
 		&& c.sortDirection == this.sortDirection
-		&& c.isVisible.equals(this.isVisible())
 		&& c.sortIndex == this.sortIndex;
     }
 
@@ -61,14 +59,6 @@ public class DynamicEditColumn
     public int getSortIndex() {
 	return sortIndex;
     }
-    
-    public Boolean isVisible() {
-        return isVisible;
-    }
-
-    public void setIsVisible(Boolean isVisible) {
-        this.isVisible = isVisible;
-    }
 
     @Override
     public CellValue<?> getValue(List<CellValue<? extends Comparable<?>>> object) {
@@ -80,7 +70,6 @@ public class DynamicEditColumn
 	int hash = 7;
 	hash = 31 * hash + columnIndex;
 	hash = 31 * hash + sortDirection.hashCode();
-	hash = 31 * hash + isVisible.hashCode();
 	hash = 31 * hash + sortIndex;
 	return hash;
     }

@@ -115,19 +115,6 @@ public abstract class DecisionTableWidget extends Composite implements
 	selections.clear();
     }
 
-    public void hideColumn(int index) {
-	this.gridWidget.setColumnVisibility(index, false);
-    }
-
-    public void showColumn(int index) {
-	this.gridWidget.setColumnVisibility(index, true);
-    }
-    
-    public void redraw() {
-	this.headerWidget.redraw();
-	this.gridWidget.redraw();	
-    }
-
     /**
      * Delete a row at the specified index.
      * 
@@ -167,40 +154,8 @@ public abstract class DecisionTableWidget extends Composite implements
 	assertDimensions();
     }
 
-    /**
-     * Insert a new column at the specified index.
-     * 
-     * @param title
-     *            A title for the column
-     * 
-     * @param index
-     *            The (zero-based) index of the column
-     */
-    public void insertColumnBefore(DTColumnConfig modelColumn, int index) {
-
-	// Add column to data
-	for (int iRow = 0; iRow < data.size(); iRow++) {
-	    CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
-		    modelColumn, iRow, index);
-	    data.get(iRow).add(index, cell);
-	}
-	assertColumnCoordinates(index);
-
-	// Create new column for grid
-	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
-		cellFactory.getCell(modelColumn, this), index);
-
-	// Partial redraw
-	if (!isMerged) {
-	    gridWidget.insertColumnBefore(index, column);
-	    gridWidget.redrawColumns(index);
-	} else {
-	    assertModelIndexes();
-	    gridWidget.insertColumnBefore(index, column);
-	    gridWidget.redrawColumns(index);
-	}
-
-	assertDimensions();
+    public void hideColumn(int index) {
+	this.gridWidget.setColumnVisibility(index, false);
     }
 
     /**
@@ -253,6 +208,11 @@ public abstract class DecisionTableWidget extends Composite implements
 	}
 
 	assertDimensions();
+    }
+
+    public void redraw() {
+	this.headerWidget.redraw();
+	this.gridWidget.redraw();
     }
 
     /**
@@ -340,6 +300,10 @@ public abstract class DecisionTableWidget extends Composite implements
 	mainPanel.setWidth(width);
 	scrollPanel.setWidth(width);
 	headerWidget.setWidth(width);
+    }
+
+    public void showColumn(int index) {
+	this.gridWidget.setColumnVisibility(index, true);
     }
 
     public void sort() {
@@ -720,11 +684,11 @@ public abstract class DecisionTableWidget extends Composite implements
     private int findAttributeColumnIndex() {
 	int index = 0;
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    if (column instanceof MetadataCol) {
+	    DynamicEditColumn column = gridWidget.getColumns().get(iCol);
+	    DTColumnConfig modelColumn = column.getModelColumn();
+	    if (modelColumn instanceof MetadataCol) {
 		index = iCol;
-	    } else if (column instanceof AttributeCol) {
+	    } else if (modelColumn instanceof AttributeCol) {
 		index = iCol;
 	    }
 	}
@@ -735,13 +699,13 @@ public abstract class DecisionTableWidget extends Composite implements
     private int findConditionColumnIndex() {
 	int index = 0;
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    if (column instanceof MetadataCol) {
+	    DynamicEditColumn column = gridWidget.getColumns().get(iCol);
+	    DTColumnConfig modelColumn = column.getModelColumn();
+	    if (modelColumn instanceof MetadataCol) {
 		index = iCol;
-	    } else if (column instanceof AttributeCol) {
+	    } else if (modelColumn instanceof AttributeCol) {
 		index = iCol;
-	    } else if (column instanceof ConditionCol) {
+	    } else if (modelColumn instanceof ConditionCol) {
 		index = iCol;
 	    }
 	}
@@ -776,9 +740,9 @@ public abstract class DecisionTableWidget extends Composite implements
     private int findMetadataColumnIndex() {
 	int index = 0;
 	for (int iCol = 0; iCol < gridWidget.getColumns().size(); iCol++) {
-	    DTColumnConfig column = gridWidget.getColumns().get(iCol)
-		    .getModelColumn();
-	    if (column instanceof MetadataCol) {
+	    DynamicEditColumn column = gridWidget.getColumns().get(iCol);
+	    DTColumnConfig modelColumn = column.getModelColumn();
+	    if (modelColumn instanceof MetadataCol) {
 		index = iCol;
 	    }
 	}
@@ -807,6 +771,34 @@ public abstract class DecisionTableWidget extends Composite implements
 	    minRedrawRow = (iRow < minRedrawRow ? iRow : minRedrawRow);
 	}
 	return minRedrawRow;
+    }
+
+    // Insert a new column at the specified index.
+    private void insertColumnBefore(DTColumnConfig modelColumn, int index) {
+
+	// Add column to data
+	for (int iRow = 0; iRow < data.size(); iRow++) {
+	    CellValue<?> cell = CellValueFactory.getInstance().makeCellValue(
+		    modelColumn, iRow, index);
+	    data.get(iRow).add(index, cell);
+	}
+	assertColumnCoordinates(index);
+
+	// Create new column for grid
+	DynamicEditColumn column = new DynamicEditColumn(modelColumn,
+		cellFactory.getCell(modelColumn, this), index);
+	
+	// Partial redraw
+	if (!isMerged) {
+	    gridWidget.insertColumnBefore(index, column);
+	    gridWidget.redrawColumns(index);
+	} else {
+	    assertModelIndexes();
+	    gridWidget.insertColumnBefore(index, column);
+	    gridWidget.redrawColumns(index);
+	}
+
+	assertDimensions();
     }
 
     // Remove merging from model
